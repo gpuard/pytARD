@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.fftpack import idct, dct
 
+
 class ARDSimulator:
 
     C = 343  #  Speed of sound [m/s]
@@ -12,7 +13,7 @@ class ARDSimulator:
         Parameters
         ----------
         room_size : ndarray
-            Size of the room in meters.
+            Size of the room in meters. Can be 1D, 2D or 3D.
         max_simulation_frequency : float
             Uppermost frequency of simulation. Can be dialed in lower to enhance performance.
         spatial_samples_per_wave_length : int
@@ -80,3 +81,23 @@ class ARDSimulator:
             ℎ, the voxelization step. In numerics and papers, it's usually referred to ℎ. 
         '''
         return self.C / (spatial_samples_per_wave_length * self.max_simulation_frequency)
+
+    @staticmethod
+    def create_dirac_impulse(a, x):
+        '''
+        Creates a dirac impulse, an infinitely thin and strong impulse.
+        For reference, see https://en.wikipedia.org/wiki/Dirac_delta_function.
+
+        Parameters
+        ----------
+        a : float
+            Height / narrowness of impulse. The higher the value, the higher and narrower the
+            impulse.
+        x : float
+            Location coordinate
+        Returns
+        -------
+        float
+            δ(x), the calculated dirac impulse.
+        '''
+        return (1 / (np.sqrt(np.pi) * a)) * (np.exp(-((x ** 2) / (a ** 2))))
