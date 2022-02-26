@@ -4,7 +4,7 @@ class ARDParamters:
     '''
     Parameter container class for ARD simulator.
     '''
-    def __init__(self, room_size, max_simulation_frequency, T, spatial_samples_per_wave_length=4, c=343, Fs=8000, verbose=False, visualize=True):
+    def __init__(self, room_size, max_simulation_frequency, T, spatial_samples_per_wave_length=4, c=343, Fs=8000, verbose=False, visualize=False):
         '''
         Instantiates an ARD simulation session.
 
@@ -36,7 +36,10 @@ class ARDParamters:
 
         # Array, which stores air pressure at each given point in time in the voxelized grid
         self.pressure_field = None
-        
+
+        # Array for pressure field results (auralisation and visualisation)
+        self.pressure_field_results = []
+
         self.c = c
         self.Fs = Fs
 
@@ -48,12 +51,18 @@ class ARDParamters:
 
         # Voxel grid spacing. Changes according to frequency
         self.H = self.calculate_voxelization_step(
-            spatial_samples_per_wave_length)  
+            spatial_samples_per_wave_length)
+        if verbose:
+            print(f"H = {self.H}")
+
+        # Longest room dimension length dividied by H (voxel grid spacing).
+        self.space_divisions = int(np.max(room_size) / self.H)
 
         # Instantiate impulse array which keeps track of impulses in space over time.
-        self.impulses = np.zeros(shape=[self.number_of_samples, int(np.max(room_size) / self.H)])
-        self.impulse_location = 0 # TODO Put into constructor/parameter class
-        self.dirac_a = 0.1 # TODO Put into constructor/parameter class
+        self.impulses = np.zeros(
+            shape=[self.number_of_samples, self.space_divisions])
+        self.impulse_location = 0  #  TODO Put into constructor/parameter class
+        self.dirac_a = 0.1  #  TODO Put into constructor/parameter class
 
         self.verbose = verbose
         self.visualize = visualize
