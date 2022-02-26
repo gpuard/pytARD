@@ -6,7 +6,7 @@ import numpy as np
 
 # param = ARDP([1], 1000, 1)
 room_len = [1]
-sim = ARDS([1], 1000, 1, c=343, spatial_samples_per_wave_length=12, verbose=True, visualize=True)
+sim = ARDS(room_len, 1000, 1, c=343, spatial_samples_per_wave_length=12, verbose=True, visualize=True)
 
 sim.preprocessing()
 sim.simulation()
@@ -16,7 +16,7 @@ ytop = np.max(sim.pressure_field_results)
 ybtm = np.min(sim.pressure_field_results)
 
 plt.figure()
-for i in range(0, len(sim.pressure_field_results), 10):
+for i in range(0, len(sim.pressure_field_results), 50):
     plt.clf()
     plt.title(f"ARD 1D (t = {(sim.T * (i / sim.number_of_samples)):.4f}s)")
     plt.plot(room_dims, sim.pressure_field_results[i])
