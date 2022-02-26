@@ -1,12 +1,12 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.fftpack import idct, dct
 
 
 class ARDSimulator:
 
-    C = 343  #  Speed of sound [m/s]
-
-    def __init__(self, room_size, max_simulation_frequency, spatial_samples_per_wave_length=4):
+    # TODO Maybe create parameter class?
+    def __init__(self, room_size, max_simulation_frequency, T, spatial_samples_per_wave_length=4, c=343, Fs=8000, verbose=False, visualize=True):
         '''
         Instantiates an ARD simulation session.
 
@@ -16,18 +16,55 @@ class ARDSimulator:
             Size of the room in meters. Can be 1D, 2D or 3D.
         max_simulation_frequency : float
             Uppermost frequency of simulation. Can be dialed in lower to enhance performance.
+        T : float
+            Simulation time [s].
         spatial_samples_per_wave_length : int
             Number of spatial samples per wave length. Usually 2 to 4. Lower values decrease 
             resolution but enhances performance.
+        c : float
+            Speed of sound [m/s]. Depends on air temperature, pressure and humidity. 
+        Fs : int
+            Sampling rate. The higher, the more fidelity but lower performance.
+        verbose : boolean
+            Prints information on the terminal for debugging and status purposes.
+        visualize : boolean
+            Visualizes wave propagation in a plot.
         '''
-        assert(len(room_size) >= 1, "Room dimensions should be bigger than 1D.")
-        assert(len(room_size) <= 3, "Room dimensions should be lower than 3D.")
+        assert(len(room_size) >= 1), "Room dimensions should be bigger than 1D."
+        assert(len(room_size) <= 3), "Room dimensions should be lower than 3D."
 
         self.room_size = room_size
         self.max_simulation_frequency = max_simulation_frequency
-        self.H = self.calculate_voxelization_step(
-            spatial_samples_per_wave_length)
+
+        # Array, which stores air pressure at each given point in time in the voxelized grid
         self.pressure_field = None
+        
+        self.c = c
+        self.Fs = Fs
+
+        # Calculating the number of samples the simulation takes.
+        self.number_of_samples = T * Fs
+
+        # Calculate time stepping (Δ_t)
+        self.delta_t = T / self.number_of_samples
+
+        # Voxel grid spacing. Changes according to frequency
+        self.H = self.calculate_voxelization_step(
+            spatial_samples_per_wave_length)  
+
+        # Instantiate impulse array which keeps track of impulses in space over time.
+        self.impulses = np.zeros(shape=[self.number_of_samples, int(np.max(room_size) / self.H)])
+        self.impulse_location = 0 # TODO Put into constructor/parameter class
+        self.dirac_a = 0.1 # TODO Put into constructor/parameter class
+
+        # Fill impulse array with impulses. TODO: Switch between gaussian and dirac maybe?
+        self.impulses[:, self.impulse_location] = [ARDSimulator.create_dirac_impulse(self.dirac_a, t) for t in np.arange(0, T, self.delta_t)]
+        if visualize:
+            plt.plot(self.impulses[1])
+            plt.show()
+
+        self.verbose = verbose
+        self.visualize = visualize
 
     def preprocessing(self):
         '''
@@ -46,6 +83,7 @@ class ARDSimulator:
         # Step 1 b). Rectangular decomposition. Skipped as of now. TODO: Implement rectangular decomposition
 
         # Step 1 c). Precomputation for the DCTs to be performed. Skipped partitions as of now. TODO: Implement partitions
+        initial_force = dct(self.impulses[0,0])
 
     def simulation(self):
         '''
@@ -57,10 +95,6 @@ class ARDSimulator:
         Returns
         -------
         '''
-        pass
-
-    @classmethod
-    def pressure_field_calculation():
         pass
 
     def calculate_voxelization_step(self, spatial_samples_per_wave_length):
@@ -80,7 +114,7 @@ class ARDSimulator:
         float
             ℎ, the voxelization step. In numerics and papers, it's usually referred to ℎ. 
         '''
-        return self.C / (spatial_samples_per_wave_length * self.max_simulation_frequency)
+        return self.c / (spatial_samples_per_wave_length * self.max_simulation_frequency)
 
     @staticmethod
     def create_dirac_impulse(a, x):
@@ -101,3 +135,5 @@ class ARDSimulator:
             δ(x), the calculated dirac impulse.
         '''
         return (1 / (np.sqrt(np.pi) * a)) * (np.exp(-((x ** 2) / (a ** 2))))
+
+    # TODO: Maybe create alternate method for gaussian white noise?
