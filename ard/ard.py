@@ -44,6 +44,7 @@ class ARDSimulator:
 
         self.c = c
         self.Fs = Fs
+        self.T = T
 
         # Calculating the number of samples the simulation takes.
         self.number_of_samples = T * Fs
@@ -67,7 +68,11 @@ class ARDSimulator:
         self.dirac_a = 0.1  #  TODO Put into constructor/parameter class
 
         # Fill impulse array with impulses. TODO: Switch between gaussian and dirac maybe?
-        self.impulses[:, self.impulse_location] = [ARDSimulator.create_dirac_impulse(
+        self.impulses[:, self.impulse_location] = [ARDSimulator.create_normalized_dirac_impulse(
+            self.dirac_a, t) for t in np.arange(0, T, self.delta_t)]
+
+        # Second impulse at 75% along the rod
+        self.impulses[:, int((self.space_divisions - 1) * 0.75)] = [ARDSimulator.create_normalized_dirac_impulse(
             self.dirac_a, t) for t in np.arange(0, T, self.delta_t)]
 
         self.verbose = verbose
@@ -192,6 +197,29 @@ class ARDSimulator:
         '''
         return (1 / (np.sqrt(np.pi) * a)) * (np.exp(-((x ** 2) / (a ** 2))))
 
+
+    @staticmethod
+    def create_normalized_dirac_impulse(a, x):
+        '''
+        Generate dirac impulse which would have a peak of y=1 at x=0
+        Parameters
+        ----------
+        a : float
+            Height / narrowness of impulse. The higher the value, the higher and narrower the
+            impulse.
+            Note that the impulse height is normalized to 1 at its peak.
+        x : float
+            Location coordinate
+        Returns
+        -------
+        float
+            δ(x), the calculated dirac impulse.
+        '''
+        imp = ARDSimulator.create_dirac_impulse(a, x)
+        at_zero = ARDSimulator.create_dirac_impulse(a, 0)
+        return (imp / at_zero)
+
+
     @staticmethod
     def update_rule(M, omega_i, delta_t, Fn):
         '''
@@ -215,6 +243,7 @@ class ARDSimulator:
         float
             M_i ^ (n + 1)
         '''
+        # TODO: Maybe use this?
 
 
 '''
