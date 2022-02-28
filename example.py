@@ -6,7 +6,8 @@ import numpy as np
 
 # param = ARDP([1], 1000, 1)
 room_len = [1]
-sim = ARDS(room_len, 1000, 1, c=343, spatial_samples_per_wave_length=12, verbose=True, visualize=True)
+src_pos = [.75]
+sim = ARDS(room_len, src_pos, 1000, 1, c=343, spatial_samples_per_wave_length=2, verbose=True, visualize=True)
 
 sim.preprocessing()
 sim.simulation()

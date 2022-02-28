@@ -6,7 +6,7 @@ from scipy.fftpack import idct, dct
 class ARDSimulator:
 
     # TODO Maybe create parameter class?
-    def __init__(self, room_size, max_simulation_frequency, T, spatial_samples_per_wave_length=4, c=343, Fs=8000, verbose=False, visualize=False):
+    def __init__(self, room_size, src_pos, max_simulation_frequency, T, spatial_samples_per_wave_length=4, c=343, Fs=8000, verbose=False, visualize=False):
         '''
         Instantiates an ARD simulation session.
 
@@ -14,6 +14,8 @@ class ARDSimulator:
         ----------
         room_size : ndarray
             Size of the room in meters. Can be 1D, 2D or 3D.
+        src_pos : ndarray
+            Location of signal source inside the room. Can be 1D, 2D or 3D.
         max_simulation_frequency : float
             Uppermost frequency of simulation. Can be dialed in lower to enhance performance.
         T : float
@@ -34,6 +36,7 @@ class ARDSimulator:
         assert(len(room_size) <= 3), "Room dimensions should be lower than 3D."
 
         self.room_size = room_size
+        self.src_pos = src_pos
         self.max_simulation_frequency = max_simulation_frequency
 
         # Array, which stores air pressure at each given point in time in the voxelized grid
@@ -53,8 +56,11 @@ class ARDSimulator:
         self.delta_t = T / self.number_of_samples
 
         # Voxel grid spacing. Changes according to frequency
-        self.H = self.calculate_voxelization_step(
-            spatial_samples_per_wave_length)
+        #self.H = self.calculate_voxelization_step(
+       #     spatial_samples_per_wave_length)
+        
+        self.H = 0.1
+        
         if verbose:
             print(f"H = {self.H}")
 
@@ -67,12 +73,8 @@ class ARDSimulator:
         self.impulse_location = 0  #  TODO Put into constructor/parameter class
         self.dirac_a = 0.1  #  TODO Put into constructor/parameter class
 
-        # Fill impulse array with impulses. TODO: Switch between gaussian and dirac maybe?
-        self.impulses[:, self.impulse_location] = [ARDSimulator.create_normalized_dirac_impulse(
-            self.dirac_a, t) for t in np.arange(0, T, self.delta_t)]
-
-        # Second impulse at 75% along the rod
-        self.impulses[:, int((self.space_divisions - 1) * 0.75)] = [ARDSimulator.create_normalized_dirac_impulse(
+        # Fill impulse array with impulses.  TODO: Switch between gaussian and dirac maybe?
+        self.impulses[:, int((self.space_divisions - 1) * (src_pos[0] / room_size[0]))] = [ARDSimulator.create_normalized_dirac_impulse(
             self.dirac_a, t) for t in np.arange(0, T, self.delta_t)]
 
         self.verbose = verbose
@@ -113,9 +115,7 @@ class ARDSimulator:
         # Relates to equation 5 and 8 of "An efficient GPU-based time domain solver for the
         # acoustic wave equation" paper.
         # For reference, see https://www.microsoft.com/en-us/research/wp-content/uploads/2016/10/4.pdf.
-        omega_i = self.c * np.pi * \
-            (np.arange(0, np.max(self.room_size) - self.H, self.H) /
-             np.max(self.room_size))  # TODO: "- self.H" is a hack (cringe alert)
+        omega_i = self.c * np.pi * (np.linspace(0, np.max(self.room_size), self.space_divisions) / np.max(self.room_size))
 
         # Convert omega_i from row vector to column vector
         omega_i = omega_i.reshape([len(omega_i), 1])
