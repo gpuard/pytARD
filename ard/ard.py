@@ -7,6 +7,14 @@ class ARDSimulator:
 
     # TODO Maybe create parameter class?
     def __init__(self, parameters):
+        '''
+        Create and run ARD simulator instance.
+
+        Parameters
+        ----------
+        parameters : object
+            Instance of ARDSimulator parameter class.
+        '''
         # Parameter class instance
         self.param = parameters
 
@@ -22,12 +30,14 @@ class ARDSimulator:
         # Instantiate impulse array which keeps track of impulses in space over time.
         self.impulses = np.zeros(
             shape=[self.param.number_of_samples, self.param.space_divisions])
-        self.impulse_location = 0  #  TODO Put into constructor/parameter class
-        self.dirac_a = 0.1  #  TODO Put into constructor/parameter class
 
-        # Fill impulse array with impulses.  TODO: Switch between gaussian and dirac maybe?
-        self.impulses[:, int((self.param.space_divisions - 1) * (self.param.src_pos[0] / self.param.room_size[0]))] = [ARDSimulator.create_normalized_dirac_impulse(
-            self.dirac_a, t) for t in np.arange(0, self.param.T, self.param.delta_t)]
+        # Narrowness and strenghth of dirac impulse. # TODO Create source signal container
+        self.dirac_a = 0.1
+
+        # Fill impulse array with impulses.  TODO: Switch between gaussian and dirac maybe? Also create source signal container
+        self.impulses[:, int((self.param.space_divisions - 1) * (self.param.src_pos[0] /
+            self.param.room_size[0]))] = [ARDSimulator.create_normalized_dirac_impulse(
+                self.dirac_a, t) for t in np.arange(0, self.param.T, self.param.delta_t)]
 
     def preprocessing(self):
         '''
@@ -110,10 +120,8 @@ class ARDSimulator:
             self.forces = dct(
                 self.impulses[t_s], n=self.param.space_divisions, type=1)
 
-    
-
     @staticmethod
-    def update_rule(M, omega_i, delta_t, Fn):
+    def update_rule(M, omega_i, delta_t, Fn): # TODO Offload update rule here or scrap this function
         '''
         Relates to equation 8 of "An efficient GPU-based time domain solver for the acoustic wave 
         equation" paper.

@@ -1,9 +1,22 @@
 import numpy as np
 
+
 class ARDParameters:
-    def __init__(self, room_size, src_pos, max_simulation_frequency, T, spatial_samples_per_wave_length=4, c=343, Fs=8000, verbose=False, visualize=False):
+    def __init__(
+        self,
+        room_size,
+        src_pos,
+        max_simulation_frequency,
+        T,
+        spatial_samples_per_wave_length=4,
+        c=343,
+        Fs=8000,
+        verbose=False,
+        visualize=False
+    ):
         '''
-        Instantiates an ARD simulation session.
+        Parameter container class for ARD simulator. Contains all relevant data to instantiate
+        and run ARD simulator.
 
         Parameters
         ----------
@@ -44,12 +57,13 @@ class ARDParameters:
         self.delta_t = T / self.number_of_samples
 
         # Voxel grid spacing. Changes according to frequency
-        self.H = ARDParameters.calculate_voxelization_step(self.c, spatial_samples_per_wave_length, self.max_simulation_frequency)
+        self.H = ARDParameters.calculate_voxelization_step(
+            self.c, spatial_samples_per_wave_length, self.max_simulation_frequency)
 
         # Longest room dimension length dividied by H (voxel grid spacing).
         self.space_divisions = int(np.max(room_size) / self.H)
 
-        
+        self.impulse_location = 0
 
         self.verbose = verbose
         self.visualize = visualize
@@ -73,5 +87,3 @@ class ARDParameters:
             ℎ, the voxelization step. In numerics and papers, it's usually referred to ℎ. 
         '''
         return c / (spatial_samples_per_wave_length * max_simulation_frequency)
-
-    
