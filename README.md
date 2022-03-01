@@ -1,2 +1,2 @@
 # pytARD
-(Python-) based ARD reverberation experimentation repository
+pytARD - A Python impulse generator implementation of adaptive rectangular decomposition for auralization and visualization.
