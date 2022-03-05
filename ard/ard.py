@@ -75,8 +75,7 @@ class ARDSimulator:
         # acoustic wave equation" paper.
         # For reference, see https://www.microsoft.com/en-us/research/wp-content/uploads/2016/10/4.pdf.
         omega_i = self.param.c * np.pi * \
-            (np.linspace(0, np.max(self.param.room_size),
-             self.param.space_divisions) / np.max(self.param.room_size))
+            (np.arange(0, self.param.space_divisions, 1) / np.max(self.param.room_size))
 
         # Convert omega_i from row vector to column vector
         omega_i = omega_i.reshape([len(omega_i), 1])

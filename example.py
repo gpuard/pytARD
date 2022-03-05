@@ -3,7 +3,6 @@ from ard.parameters import ARDParameters as ARDP
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 # Room parameters
 room_len = [1] # m
 src_pos = [.75] # m
@@ -36,3 +35,6 @@ for i in range(0, len(sim.pressure_field_results), 50):
     plt.vlines(np.max(room_dims), ybtm, ytop, color='gray')
     plt.grid()
     plt.pause(0.001)
+
+plot_step = 100
+
