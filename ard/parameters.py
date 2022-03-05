@@ -12,6 +12,7 @@ class ARDParameters:
         c=343,
         Fs=8000,
         enable_multicore=True,
+        auralize=None,
         verbose=False,
         visualize=False
     ):
@@ -38,13 +39,16 @@ class ARDParameters:
             Sampling rate. The higher, the more fidelity but lower performance.
         enable_multicore : bool
             Enables performance optimization by enabling multicore/multi-CPU processing.
+        auralize : ndarray
+            Auralizes (= makes hearable) the room by creating an impulse response (IR).
+            Format is a list with mic positions. If array is empty, no auralization is being made.
         verbose : boolean
             Prints information on the terminal for debugging and status purposes.
         visualize : boolean
             Visualizes wave propagation in a plot.
         '''
 
-        self.room_size = np.array([np.max(room_size) / spatial_samples_per_wave_length])
+        self.room_size = np.array([np.max(room_size)])
 
         assert(self.room_size.ndim >=
                1), "Room dimensions should be bigger than 1D."
@@ -81,6 +85,7 @@ class ARDParameters:
         self.dimension = self.room_size.ndim
 
         self.enable_multicore = enable_multicore
+        self.auralize = auralize
         self.verbose = verbose
         self.visualize = visualize
 

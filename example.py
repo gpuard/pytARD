@@ -4,14 +4,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Room parameters
-room_len = np.array([1]) # m
-src_pos = [.75] # m
-duration = 1 # seconds
-upper_frequency_limit = 1000 # Hz
-c = 343 # m/s
+room_len = np.array([342]) # m
+src_pos = [0] # m
+duration = 2 # seconds
+Fs = 8000 # sample rate
+upper_frequency_limit = Fs # Hz
+c = 342 # m/s
 
 # Procedure parameters
 enable_multicore = False
+auralize = False
 verbose = True
 visualize = True
 
@@ -22,9 +24,10 @@ params = ARDP(
     upper_frequency_limit, 
     duration, 
     c=c, 
-    spatial_samples_per_wave_length=12, 
+    Fs=Fs,
+    spatial_samples_per_wave_length=4, 
     enable_multicore=enable_multicore, 
-    verbose=verbose, 
+    verbose=verbose,
     visualize=visualize
 )
 

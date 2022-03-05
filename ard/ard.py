@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from scipy.fftpack import idct, dct
 
 class ARDSimulator:
-
     # TODO Maybe create parameter class?
     def __init__(self, parameters):
         '''
@@ -37,8 +36,11 @@ class ARDSimulator:
         print(self.impulses.shape)
         impulse_index = int((self.param.space_divisions - 1) * (self.param.src_pos[0]))
         print(impulse_index)
-        self.impulses[:, impulse_index] = [ARDSimulator.create_normalized_dirac_impulse(
-                self.dirac_a, t) for t in np.arange(0, self.param.T, self.param.delta_t)]
+        #self.impulses[:, impulse_index] = [ARDSimulator.create_normalized_dirac_impulse(
+        #        self.dirac_a, t) for t in np.arange(0, self.param.T, self.param.delta_t)]
+        time_sample_indices = np.arange(0, self.param.number_of_samples, 1)
+        A = 100
+        self.impulses[:, 0] = A*ARDSimulator.create_gaussian_impulse(time_sample_indices, 80*4, 80) - A*ARDSimulator.create_gaussian_impulse(time_sample_indices, 80*4*2, 80)
 
     def preprocessing(self):
         '''
@@ -186,6 +188,19 @@ class ARDSimulator:
         imp = ARDSimulator.create_dirac_impulse(a, x)
         at_zero = ARDSimulator.create_dirac_impulse(a, 0)
         return (imp / at_zero)
+    
+    @staticmethod
+    def create_gaussian_impulse(x, mu, sigma):
+        '''
+        Generate gaussian impulse
+        Parameters
+        ----------
+        Returns
+        -------
+        '''
+        return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sigma, 2.)))
+
+    
 
 
 '''
