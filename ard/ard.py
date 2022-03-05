@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fftpack import idct, dct
+from scipy.io.wavfile import read, write
+
 
 class ARDSimulator:
     # TODO Maybe create parameter class?
@@ -38,9 +40,13 @@ class ARDSimulator:
         print(impulse_index)
         #self.impulses[:, impulse_index] = [ARDSimulator.create_normalized_dirac_impulse(
         #        self.dirac_a, t) for t in np.arange(0, self.param.T, self.param.delta_t)]
-        time_sample_indices = np.arange(0, self.param.number_of_samples, 1)
+        time_sample_indices = np.arange(0, self.param.number_of_samples, 1) # =x = [1 2 3 4 5] ------> sin(x_i * pi) ->>> sin(pi), sin(2pi) sin(3pi)
         A = 100
-        self.impulses[:, 0] = A*ARDSimulator.create_gaussian_impulse(time_sample_indices, 80*4, 80) - A*ARDSimulator.create_gaussian_impulse(time_sample_indices, 80*4*2, 80)
+        #self.impulses[:, 0] = A*ARDSimulator.create_gaussian_impulse(time_sample_indices, 80*4, 80) - A*ARDSimulator.create_gaussian_impulse(time_sample_indices, 80*4*2, 80)
+        #self.impulses[:, 0] = A * (np.sin(10 * ((1 / self.param.Fs) * time_sample_indices * np.pi))) + 10E-18
+
+        (fs, wav) = read('track.wav')
+        self.impulses[:, int(self.param.space_divisions / 2)] = 100 * wav[0:self.param.number_of_samples]
 
     def preprocessing(self):
         '''
@@ -96,6 +102,8 @@ class ARDSimulator:
             print(f"Shape of omega_i: {omega_i.shape}")
             print(f"Shape of pressure field: {self.pressure_field.shape}")
 
+        self.mic = np.zeros(shape=self.param.number_of_samples, dtype=np.float)
+
         # t_s: Time stepping.
         for t_s in range(2, self.param.number_of_samples):
             # Updating mode using the update rule in equation 8.
@@ -113,6 +121,7 @@ class ARDSimulator:
                 self.param.space_divisions), n=self.param.space_divisions, type=1)
 
             self.pressure_field_results.append(self.pressure_field.copy())
+            self.mic[t_s] = self.pressure_field[int(self.param.space_divisions * .75)]
 
             # Update time stepping to prepare for next time step / loop iteration.
             M_previous = M_current.copy()
@@ -121,6 +130,11 @@ class ARDSimulator:
             # Execute DCT for next sample
             self.forces = dct(
                 self.impulses[t_s], n=self.param.space_divisions, type=1)
+
+        self.mic = self.mic / np.max(self.mic)
+        write("impulse_response.wav", self.param.Fs, self.mic.astype(np.float))
+
+
 
     @staticmethod
     def update_rule(M, omega_i, delta_t, Fn): # TODO Offload update rule here or scrap this function

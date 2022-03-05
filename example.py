@@ -25,7 +25,7 @@ params = ARDP(
     duration, 
     c=c, 
     Fs=Fs,
-    spatial_samples_per_wave_length=4, 
+    spatial_samples_per_wave_length=12, 
     enable_multicore=enable_multicore, 
     verbose=verbose,
     visualize=visualize
