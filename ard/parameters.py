@@ -65,8 +65,14 @@ class ARDParameters:
 
         self.impulse_location = 0
 
+        # Save dimension 
+        self.dimension = self.room_size.ndim
+
         self.verbose = verbose
         self.visualize = visualize
+
+        if verbose:
+            print(f"Created a {self.dimension}-D room, sized {self.room_size} m, with signal source position {src_pos} m.\nNumber of samples: {self.number_of_samples} | Δ_t: {self.delta_t} | ℎ: {self.H} | Space divisions: {self.space_divisions} ({self.room_size/self.space_divisions} m each)")
 
     @staticmethod
     def calculate_voxelization_step(c, spatial_samples_per_wave_length, max_simulation_frequency):

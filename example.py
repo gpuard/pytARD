@@ -3,15 +3,21 @@ from ard.parameters import ARDParameters as ARDP
 import matplotlib.pyplot as plt
 import numpy as np
 
+# Room parameters
+room_len = [1] # m
+src_pos = [.75] # m
+duration = 1 # seconds
+upper_frequency_limit = 1000 # Hz
+c = 343 # m/s
+# Compilation of room parameters into parameter class
+params = ARDP(room_len, src_pos, upper_frequency_limit, duration, c=c, spatial_samples_per_wave_length=12, verbose=True, visualize=True)
 
-# param = ARDP([1], 1000, 1)
-room_len = [100]
-src_pos = [0]
-params = ARDP(room_len, src_pos, 1000, 1, c=100, spatial_samples_per_wave_length=12, verbose=True, visualize=True)
+# Instantiating and executing simulation
 sim = ARDS(params)
 sim.preprocessing()
 sim.simulation()
 
+# Plotting waveform
 room_dims = np.linspace(0., room_len[0], len(sim.pressure_field_results[0]))
 ytop = np.max(sim.pressure_field_results)
 ybtm = np.min(sim.pressure_field_results)
