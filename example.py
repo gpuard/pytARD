@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Room parameters
-room_len = [1] # m
+room_len = np.array([1]) # m
 src_pos = [.75] # m
 duration = 1 # seconds
 upper_frequency_limit = 1000 # Hz

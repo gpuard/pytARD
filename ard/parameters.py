@@ -43,7 +43,7 @@ class ARDParameters:
         assert(len(room_size) >= 1), "Room dimensions should be bigger than 1D."
         assert(len(room_size) <= 3), "Room dimensions should be lower than 3D."
 
-        self.room_size = [np.max(room_size) / spatial_samples_per_wave_length]
+        self.room_size = np.array([np.max(room_size) / spatial_samples_per_wave_length])
         self.src_pos = src_pos
         self.max_simulation_frequency = max_simulation_frequency
         self.c = c
