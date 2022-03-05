@@ -5,9 +5,9 @@ import numpy as np
 
 
 # param = ARDP([1], 1000, 1)
-room_len = [1]
-src_pos = [.75]
-params = ARDP(room_len, src_pos, 1000, 1, c=343, spatial_samples_per_wave_length=12, verbose=True, visualize=True)
+room_len = [100]
+src_pos = [0]
+params = ARDP(room_len, src_pos, 1000, 1, c=100, spatial_samples_per_wave_length=12, verbose=True, visualize=True)
 sim = ARDS(params)
 sim.preprocessing()
 sim.simulation()
@@ -29,3 +29,6 @@ for i in range(0, len(sim.pressure_field_results), 50):
     plt.vlines(np.max(room_dims), ybtm, ytop, color='gray')
     plt.grid()
     plt.pause(0.001)
+
+plot_step = 100
+

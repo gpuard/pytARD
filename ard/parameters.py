@@ -43,7 +43,7 @@ class ARDParameters:
         assert(len(room_size) >= 1), "Room dimensions should be bigger than 1D."
         assert(len(room_size) <= 3), "Room dimensions should be lower than 3D."
 
-        self.room_size = room_size
+        self.room_size = [np.max(room_size) / spatial_samples_per_wave_length]
         self.src_pos = src_pos
         self.max_simulation_frequency = max_simulation_frequency
         self.c = c
@@ -51,7 +51,7 @@ class ARDParameters:
         self.T = T
 
         # Calculating the number of samples the simulation takes.
-        self.number_of_samples = T * Fs
+        self.number_of_samples = int(T * Fs)
 
         # Calculate time stepping (Δ_t)
         self.delta_t = T / self.number_of_samples
@@ -61,7 +61,7 @@ class ARDParameters:
             self.c, spatial_samples_per_wave_length, self.max_simulation_frequency)
 
         # Longest room dimension length dividied by H (voxel grid spacing).
-        self.space_divisions = int(np.max(room_size) / self.H)
+        self.space_divisions = int(np.max(room_size) * spatial_samples_per_wave_length)
 
         self.impulse_location = 0
 
