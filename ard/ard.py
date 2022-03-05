@@ -34,8 +34,10 @@ class ARDSimulator:
         self.dirac_a = 0.1
 
         # Fill impulse array with impulses.  TODO: Switch between gaussian and dirac maybe? Also create source signal container
-        self.impulses[:, int((self.param.space_divisions - 1) * (self.param.src_pos[0] /
-            self.param.room_size[0]))] = [ARDSimulator.create_normalized_dirac_impulse(
+        print(self.impulses.shape)
+        impulse_index = int((self.param.space_divisions - 1) * (self.param.src_pos[0]))
+        print(impulse_index)
+        self.impulses[:, impulse_index] = [ARDSimulator.create_normalized_dirac_impulse(
                 self.dirac_a, t) for t in np.arange(0, self.param.T, self.param.delta_t)]
 
     def preprocessing(self):
