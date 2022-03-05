@@ -11,6 +11,7 @@ class ARDParameters:
         spatial_samples_per_wave_length=4,
         c=343,
         Fs=8000,
+        enable_multicore=True,
         verbose=False,
         visualize=False
     ):
@@ -35,15 +36,26 @@ class ARDParameters:
             Speed of sound [m/s]. Depends on air temperature, pressure and humidity. 
         Fs : int
             Sampling rate. The higher, the more fidelity but lower performance.
+        enable_multicore : bool
+            Enables performance optimization by enabling multicore/multi-CPU processing.
         verbose : boolean
             Prints information on the terminal for debugging and status purposes.
         visualize : boolean
             Visualizes wave propagation in a plot.
         '''
-        assert(len(room_size) >= 1), "Room dimensions should be bigger than 1D."
-        assert(len(room_size) <= 3), "Room dimensions should be lower than 3D."
 
         self.room_size = np.array([np.max(room_size) / spatial_samples_per_wave_length])
+
+        assert(self.room_size.ndim >=
+               1), "Room dimensions should be bigger than 1D."
+        assert(self.room_size.ndim <=
+               3), "Room dimensions should be lower than 3D."
+        assert(T > 0), "Error: Simulation duration must be a positive number"
+        assert(Fs > 0), "Error: Sample rate must be a positive number"
+        assert(c > 0), "Error: Speed of sound must be a positive number"
+        assert(max_simulation_frequency >
+               0), "Error: Uppermost frequency of simulation must be a positive number"
+
         self.src_pos = src_pos
         self.max_simulation_frequency = max_simulation_frequency
         self.c = c
@@ -65,14 +77,15 @@ class ARDParameters:
 
         self.impulse_location = 0
 
-        # Save dimension 
+        # Save dimension for distinguishing between 1D, 2D and 3D processing
         self.dimension = self.room_size.ndim
 
+        self.enable_multicore = enable_multicore
         self.verbose = verbose
         self.visualize = visualize
 
         if verbose:
-            print(f"Created a {self.dimension}-D room, sized {self.room_size} m, with signal source position {src_pos} m.\nNumber of samples: {self.number_of_samples} | Δ_t: {self.delta_t} | ℎ: {self.H} | Space divisions: {self.space_divisions} ({self.room_size/self.space_divisions} m each)")
+            print(f"Created a {self.dimension}-D room, sized {room_size} m, with signal source position {src_pos} m.\nNumber of samples: {self.number_of_samples} | Δ_t: {self.delta_t} | ℎ: {self.H} | Space divisions: {self.space_divisions} ({self.room_size/self.space_divisions} m each)")
 
     @staticmethod
     def calculate_voxelization_step(c, spatial_samples_per_wave_length, max_simulation_frequency):

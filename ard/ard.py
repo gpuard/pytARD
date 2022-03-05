@@ -88,7 +88,7 @@ class ARDSimulator:
         M_current = np.zeros(shape=M_previous.shape)
 
         # Force field in spectral room. Temporary variable, right part after + sign of equation 8.
-        force_field = np.zeros(shape=M_previous.shape)
+        force_field = np.zeros(shape=M_previous.shape) # TODO: force field isn't used as of yet!
 
         if self.param.verbose:
             print(f"Shape of omega_i: {omega_i.shape}")
