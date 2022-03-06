@@ -74,7 +74,8 @@ class ARDSimulator:
                 
                 # Execute DCT for next sample
                 self.part_data[i].forces = dct(self.part_data[i].impulses[t_s], n=self.part_data[i].space_divisions, type=1)
-                
+        
+        
             
         #self.mic = np.zeros(shape=self.sim_param.number_of_samples, dtype=np.float)
 
