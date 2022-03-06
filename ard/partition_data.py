@@ -32,7 +32,7 @@ class PartitionData:
 
         # Longest room dimension length dividied by H (voxel grid spacing).
         self.space_divisions = int(np.max(dimensions) * self.sim_param.spatial_samples_per_wave_length)
-
+        self.h = np.max(dimensions) / self.space_divisions 
         # Forces (result of DCT computation) TODO: Elaborate more
         self.forces = None
 

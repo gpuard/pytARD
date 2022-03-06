@@ -35,7 +35,11 @@ class ARDSimulator:
         '''
         for i in range(len(self.part_data)):
             self.part_data[i].preprocessing()
-
+            
+    def s(self,j,h):
+        coef = np.array([2, -27, 270, -490, 270, -27, 2])
+        return 1/(180*h**2) * coef[j+3]
+        
     def simulation(self):
         '''
         Simulation stage. Refers to Step 2 in the paper.
@@ -74,9 +78,28 @@ class ARDSimulator:
                 
                 # Execute DCT for next sample
                 self.part_data[i].forces = dct(self.part_data[i].impulses[t_s], n=self.part_data[i].space_divisions, type=1)
-        
-        
             
+            # INTERFACE HANDLING
+            for i in range(-3,4):
+                left_sum = 0
+                right_sum = 0
+                fi = 0
+                for l in range(3):
+                    left_sum += self.s(i,self.part_data[0].h)*self.part_data[0].pressure_field[-3+l]
+                
+                for r in range(3,6):
+                    right_sum += self.s(i,self.part_data[1].h)*self.part_data[1].pressure_field[-3+r]
+                
+                if t_s < self.sim_param.number_of_samples-1:
+                    if i < 0:
+                        #right to left
+                        fi = right_sum
+                        self.part_data[0].forces[i] = fi
+                    else:
+                        #left to right
+                        fi = left_sum
+                        self.part_data[1].forces[i] = fi
+
         #self.mic = np.zeros(shape=self.sim_param.number_of_samples, dtype=np.float)
 
         

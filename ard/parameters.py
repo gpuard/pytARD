@@ -67,8 +67,9 @@ class SimulationParameters:
         self.delta_t = T / self.number_of_samples
 
         # Voxel grid spacing. Changes according to frequency
-        self.H = SimulationParameters.calculate_voxelization_step(
-            self.c, spatial_samples_per_wave_length, self.max_simulation_frequency)
+        
+        # self.H = SimulationParameters.calculate_voxelization_step(
+        #     self.c, spatial_samples_per_wave_length, self.max_simulation_frequency)
 
         self.impulse_location = 0
 
