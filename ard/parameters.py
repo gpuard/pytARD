@@ -1,10 +1,9 @@
-import numpy as np
 
 
-class ARDParameters:
+
+class SimulationParameters:
     def __init__(
         self,
-        room_size,
         src_pos,
         max_simulation_frequency,
         T,
@@ -17,13 +16,13 @@ class ARDParameters:
         visualize=False
     ):
         '''
-        Parameter container class for ARD simulator. Contains all relevant data to instantiate
+        Parameter container class for ARD simulation. Contains all relevant data to instantiate
         and run ARD simulator.
 
         Parameters
         ----------
-        room_size : ndarray
-            Size of the room in meters. Can be 1D, 2D or 3D.
+        partitions : ndarray
+            Collection of 1D, 2D or 3D partitions (rooms). Array of PartitionData objects.
         src_pos : ndarray
             Location of signal source inside the room. Can be 1D, 2D or 3D.
         max_simulation_frequency : float
@@ -48,12 +47,6 @@ class ARDParameters:
             Visualizes wave propagation in a plot.
         '''
 
-        self.room_size = np.array([np.max(room_size)])
-
-        assert(self.room_size.ndim >=
-               1), "Room dimensions should be bigger than 1D."
-        assert(self.room_size.ndim <=
-               3), "Room dimensions should be lower than 3D."
         assert(T > 0), "Error: Simulation duration must be a positive number"
         assert(Fs > 0), "Error: Sample rate must be a positive number"
         assert(c > 0), "Error: Speed of sound must be a positive number"
@@ -65,6 +58,7 @@ class ARDParameters:
         self.c = c
         self.Fs = Fs
         self.T = T
+        self.spatial_samples_per_wave_length = spatial_samples_per_wave_length
 
         # Calculating the number of samples the simulation takes.
         self.number_of_samples = int(T * Fs)
@@ -73,24 +67,21 @@ class ARDParameters:
         self.delta_t = T / self.number_of_samples
 
         # Voxel grid spacing. Changes according to frequency
-        self.H = ARDParameters.calculate_voxelization_step(
+        self.H = SimulationParameters.calculate_voxelization_step(
             self.c, spatial_samples_per_wave_length, self.max_simulation_frequency)
-
-        # Longest room dimension length dividied by H (voxel grid spacing).
-        self.space_divisions = int(np.max(room_size) * spatial_samples_per_wave_length)
 
         self.impulse_location = 0
 
-        # Save dimension for distinguishing between 1D, 2D and 3D processing
-        self.dimension = self.room_size.ndim
+        # Save dimension for distinguishing between 1D, 2D and 3D processing TODO implement dimension distinction
+        self.dimension = None
 
         self.enable_multicore = enable_multicore
         self.auralize = auralize
         self.verbose = verbose
         self.visualize = visualize
 
-        if verbose:
-            print(f"Created a {self.dimension}-D room, sized {room_size} m, with signal source position {src_pos} m.\nNumber of samples: {self.number_of_samples} | Δ_t: {self.delta_t} | ℎ: {self.H} | Space divisions: {self.space_divisions} ({self.room_size/self.space_divisions} m each)")
+        #if verbose:
+        #    print(f"Created a {self.dimension}-D room, sized {room_size} m, with signal source position {src_pos} m.\nNumber of samples: {self.number_of_samples} | Δ_t: {self.delta_t} | ℎ: {self.H} | Space divisions: {self.space_divisions} ({self.room_size/self.space_divisions} m each)")
 
     @staticmethod
     def calculate_voxelization_step(c, spatial_samples_per_wave_length, max_simulation_frequency):
