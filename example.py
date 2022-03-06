@@ -1,6 +1,6 @@
 from ard.ard import ARDSimulator as ARDS
 from ard.parameters import SimulationParameters as SIMP
-from ard.parameters import PartitionData as PARTD
+from ard.partition_data import PartitionData as PARTD
 
 import matplotlib.pyplot as plt
 import numpy as np
