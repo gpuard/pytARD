@@ -82,63 +82,28 @@ class PartitionData:
         self.forces = dct(self.impulses[1],
                           n=self.space_divisions, type=1)
 
-    def simulation(self):
-        '''
-        Simulation stage. Refers to Step 2 in the paper.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        '''
         # Relates to equation 5 and 8 of "An efficient GPU-based time domain solver for the
         # acoustic wave equation" paper.
         # For reference, see https://www.microsoft.com/en-us/research/wp-content/uploads/2016/10/4.pdf.
-        omega_i = self.sim_param.c * np.pi * \
+        self.omega_i = self.sim_param.c * np.pi * \
             (np.arange(0, self.space_divisions, 1) / np.max(self.dimensions))
 
         # Convert omega_i from row vector to column vector
-        omega_i = omega_i.reshape([len(omega_i), 1])
+        self.omega_i = self.omega_i.reshape([len(self.omega_i), 1])
 
         # Update time stepping. Relates to M^(n+1) and M^n in equation 8.
         # TODO Number of partitions missing atm
-        M_previous = np.zeros(shape=[self.space_divisions, 1])
-        M_current = np.zeros(shape=M_previous.shape)
-
+        self.M_previous = np.zeros(shape=[self.space_divisions, 1])
+        self.M_current = np.zeros(shape=self.M_previous.shape)
+        self.M_next = None
+        
         # Force field in spectral room. Temporary variable, right part after + sign of equation 8.
-        force_field = np.zeros(shape=M_previous.shape) # TODO: force field isn't used as of yet!
+        self.force_field = np.zeros(shape=self.M_previous.shape) # TODO: force field isn't used as of yet!
 
         if self.sim_param.verbose:
-            print(f"Shape of omega_i: {omega_i.shape}")
+            print(f"Shape of omega_i: {self.omega_i.shape}")
             print(f"Shape of pressure field: {self.pressure_field.shape}")
-
-        # t_s: Time stepping.
-        for t_s in range(2, self.sim_param.number_of_samples):
-            # Updating mode using the update rule in equation 8.
-            # Relates to (2 * F^n) / (ω_i ^ 2) * (1 - cos(ω_i * Δ_t)) in equation 8.
-            force_field = ((2 * self.forces.reshape([self.space_divisions, 1])) / (
-                (omega_i + 0.00000001) ** 2)) * (1 - np.cos(omega_i * self.sim_param.delta_t))
-            # TODO Perhaps set zero element to zero in force field if something goes horribly wrong
-
-            # Relates to M^(n+1) in equation 8.
-            M_next = 2 * M_current * \
-                np.cos(omega_i * self.sim_param.delta_t) - M_previous + force_field
-
-            # Convert modes to pressure values using inverse DCT.
-            self.pressure_field = idct(M_next.reshape(
-                self.space_divisions), n=self.space_divisions, type=1)
-
-            self.pressure_field_results.append(self.pressure_field.copy())
-            #self.mic[t_s] = self.pressure_field[int(self.space_divisions * .75)]
-
-            # Update time stepping to prepare for next time step / loop iteration.
-            M_previous = M_current.copy()
-            M_current = M_next.copy()
-
-            # Execute DCT for next sample
-            self.forces = dct(
-                self.impulses[t_s], n=self.space_divisions, type=1)
+        
     
     @staticmethod
     def create_dirac_impulse(a, x):
@@ -161,26 +126,26 @@ class PartitionData:
         '''
         return (1 / (np.sqrt(np.pi) * a)) * (np.exp(-((x ** 2) / (a ** 2))))
 
-    @staticmethod
-    def create_normalized_dirac_impulse(a, x):
-        '''
-        Generate dirac impulse which would have a peak of y=1 at x=0
-        Parameters
-        ----------
-        a : float
-            Height / narrowness of impulse. The higher the value, the higher and narrower the
-            impulse.
-            Note that the impulse height is normalized to 1 at its peak.
-        x : float
-            Location coordinate
-        Returns
-        -------
-        float
-            δ(x), the calculated dirac impulse.
-        '''
-        imp = ARDSimulator.create_dirac_impulse(a, x)
-        at_zero = ARDSimulator.create_dirac_impulse(a, 0)
-        return (imp / at_zero)
+    # @staticmethod
+    # def create_normalized_dirac_impulse(a, x):
+    #     '''
+    #     Generate dirac impulse which would have a peak of y=1 at x=0
+    #     Parameters
+    #     ----------
+    #     a : float
+    #         Height / narrowness of impulse. The higher the value, the higher and narrower the
+    #         impulse.
+    #         Note that the impulse height is normalized to 1 at its peak.
+    #     x : float
+    #         Location coordinate
+    #     Returns
+    #     -------
+    #     float
+    #         δ(x), the calculated dirac impulse.
+    #     '''
+    #     imp = ARDSimulator.create_dirac_impulse(a, x)
+    #     at_zero = ARDSimulator.create_dirac_impulse(a, 0)
+    #     return (imp / at_zero)
     
     @staticmethod
     def create_gaussian_impulse(x, mu, sigma):

@@ -46,18 +46,46 @@ class ARDSimulator:
         Returns
         -------
         '''
-        for i in range(len(self.part_data)):
-            self.part_data[i].simulation()
 
+        for t_s in range(2, self.sim_param.number_of_samples):
+            for i in range(len(self.part_data)):
+               
+                # Updating mode using the update rule in equation 8.
+                # Relates to (2 * F^n) / (ω_i ^ 2) * (1 - cos(ω_i * Δ_t)) in equation 8.
+                                
+                self.part_data[i].force_field = ((2 * self.part_data[i].forces.reshape([self.part_data[i].space_divisions, 1])) / (
+                (self.part_data[i].omega_i + 0.00000001) ** 2)) * (1 - np.cos(self.part_data[i].omega_i * self.sim_param.delta_t))
+                # TODO Perhaps set zero element to zero in force field if something goes horribly wrong
+                
+                # Relates to M^(n+1) in equation 8.
+                self.part_data[i].M_next = 2 * self.part_data[i].M_current * \
+                np.cos(self.part_data[i].omega_i * self.sim_param.delta_t) - self.part_data[i].M_previous + self.part_data[i].force_field
+                
+                # Convert modes to pressure values using inverse DCT.
+                self.part_data[i].pressure_field = idct(self.part_data[i].M_next.reshape(
+                self.part_data[i].space_divisions), n=self.part_data[i].space_divisions, type=1)
+                
+                self.part_data[i].pressure_field_results.append(self.part_data[i].pressure_field.copy())
+                #self.mic[t_s] = self.part_data[i].pressure_field[int(self.part_data[i].space_divisions * .75)]
+                
+                # Update time stepping to prepare for next time step / loop iteration.
+                self.part_data[i].M_previous = self.part_data[i].M_current.copy()
+                self.part_data[i].M_current = self.part_data[i].M_next.copy()
+                
+                # Execute DCT for next sample
+                self.part_data[i].forces = dct(self.part_data[i].impulses[t_s], n=self.part_data[i].space_divisions, type=1)
+                
+            
         #self.mic = np.zeros(shape=self.sim_param.number_of_samples, dtype=np.float)
 
         
 
         #self.mic = self.mic / np.max(self.mic)
         #write("impulse_response.wav", self.sim_param.Fs, self.mic.astype(np.float))
-
-
-
+        
+       # 1. For all interfaces: Interface handling 
+       # to compute force f within each partition (Equation 12).
+           
     @staticmethod
     def update_rule(M, omega_i, delta_t, Fn): # TODO Offload update rule here or scrap this function
         '''
