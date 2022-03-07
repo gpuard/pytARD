@@ -7,7 +7,7 @@ class PartitionData:
         self,
         dimensions,
         sim_param,
-        do_impuls = True
+        do_impulse = True
     ):
         '''
         Parameter container class for ARD simulator. Contains all relevant data to instantiate
@@ -55,7 +55,7 @@ class PartitionData:
         #        self.dirac_a, t) for t in np.arange(0, self.param.T, self.param.delta_t)]
         time_sample_indices = np.arange(0, self.sim_param.number_of_samples, 1) # =x = [1 2 3 4 5] ------> sin(x_i * pi) ->>> sin(pi), sin(2pi) sin(3pi)
         
-        if do_impuls:
+        if do_impulse:
             A = 100
             self.impulses[:, 0] = A*PartitionData.create_gaussian_impulse(time_sample_indices, 80*4, 80) - A*PartitionData.create_gaussian_impulse(time_sample_indices, 80*4*2, 80)
            #self.impulses[:, 0] = A * (np.sin(10 * ((1 / self.param.Fs) * time_sample_indices * np.pi))) + 10E-18

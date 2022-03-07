@@ -37,6 +37,21 @@ class ARDSimulator:
             self.part_data[i].preprocessing()
             
     def s(self,j,h):
+        '''
+        Calculates the finite difference stencil. TODO: Define finite difference stencil further
+
+        Parameters
+        ----------
+        j : int
+            Voxel ID.
+        h : float
+            Grid spacing
+        
+        Returns
+        -------
+        float
+            Finite difference stencil.
+        '''
         coef = np.array([2, -27, 270, -490, 270, -27, 2])
         return 1/(180*h**2) * coef[j+3]
         
@@ -53,10 +68,8 @@ class ARDSimulator:
 
         for t_s in range(2, self.sim_param.number_of_samples):
             for i in range(len(self.part_data)):
-               
                 # Updating mode using the update rule in equation 8.
                 # Relates to (2 * F^n) / (ω_i ^ 2) * (1 - cos(ω_i * Δ_t)) in equation 8.
-                                
                 self.part_data[i].force_field = ((2 * self.part_data[i].forces.reshape([self.part_data[i].space_divisions, 1])) / (
                 (self.part_data[i].omega_i + 0.00000001) ** 2)) * (1 - np.cos(self.part_data[i].omega_i * self.sim_param.delta_t))
                 # TODO Perhaps set zero element to zero in force field if something goes horribly wrong
@@ -79,7 +92,7 @@ class ARDSimulator:
                 # Execute DCT for next sample
                 self.part_data[i].forces = dct(self.part_data[i].impulses[t_s], n=self.part_data[i].space_divisions, type=1)
             
-            # INTERFACE HANDLING
+            # Interface handling
             for i in range(-3,4):
                 left_sum = 0
                 right_sum = 0
