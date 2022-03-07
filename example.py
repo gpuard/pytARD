@@ -33,7 +33,7 @@ sim_params = SIMP(
 )
 
 partition_1 = PARTD(np.array([342]), sim_params)
-partition_2 = PARTD(np.array([342]), sim_params,do_impuls=False)
+partition_2 = PARTD(np.array([342]), sim_params,do_impulse=False)
 
 
 part_data = [partition_1, partition_2]
