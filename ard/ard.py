@@ -21,6 +21,15 @@ class ARDSimulator:
 
         # List of partition data (PartitionData objects)
         self.part_data = part_data
+
+        self.coeffs = [
+            [  0.0,   0.0,   -2.0,    2.0,   0.0,  0.0 ],
+            [  0.0,  -2.0,   27.0,  -27.0,   2.0,  0.0 ],
+            [ -2.0,  27.0, -270.0,  270.0, -27.0,  2.0 ],
+            [  2.0, -27.0,  270.0, -270.0,  27.0, -2.0 ],
+            [  0.0,   2.0,  -27.0,   27.0,  -2.0,  0.0 ],
+            [  0.0,   0.0,    2.0,   -2.0,   0.0,  0.0 ] ]
+
         
 
     def preprocessing(self):
@@ -75,30 +84,32 @@ class ARDSimulator:
                 # Update time stepping to prepare for next time step / loop iteration.
                 self.part_data[i].M_previous = self.part_data[i].M_current.copy()
                 self.part_data[i].M_current = self.part_data[i].M_next.copy()
+
+
+            # INTERFACE HANDLING
+            for i in range(-3,3):
+                left_sum = 0.
+                right_sum = 0.
+                for l in range(3):
+                    left_sum += self.coeffs[i + 3][l] * self.part_data[0].pressure_field[-3+l]
                 
+                for r in range(3,6):
+                    right_sum += self.coeffs[i + 3][r] * self.part_data[1].pressure_field[-3+r]
+                
+                if t_s < self.sim_param.number_of_samples - 1:
+                    if i < 0:
+                        #right to left
+                        Fi = right_sum
+                        self.part_data[0].impulses[t_s][i] = Fi * self.sim_param.c**2 / (180. * self.part_data[0].h**2)
+                    else:
+                        #left to right
+                        Fi = left_sum
+                        self.part_data[1].impulses[t_s][i] = Fi * self.sim_param.c**2 / (180. * self.part_data[1].h**2)
+                
+            for i in range(len(self.part_data)):
                 # Execute DCT for next sample
                 self.part_data[i].forces = dct(self.part_data[i].impulses[t_s], n=self.part_data[i].space_divisions, type=1)
             
-            # INTERFACE HANDLING
-            for i in range(-3,4):
-                left_sum = 0
-                right_sum = 0
-                fi = 0
-                for l in range(3):
-                    left_sum += self.s(i,self.part_data[0].h)*self.part_data[0].pressure_field[-3+l]
-                
-                for r in range(3,6):
-                    right_sum += self.s(i,self.part_data[1].h)*self.part_data[1].pressure_field[-3+r]
-                
-                if t_s < self.sim_param.number_of_samples-1:
-                    if i < 0:
-                        #right to left
-                        fi = right_sum
-                        self.part_data[0].forces[i] = fi
-                    else:
-                        #left to right
-                        fi = left_sum
-                        self.part_data[1].forces[i] = fi
 
         #self.mic = np.zeros(shape=self.sim_param.number_of_samples, dtype=np.float)
 
