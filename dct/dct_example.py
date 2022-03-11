@@ -5,7 +5,7 @@ import random
 import math
 
 
-size = 40
+size = 10
 i = np.linspace(0, 5*2*np.pi, size)
 #x = np.sin(i)
 x = np.zeros(size)
@@ -16,7 +16,7 @@ x[6] = 255
 x[7] = 255
 
 
-X = dct(x)
+X = dct(x, type=2)
 
 print(x)
 print(X)
@@ -24,7 +24,7 @@ print(x.shape)
 print(X.shape)
 
 pos = 0
-l = 20
+l = 5
 
 # Extract a block from image
 plt.figure()
@@ -42,31 +42,23 @@ plt.title(f"An {l}x DCT block")
 #plt.legend()
 plt.show()
 
-def alpha(u, N):
-    if u == 0:
-        return np.sqrt(1 / N)
-    else:
-        return np.sqrt(2 / N)
-
 p = 0
 wave_sum = np.zeros(len(x))
 for a in X:
     wave = np.zeros(len(X))
     for w_i in range(len(wave)):
-        #if w_i == 0:
-        #    wave[w_i] = (a / np.sqrt(2)) * np.cos((np.pi*(2*w_i + 1) * p) / (2 * len(X)))
-        #else:
-        #    wave[w_i] = a * np.cos((np.pi*(2*w_i + 1) * p) / (2 * len(X)))
-        wave[w_i] = alpha(p, len(X)) * a * np.cos((p * np.pi *(2*w_i + 1.)) / (2. * (len(X))))
+        wave[w_i] = a * np.cos((np.pi / len(x)) * (w_i + 0.5) * p)
 
     wave_sum += wave
     plt.plot(i, wave)
     p += 1
 
 
+
 plt.show()
 
 plt.plot(i, wave_sum, label='reconstructed from cosines')
 plt.plot(i, x, label='original')
+plt.grid()
 plt.legend()
 plt.show()
