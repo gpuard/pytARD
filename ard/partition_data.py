@@ -33,10 +33,13 @@ class PartitionData:
         # Longest room dimension length dividied by H (voxel grid spacing).
         self.space_divisions = int(np.max(dimensions) * self.sim_param.spatial_samples_per_wave_length)
         self.h = np.max(dimensions) / self.space_divisions 
-        # Forces (result of DCT computation) TODO: Elaborate more
+        # Forces (result of DCT computation) 
+        # TODO: Elaborate more
         self.forces = None
 
-        # Instantiate impulse array which keeps track of impulses in space over time.
+        self.new_forces = None
+
+        # Impulse array which keeps track of impulses in space over time.
         self.impulses = np.zeros(
             shape=[self.sim_param.number_of_samples, self.space_divisions])
 
@@ -49,7 +52,8 @@ class PartitionData:
         # Narrowness and strenghth of dirac impulse. # TODO Create source signal container
         self.dirac_a = 0.1
 
-        # Fill impulse array with impulses.  TODO: Switch between gaussian and dirac maybe? Also create source signal container
+        # Fill impulse array with impulses.  
+        # TODO: Switch between gaussian and dirac maybe? Also create source signal container
         impulse_index = int((self.space_divisions - 1) * (self.sim_param.src_pos[0]))
         #self.impulses[:, impulse_index] = [ARDSimulator.create_normalized_dirac_impulse(
         #        self.dirac_a, t) for t in np.arange(0, self.param.T, self.param.delta_t)]
@@ -57,7 +61,8 @@ class PartitionData:
         
         if do_impulse:
             A = 100
-            self.impulses[:, 0] = A*PartitionData.create_gaussian_impulse(time_sample_indices, 80*4, 80) - A*PartitionData.create_gaussian_impulse(time_sample_indices, 80*4*2, 80)
+            self.impulses[:, 0] = A * PartitionData.create_gaussian_impulse(
+                time_sample_indices, 80 * 4, 80) - A * PartitionData.create_gaussian_impulse(time_sample_indices, 80 * 4 * 2, 80)
            #self.impulses[:, 0] = A * (np.sin(10 * ((1 / self.param.Fs) * time_sample_indices * np.pi))) + 10E-18
 
         #(fs, wav) = read('track.wav')
@@ -82,8 +87,11 @@ class PartitionData:
 
         # Step 1 c). Precomputation for the DCTs to be performed. Transforming impulse to spatial
         # forces. Skipped partitions as of now. TODO: Implement partitions
-        self.forces = dct(self.impulses[1],
-                          n=self.space_divisions, type=1)
+        #self.forces = dct(self.impulses[1],
+        #                  n=self.space_divisions, type=1)
+
+        #self.new_forces = np.zeros(shape=self.pressure_field.shape)
+        self.new_forces = self.impulses[0].copy()
 
         # Relates to equation 5 and 8 of "An efficient GPU-based time domain solver for the
         # acoustic wave equation" paper.

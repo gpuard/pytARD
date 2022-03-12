@@ -62,6 +62,7 @@ class ARDSimulator:
         Returns
         -------
         '''
+
         for i in range(len(self.part_data)):
             self.part_data[i].preprocessing()
             
@@ -96,12 +97,18 @@ class ARDSimulator:
 
         for t_s in range(2, self.sim_param.number_of_samples):
             for i in range(len(self.part_data)):
+                #print(f"nu forces: {self.part_data[i].new_forces}")
+                # Execute DCT for next sample
+                self.part_data[i].forces = dct(self.part_data[i].new_forces, n=self.part_data[i].space_divisions, type=1)
+
                 # Updating mode using the update rule in equation 8.
                 # Relates to (2 * F^n) / (ω_i ^ 2) * (1 - cos(ω_i * Δ_t)) in equation 8.
                 self.part_data[i].force_field = ((2 * self.part_data[i].forces.reshape([self.part_data[i].space_divisions, 1])) / (
-                (self.part_data[i].omega_i + 0.00000001) ** 2)) * (1 - np.cos(self.part_data[i].omega_i * self.sim_param.delta_t))
-                # TODO Perhaps set zero element to zero in force field if something goes horribly wrong
+                    (self.part_data[i].omega_i + 0.00000001) ** 2)) * (1 - np.cos(self.part_data[i].omega_i * self.sim_param.delta_t))
                 
+                # TODO Perhaps set zero element to zero in force field if something goes horribly wrong
+                # self.part_data[i].force_field[0] = 0
+
                 # Relates to M^(n+1) in equation 8.
                 self.part_data[i].M_next = 2 * self.part_data[i].M_current * \
                 np.cos(self.part_data[i].omega_i * self.sim_param.delta_t) - self.part_data[i].M_previous + self.part_data[i].force_field
@@ -116,33 +123,36 @@ class ARDSimulator:
                 # Update time stepping to prepare for next time step / loop iteration.
                 self.part_data[i].M_previous = self.part_data[i].M_current.copy()
                 self.part_data[i].M_current = self.part_data[i].M_next.copy()
+                '''
+                # Update impulses
+                if t_s < self.sim_param.number_of_samples - 1:
+                    self.part_data[i].impulses[t_s + 1] = self.part_data[i].impulses[t_s]
+                '''
+                self.part_data[i].new_forces = self.part_data[i].impulses[t_s].copy()
 
             
-            
-
             '''
             # Interface handling.
             for i in range(-3,3):
                 left_sum = 0.
                 right_sum = 0.
                 for l in range(3):
-                    left_sum += self.FDTD_COEFFS[i + 3] * self.part_data[0].pressure_field[-3 + l]
+                    left_sum += self.FDTD_COEFFS[i + 3][l] * self.part_data[0].pressure_field[-3 + l]
                 
                 for r in range(3,6):
-                    right_sum += self.FDTD_COEFFS[i + 3] * self.part_data[1].pressure_field[-3 + r]
+                    right_sum += self.FDTD_COEFFS[i + 3][r] * self.part_data[1].pressure_field[-3 + r]
                 
                 if t_s < self.sim_param.number_of_samples - 1:
                     if i < 0:
                         #right to left
                         Fi = right_sum
-                        self.part_data[0].forces[i] = Fi * self.sim_param.c ** 2 / (180. * self.part_data[0].h ** 2)
+                        self.part_data[0].new_forces[i] = Fi * self.sim_param.c ** 2 / (180. * self.part_data[0].h ** 2)
                     else:
                         #left to right
                         Fi = left_sum
-                        self.part_data[1].forces[i] = Fi * self.sim_param.c ** 2 / (180. * self.part_data[1].h ** 2)
+                        self.part_data[1].new_forces[i] = Fi * self.sim_param.c ** 2 / (180. * self.part_data[1].h ** 2)
             '''
 
-            # TODO Disgusting hack warning! FDTD_KERNEL_SIZE + 1, '+1' should not be there
             p_field_mini = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE, 1])
 
             # Left rod 𓂸
@@ -153,19 +163,16 @@ class ARDSimulator:
 
             f_mini_update = self.FDTD_COEFFS.dot(p_field_mini) * .25 # TODO: What is .25? Magic number man bad >:(
 
-            print(f"minion update :)))) banana {f_mini_update}")
-
-            self.part_data[0].impulses[t_s][-3] += f_mini_update[0]
-            self.part_data[0].impulses[t_s][-2] += f_mini_update[1]
-            self.part_data[0].impulses[t_s][-1] += f_mini_update[2]
-            self.part_data[1].impulses[t_s][0] += f_mini_update[3]
-            self.part_data[1].impulses[t_s][1] += f_mini_update[4]
-            self.part_data[1].impulses[t_s][2] += f_mini_update[5]
-
-            for i in range(len(self.part_data)):
-                # Execute DCT for next sample
-                self.part_data[i].forces = dct(self.part_data[i].impulses[t_s], n=self.part_data[i].space_divisions, type=1)
-                
+            self.part_data[0].new_forces[-3] += f_mini_update[0]
+            self.part_data[0].new_forces[-2] += f_mini_update[1]
+            self.part_data[0].new_forces[-1] += f_mini_update[2]
+            self.part_data[1].new_forces[0] += f_mini_update[3]
+            self.part_data[1].new_forces[1] += f_mini_update[4]
+            self.part_data[1].new_forces[2] += f_mini_update[5]
+            
+            
+            
+            
 
         #self.mic = np.zeros(shape=self.sim_param.number_of_samples, dtype=np.float)
 
