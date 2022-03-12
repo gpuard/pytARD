@@ -44,9 +44,21 @@ class ARDSimulator:
                 [ 0.,          0.,          0.01111111, -0.01111111, -0.,         -0.        ]
             ]
         )
+        #fdtd_coeffs_not_normalized = np.array(
+        #    [
+        #        [ 0., 0., 1., 1., 0., 0. ],
+        #        [ 0., 1., 1., 1., 1., 0. ],
+        #        [ 1., 1., 1., 1., 1., 1. ],
+        #        [ 1., 1., 1., 1., 1., 1. ],
+        #        [ 0., 0., 1., 1., 0., 0. ],
+        #        [ 0., 0., 1., 1., 0., 0. ]
+        #    ]
+        #)
 
         # TODO: Unify h of partition data, atm it's hard coded to first partition
-        self.FDTD_COEFFS = fdtd_coeffs_not_normalized * ((sim_parameters.c / part_data[0].h) ** 2)
+        print(part_data[0].h)
+        print(part_data[1].h)
+        self.FDTD_COEFFS = fdtd_coeffs_not_normalized * ((sim_parameters.c / part_data[0].h)) #** 2)
 
         # FDTD kernel size.
         self.FDTD_KERNEL_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
@@ -104,7 +116,7 @@ class ARDSimulator:
                 # Updating mode using the update rule in equation 8.
                 # Relates to (2 * F^n) / (ω_i ^ 2) * (1 - cos(ω_i * Δ_t)) in equation 8.
                 self.part_data[i].force_field = ((2 * self.part_data[i].forces.reshape([self.part_data[i].space_divisions, 1])) / (
-                    (self.part_data[i].omega_i + 0.00000001) ** 2)) * (1 - np.cos(self.part_data[i].omega_i * self.sim_param.delta_t))
+                    (self.part_data[i].omega_i + 10E-15) ** 2)) * (1 - np.cos(self.part_data[i].omega_i * self.sim_param.delta_t))
                 
                 # TODO Perhaps set zero element to zero in force field if something goes horribly wrong
                 # self.part_data[i].force_field[0] = 0
