@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fftpack import idct, dct
+from scipy.io.wavfile import write
 
 
 class ARDSimulator:
@@ -62,6 +63,10 @@ class ARDSimulator:
 
         # FDTD kernel size.
         self.FDTD_KERNEL_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
+
+        self.mic1 = np.zeros(self.sim_param.number_of_samples)
+        self.mic2 = np.zeros(self.sim_param.number_of_samples)
+
         
 
     def preprocessing(self):
@@ -130,7 +135,10 @@ class ARDSimulator:
                     self.part_data[i].space_divisions), n=self.part_data[i].space_divisions, type=1)
                 
                 self.part_data[i].pressure_field_results.append(self.part_data[i].pressure_field.copy())
-                #self.mic[t_s] = self.part_data[i].pressure_field[int(self.part_data[i].space_divisions * .75)]
+                if i == 0:
+                    self.mic1[t_s] = self.part_data[0].pressure_field[int(self.part_data[0].space_divisions * 0.8)]
+                if i == 1:
+                    self.mic2[t_s] = self.part_data[1].pressure_field[int(self.part_data[1].space_divisions * 0.2)]
                 
                 # Update time stepping to prepare for next time step / loop iteration.
                 self.part_data[i].M_previous = self.part_data[i].M_current.copy()
@@ -190,8 +198,10 @@ class ARDSimulator:
 
         
 
-        #self.mic = self.mic / np.max(self.mic)
-        #write("impulse_response.wav", self.sim_param.Fs, self.mic.astype(np.float))
+        self.mic1 = self.mic1 / np.max(self.mic1)
+        write("left.wav", self.sim_param.Fs, self.mic1.astype(np.float))
+        self.mic2 = self.mic2 / np.max(self.mic2)
+        write("right.wav", self.sim_param.Fs, self.mic2.astype(np.float))
         
        # 1. For all interfaces: Interface handling 
        # to compute force f within each partition (Equation 12).

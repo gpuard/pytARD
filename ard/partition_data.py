@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.io.wavfile import read, write
+from scipy.io.wavfile import read
 from scipy.fftpack import idct, dct
 
 class PartitionData:
@@ -59,14 +59,15 @@ class PartitionData:
         #        self.dirac_a, t) for t in np.arange(0, self.param.T, self.param.delta_t)]
         time_sample_indices = np.arange(0, self.sim_param.number_of_samples, 1) # =x = [1 2 3 4 5] ------> sin(x_i * pi) ->>> sin(pi), sin(2pi) sin(3pi)
         
-        if do_impulse:
-            A = 100
-            self.impulses[:, 0] = A * PartitionData.create_gaussian_impulse(
-                time_sample_indices, 80 * 4, 80) - A * PartitionData.create_gaussian_impulse(time_sample_indices, 80 * 4 * 2, 80)
+        #if do_impulse:
+        #    A = 100000
+        #    self.impulses[:, 0] = A * PartitionData.create_gaussian_impulse(
+        #        time_sample_indices, 80 * 4, 80) - A * PartitionData.create_gaussian_impulse(time_sample_indices, 80 * 4 * 2, 80)
            #self.impulses[:, 0] = A * (np.sin(10 * ((1 / self.param.Fs) * time_sample_indices * np.pi))) + 10E-18
 
-        #(fs, wav) = read('track.wav')
-        #self.impulses[:, int(self.sim_param.space_divisions / 2)] = 100 * wav[0:self.sim_param.number_of_samples]
+        if do_impulse:
+            (fs, wav) = read('track.wav')
+            self.impulses[:, int(self.space_divisions * 0.9)] = 100 * wav[0:self.sim_param.number_of_samples]
 
     def preprocessing(self):
         '''
