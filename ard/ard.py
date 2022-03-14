@@ -136,7 +136,7 @@ class ARDSimulator:
                 
                 self.part_data[i].pressure_field_results.append(self.part_data[i].pressure_field.copy())
                 if i == 0:
-                    self.mic1[t_s] = self.part_data[0].pressure_field[int(self.part_data[0].space_divisions * 0.8)]
+                    self.mic1[t_s] = self.part_data[0].pressure_field[int(self.part_data[0].space_divisions * 0.6)]
                 if i == 1:
                     self.mic2[t_s] = self.part_data[1].pressure_field[int(self.part_data[1].space_divisions * 0.2)]
                 
@@ -181,7 +181,7 @@ class ARDSimulator:
             # Right rod 𓂸
             p_field_mini[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[1].pressure_field[0 : self.FDTD_KERNEL_SIZE].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
 
-            f_mini_update = self.FDTD_COEFFS.dot(p_field_mini) * .25 # TODO: What is .25? Magic number man bad >:(
+            f_mini_update = self.FDTD_COEFFS.dot(p_field_mini) #.25 # TODO: What is .25? Magic number man bad >:(
 
             self.part_data[0].new_forces[-3] += f_mini_update[0]
             self.part_data[0].new_forces[-2] += f_mini_update[1]
