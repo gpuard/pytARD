@@ -1,7 +1,7 @@
-from ard.ard import ARDSimulator as ARDS
-from ard.parameters import SimulationParameters as SIMP
-from ard.partition_data import PartitionData as PARTD
-
+from pytARD_2D.ard import ARDSimulator as ARDS
+from pytARD_2D.parameters import SimulationParameters as SIMP
+from pytARD_2D.partition_data import PartitionData as PARTD
+from pytARD_2D.microphone import Microphone as Mic
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -21,7 +21,6 @@ visualize = True
 
 # Compilation of room parameters into parameter class
 sim_params = SIMP(
-    src_pos, 
     upper_frequency_limit, 
     duration, 
     c=c, 
@@ -32,9 +31,8 @@ sim_params = SIMP(
     visualize=visualize
 )
 
-partition_1 = PARTD(np.array([342]), sim_params)
-partition_2 = PARTD(np.array([342]), sim_params)
-
+partition_1 = PARTD(np.array([c * 2]), sim_params)
+partition_2 = PARTD(np.array([c * 2]), sim_params,do_impulse=False)
 
 part_data = [partition_1, partition_2]
 
@@ -53,9 +51,14 @@ if visualize:
     for i in range(0, len(partition_1.pressure_field_results), 50):
         plt.clf()
         plt.title(f"ARD 1D (t = {(sim_params.T * (i / sim_params.number_of_samples)):.4f}s)")
-        plt.plot(room_dims, partition_1.pressure_field_results[i], 'r--', linewidth=10)
-        plt.plot(room_dims, partition_2.pressure_field_results[i], 'b*')
-
+        plt.subplot(1, 2, 1)
+        plt.plot(room_dims, partition_1.pressure_field_results[i], 'r', linewidth=1)
+        plt.ylim(top=ytop)
+        plt.ylim(bottom=ybtm)
+        plt.vlines(np.min(room_dims), ybtm, ytop, color='gray')
+        plt.vlines(np.max(room_dims), ybtm, ytop, color='gray')
+        plt.subplot(1, 2, 2)
+        plt.plot(room_dims, partition_2.pressure_field_results[i], 'b', linewidth=1)
         plt.xlabel("Position [m]")
         plt.ylabel("Displacement")
         plt.ylim(top=ytop)

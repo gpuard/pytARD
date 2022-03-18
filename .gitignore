@@ -1,1 +1,5 @@
 *.pyc
+venv/
+.idea/
+*.wav
+*.wave
