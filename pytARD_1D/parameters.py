@@ -4,7 +4,6 @@
 class SimulationParameters:
     def __init__(
         self,
-        src_pos,
         max_simulation_frequency,
         T,
         spatial_samples_per_wave_length=4,
@@ -53,7 +52,6 @@ class SimulationParameters:
         assert(max_simulation_frequency >
                0), "Error: Uppermost frequency of simulation must be a positive number"
 
-        self.src_pos = src_pos
         self.max_simulation_frequency = max_simulation_frequency
         self.c = c
         self.Fs = Fs
@@ -66,23 +64,13 @@ class SimulationParameters:
         # Calculate time stepping (Δ_t)
         self.delta_t = T / self.number_of_samples
 
-        # Voxel grid spacing. Changes according to frequency
-        
-        # self.H = SimulationParameters.calculate_voxelization_step(
-        #     self.c, spatial_samples_per_wave_length, self.max_simulation_frequency)
-
-        self.impulse_location = 0
-
-        # Save dimension for distinguishing between 1D, 2D and 3D processing TODO implement dimension distinction
-        self.dimension = None
-
         self.enable_multicore = enable_multicore
         self.auralize = auralize
         self.verbose = verbose
         self.visualize = visualize
 
-        #if verbose:
-        #    print(f"Created a {self.dimension}-D room, sized {room_size} m, with signal source position {src_pos} m.\nNumber of samples: {self.number_of_samples} | Δ_t: {self.delta_t} | ℎ: {self.H} | Space divisions: {self.space_divisions} ({self.room_size/self.space_divisions} m each)")
+        if verbose:
+            print(f"Insantiated simulation.\nNumber of samples: {self.number_of_samples} | Δ_t: {self.delta_t}")
 
     @staticmethod
     def calculate_voxelization_step(c, spatial_samples_per_wave_length, max_simulation_frequency):

@@ -1,7 +1,7 @@
-from ard.ard import ARDSimulator as ARDS
-from ard.parameters import SimulationParameters as SIMP
-from ard.partition_data import PartitionData as PARTD
-
+from pytARD_1D.ard import ARDSimulator as ARDS
+from pytARD_1D.parameters import SimulationParameters as SIMP
+from pytARD_1D.partition_data import PartitionData as PARTD
+from pytARD_1D.microphone import Microphone as Mic
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -21,7 +21,6 @@ visualize = True
 
 # Compilation of room parameters into parameter class
 sim_params = SIMP(
-    src_pos, 
     upper_frequency_limit, 
     duration, 
     c=c, 
@@ -34,7 +33,6 @@ sim_params = SIMP(
 
 partition_1 = PARTD(np.array([c * 2]), sim_params)
 partition_2 = PARTD(np.array([c * 2]), sim_params,do_impulse=False)
-
 
 part_data = [partition_1, partition_2]
 
