@@ -121,7 +121,7 @@ class ARDSimulator:
                 # Updating mode using the update rule in equation 8.
                 # Relates to (2 * F^n) / (ω_i ^ 2) * (1 - cos(ω_i * Δ_t)) in equation 8.
                 self.part_data[i].force_field = ((2 * self.part_data[i].forces.reshape([self.part_data[i].space_divisions, 1])) / (
-                    (self.part_data[i].omega_i + 10E-15) ** 2)) * (1 - np.cos(self.part_data[i].omega_i * self.sim_param.delta_t))
+                    (self.part_data[i].omega_i) ** 2)) * (1 - np.cos(self.part_data[i].omega_i * self.sim_param.delta_t))
                 
                 # TODO Perhaps set zero element to zero in force field if something goes horribly wrong
                 # self.part_data[i].force_field[0] = 0

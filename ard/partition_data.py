@@ -59,15 +59,15 @@ class PartitionData:
         #        self.dirac_a, t) for t in np.arange(0, self.param.T, self.param.delta_t)]
         time_sample_indices = np.arange(0, self.sim_param.number_of_samples, 1) # =x = [1 2 3 4 5] ------> sin(x_i * pi) ->>> sin(pi), sin(2pi) sin(3pi)
         
-        #if do_impulse:
-        #    A = 100000
-        #    self.impulses[:, 0] = A * PartitionData.create_gaussian_impulse(
-        #        time_sample_indices, 80 * 4, 80) - A * PartitionData.create_gaussian_impulse(time_sample_indices, 80 * 4 * 2, 80)
-           #self.impulses[:, 0] = A * (np.sin(10 * ((1 / self.param.Fs) * time_sample_indices * np.pi))) + 10E-18
-
         if do_impulse:
-            (fs, wav) = read('track.wav')
-            self.impulses[:, int(self.space_divisions * 0.9)] = 100 * wav[0:self.sim_param.number_of_samples]
+            A = 100000
+            self.impulses[:, int(self.space_divisions/2)] = A * PartitionData.create_gaussian_impulse(
+                time_sample_indices, 80 * 4, 80) - A * PartitionData.create_gaussian_impulse(time_sample_indices, 80 * 4 * 2, 80)
+            #self.impulses[:, 0] = A * (np.sin(10 * ((1 / self.param.Fs) * time_sample_indices * np.pi))) + 10E-18
+
+        #if do_impulse:
+        #    (fs, wav) = read('track.wav')
+        #    self.impulses[:, int(self.space_divisions * 0.9)] = 100 * wav[0:self.sim_param.number_of_samples]
 
     def preprocessing(self):
         '''
@@ -99,6 +99,9 @@ class PartitionData:
         # For reference, see https://www.microsoft.com/en-us/research/wp-content/uploads/2016/10/4.pdf.
         self.omega_i = self.sim_param.c * np.pi * \
             (np.arange(0, self.space_divisions, 1) / np.max(self.dimensions))
+
+        # TODO Semi disgusting hack. Without it, the calculation of update rule (equation 9) would crash.
+        self.omega_i[0] = 0.1
 
         # Convert omega_i from row vector to column vector
         self.omega_i = self.omega_i.reshape([len(self.omega_i), 1])
