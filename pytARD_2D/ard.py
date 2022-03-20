@@ -40,14 +40,14 @@ class ARDSimulator:
         )
 
         # TODO: Unify h of partition data, atm it's hard coded to first partition
-        self.FDTD_COEFFS = fdtd_coeffs_not_normalized * (sim_parameters.c / part_data[0].h_x) 
+        self.FDTD_COEFFS = fdtd_coeffs_not_normalized * ((sim_parameters.c / part_data[0].h_x) ** 2)
 
         # FDTD kernel size.
         self.FDTD_KERNEL_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
 
         # Initialize & position mics. 
-        #self.mic1 = Mic(int(part_data[0].dimensions / 2), sim_parameters, "left")
-        #self.mic2 = Mic(int(part_data[1].dimensions / 4), sim_parameters, "right")
+        self.mic1 = Mic([int(part_data[0].dimensions[0] / 2), int(part_data[0].dimensions[1] / 2)], sim_parameters, "left")
+        self.mic2 = Mic([int(part_data[1].dimensions[0] / 2), int(part_data[1].dimensions[1] / 2)], sim_parameters, "right")
 
 
     def preprocessing(self):
@@ -68,7 +68,7 @@ class ARDSimulator:
             for i in range(len(self.part_data)):
                 #print(f"nu forces: {self.part_data[i].new_forces}")
                 # Execute DCT for next sample
-                self.part_data[i].forces = dctn(self.part_data[i].new_forces, type=1)# n=self.part_data[i].space_divisions_y,
+                self.part_data[i].forces = dctn(self.part_data[i].new_forces, type=1)
 
                 # Updating mode using the update rule in equation 8.
                 # Relates to (2 * F^n) / (ω_i ^ 2) * (1 - cos(ω_i * Δ_t)) in equation 8.
@@ -81,15 +81,15 @@ class ARDSimulator:
                 
                 # Convert modes to pressure values using inverse DCT.
                 self.part_data[i].pressure_field = idctn(self.part_data[i].M_next.reshape(
-                    self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x), type=1) # n=self.part_data[i].space_divisions_y,
+                    self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x), type=1) 
                 
                 self.part_data[i].pressure_field_results.append(self.part_data[i].pressure_field.copy())
-                '''
+                
                 if i == 0:
-                    self.mic1.record(self.part_data[0].pressure_field[int(self.part_data[0].space_divisions_y * (self.mic1.location / self.part_data[0].dimensions))], t_s)
+                    self.mic1.record(self.part_data[0].pressure_field[int(self.part_data[0].space_divisions_y * (self.mic1.location[1] / self.part_data[0].dimensions[1]))][int(self.part_data[0].space_divisions_x * (self.mic1.location[0] / self.part_data[0].dimensions[0]))], t_s)
                 if i == 1:
-                    self.mic2.record(self.part_data[1].pressure_field[int(self.part_data[1].space_divisions_y * (self.mic2.location / self.part_data[1].dimensions))], t_s)
-                '''
+                    self.mic2.record(self.part_data[1].pressure_field[int(self.part_data[1].space_divisions_y * (self.mic2.location[1] / self.part_data[1].dimensions[1]))][int(self.part_data[1].space_divisions_x * (self.mic2.location[0] / self.part_data[1].dimensions[0]))], t_s)
+                
                 # Update time stepping to prepare for next time step / loop iteration.
                 self.part_data[i].M_previous = self.part_data[i].M_current.copy()
                 self.part_data[i].M_current = self.part_data[i].M_next.copy()
@@ -108,7 +108,7 @@ class ARDSimulator:
                 # Right room
                 pressure_field_around_interface[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[1].pressure_field[y, 0 : self.FDTD_KERNEL_SIZE].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
 
-                new_forces_from_interface = self.FDTD_COEFFS.dot(pressure_field_around_interface)
+                new_forces_from_interface = self.FDTD_COEFFS.dot(pressure_field_around_interface) * 0.25
 
                 self.part_data[0].new_forces[y, -3] += new_forces_from_interface[0]
                 self.part_data[0].new_forces[y, -2] += new_forces_from_interface[1]
@@ -118,8 +118,8 @@ class ARDSimulator:
                 self.part_data[1].new_forces[y, 2] += new_forces_from_interface[5]
         
         # Microphones. TODO: Make mics dynamic
-        #self.mic1.write_to_file(self.sim_param.Fs)
-        #self.mic2.write_to_file(self.sim_param.Fs)
+        self.mic1.write_to_file(self.sim_param.Fs)
+        self.mic2.write_to_file(self.sim_param.Fs)
 
 
 

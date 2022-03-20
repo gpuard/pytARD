@@ -110,7 +110,7 @@ class PartitionData:
             for x in range(self.space_divisions_x):
                 self.omega_i[y, x, 0] = self.sim_param.c * ((np.pi ** 2) * (((x ** 2) / (self.dimensions[0] ** 2)) + ((y ** 2) / (self.dimensions[1] ** 2)))) ** 0.5
 
-        # TODO Semi disgusting hack. Without it, the calculation of update rule (equation 9) would crash.
+        # TODO Semi disgusting hack. Without it, the calculation of update rule (equation 9) would crash due to division by zero
         self.omega_i[0, 0] = 0.1
 
         # Update time stepping. Relates to M^(n+1) and M^n in equation 8.
