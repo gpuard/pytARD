@@ -97,24 +97,25 @@ class ARDSimulator:
                 # Update impulses
                 self.part_data[i].new_forces = self.part_data[i].impulses[t_s].copy()
 
-            '''
-            pressure_field_around_interface = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE, 1])
+            # Interface handling
+            for y in range(self.part_data[i].space_divisions_y):
 
-            # Left rod
-            pressure_field_around_interface[0 : self.FDTD_KERNEL_SIZE] = self.part_data[0].pressure_field[-self.FDTD_KERNEL_SIZE : ].copy().reshape([self.FDTD_KERNEL_SIZE, 1])
+                pressure_field_around_interface = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE, 1])
 
-            # Right rod
-            pressure_field_around_interface[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[1].pressure_field[0 : self.FDTD_KERNEL_SIZE].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
+                # Left room
+                pressure_field_around_interface[0 : self.FDTD_KERNEL_SIZE] = self.part_data[0].pressure_field[y, -self.FDTD_KERNEL_SIZE : ].copy().reshape([self.FDTD_KERNEL_SIZE, 1])
 
-            new_forces_from_interface = self.FDTD_COEFFS.dot(pressure_field_around_interface)
+                # Right room
+                pressure_field_around_interface[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[1].pressure_field[y, 0 : self.FDTD_KERNEL_SIZE].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
 
-            self.part_data[0].new_forces[-3] += new_forces_from_interface[0]
-            self.part_data[0].new_forces[-2] += new_forces_from_interface[1]
-            self.part_data[0].new_forces[-1] += new_forces_from_interface[2]
-            self.part_data[1].new_forces[0] += new_forces_from_interface[3]
-            self.part_data[1].new_forces[1] += new_forces_from_interface[4]
-            self.part_data[1].new_forces[2] += new_forces_from_interface[5]
-            '''
+                new_forces_from_interface = self.FDTD_COEFFS.dot(pressure_field_around_interface)
+
+                self.part_data[0].new_forces[y, -3] += new_forces_from_interface[0]
+                self.part_data[0].new_forces[y, -2] += new_forces_from_interface[1]
+                self.part_data[0].new_forces[y, -1] += new_forces_from_interface[2]
+                self.part_data[1].new_forces[y, 0] += new_forces_from_interface[3]
+                self.part_data[1].new_forces[y, 1] += new_forces_from_interface[4]
+                self.part_data[1].new_forces[y, 2] += new_forces_from_interface[5]
         
         # Microphones. TODO: Make mics dynamic
         #self.mic1.write_to_file(self.sim_param.Fs)

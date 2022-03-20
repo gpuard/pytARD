@@ -31,8 +31,8 @@ sim_params = SIMP(
     visualize=visualize
 )
 
-partition_1 = PARTD(np.array([[int(c / 10)],[int(c / 9)]]), sim_params)
-partition_2 = PARTD(np.array([[int(c / 200)],[int(c / 200)]]), sim_params,do_impulse=False)
+partition_1 = PARTD(np.array([[int(c / 20)],[int(c / 19)]]), sim_params)
+partition_2 = PARTD(np.array([[int(c / 18)],[int(c / 19)]]), sim_params,do_impulse=False)
 
 part_data = [partition_1, partition_2]
 
@@ -47,10 +47,17 @@ if True:
     ytop = np.max(partition_1.pressure_field_results)
     ybtm = np.min(partition_1.pressure_field_results)
 
-    _, ax = plt.subplots(subplot_kw={"projection": "3d"})
-    cool_bionicle_X = np.linspace(0, partition_1.space_divisions_x, partition_1.space_divisions_x)
-    cool_bionicle_Y = np.linspace(0, partition_1.space_divisions_y, partition_1.space_divisions_y)
-    X, Y = np.meshgrid(cool_bionicle_X, cool_bionicle_Y)
+    fig = plt.figure(figsize=plt.figaspect(0.5))
+    ax_1 = fig.add_subplot(1, 2, 1, projection='3d')
+    ax_2 = fig.add_subplot(1, 2, 2, projection='3d')
+
+    cool_bionicle_X_1 = np.linspace(0, partition_1.space_divisions_x, partition_1.space_divisions_x)
+    cool_bionicle_Y_1 = np.linspace(0, partition_1.space_divisions_y, partition_1.space_divisions_y)
+    X_1, Y_1 = np.meshgrid(cool_bionicle_X_1, cool_bionicle_Y_1)
+
+    cool_bionicle_X_2 = np.linspace(0, partition_2.space_divisions_x, partition_2.space_divisions_x)
+    cool_bionicle_Y_2 = np.linspace(0, partition_2.space_divisions_y, partition_2.space_divisions_y)
+    X_2, Y_2 = np.meshgrid(cool_bionicle_X_2, cool_bionicle_Y_2)
 
     for i in range(0, len(partition_1.pressure_field_results), 50):
         '''
@@ -73,11 +80,18 @@ if True:
         plt.grid()
         plt.pause(0.001)
         '''
-        Z = partition_1.pressure_field_results[i]
-        print(f"shape of X: {X.shape} Y: {Y.shape}, Z: {Z}")
-        ax.cla()
+        Z_1 = partition_1.pressure_field_results[i]
+        Z_2 = partition_2.pressure_field_results[i]
+
+        print(f"part. 1: shape of X: {X_1.shape} Y: {Y_1.shape}, Z: {Z_1}")
+        print(f"part. 2: shape of X: {X_2.shape} Y: {Y_2.shape}, Z: {Z_2}")
+
+        ax_1.cla()
+        ax_2.cla()
         plt.title(f"Look at my cool Bionicle© product: (t = {(sim_params.T * (i / sim_params.number_of_samples)):.4f}s)")
-        surf = ax.plot_surface(X, Y, Z, cmap=coom.coolwarm, antialiased=False)
+        surf = ax_1.plot_surface(X_1, Y_1, Z_1, cmap=coom.coolwarm, antialiased=False)
+        surf = ax_2.plot_surface(X_2, Y_2, Z_2, cmap=coom.coolwarm, antialiased=False)
+
         plt.pause(0.001)
 
     plot_step = 100
