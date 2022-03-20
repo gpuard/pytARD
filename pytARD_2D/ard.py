@@ -108,7 +108,7 @@ class ARDSimulator:
                 # Right room
                 pressure_field_around_interface[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[1].pressure_field[y, 0 : self.FDTD_KERNEL_SIZE].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
 
-                new_forces_from_interface = self.FDTD_COEFFS.dot(pressure_field_around_interface) * 0.25
+                new_forces_from_interface = self.FDTD_COEFFS.dot(pressure_field_around_interface)
 
                 self.part_data[0].new_forces[y, -3] += new_forces_from_interface[0]
                 self.part_data[0].new_forces[y, -2] += new_forces_from_interface[1]
