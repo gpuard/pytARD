@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fft import idctn, dctn
-from pytARD_1D.microphone import Microphone as Mic
+from common.microphone import Microphone as Mic
 
 
 class ARDSimulator:
