@@ -17,7 +17,7 @@ class PartitionData:
         Parameters
         ----------
         dimensions : ndarray
-            Size of the partition (room) in meters. Can be 1D, 2D or 3D.
+            Size of the partition (room) in meters. 
         sim_parameters : SimulationParameters
             Instance of simulation parameter class.
         do_impulse : bool
