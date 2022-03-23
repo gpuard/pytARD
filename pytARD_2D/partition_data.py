@@ -41,7 +41,6 @@ class PartitionData:
         print(f"h_x = {self.h_x}")
         print(f"h_y = {self.h_y}")
 
-
         # Instantiate forces array, which corresponds to F in update rule (results of DCT computation). TODO: Elaborate more
         self.forces = None
 
@@ -71,31 +70,35 @@ class PartitionData:
             A = 100000
 
             # TODO: Magic numbers! Bad!!!
-            self.impulses[:, int(self.space_divisions_y / 2), int(self.space_divisions_x / 2)] = A * PartitionData.create_gaussian_impulse(time_sample_indices, 80 * 4, 80) - A * PartitionData.create_gaussian_impulse(time_sample_indices, 80 * 4 * 2, 80)
-
+            '''
+            self.impulses[:, int(self.space_divisions_y / 2), int(self.space_divisions_x / 2)] = A * PartitionData.create_gaussian_impulse(
+                time_sample_indices, 2.5 * 4, 80)#- A * PartitionData.create_gaussian_impulse(time_sample_indices, 80 * 4 * 2, 80)
+            '''
             if self.sim_param.visualize:
                 import matplotlib.pyplot as plt
-                plt.plot(self.impulses[:, int(self.space_divisions_y  / 2), int(self.space_divisions_x / 2)])
+                plt.plot(self.impulses[:, int(
+                    self.space_divisions_y / 2), int(self.space_divisions_x / 2)])
                 plt.show()
 
-
         # Uncomment to inject wave file. TODO: Consolidize into source class
-        '''
+        
         if do_impulse:
-            (fs, wav) = read('track.wav')
-            self.impulses[:, int(self.space_divisions * 0.9)] = 100 * wav[0:self.sim_param.number_of_samples]
-        '''
+            (fs, wav) = read('clap.wav')
+            self.impulses[:, int(
+                    self.space_divisions_y / 2), int(self.space_divisions_x / 2)] = 100 * wav[0:self.sim_param.number_of_samples]
+        
 
         if sim_parameters.verbose:
-            print(f"Created partition with dimensions {self.dimensions} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions: {self.space_divisions_y} ({self.dimensions/self.space_divisions_y} m each)")
-
+            print(
+                f"Created partition with dimensions {self.dimensions} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions: {self.space_divisions_y} ({self.dimensions/self.space_divisions_y} m each)")
 
     def preprocessing(self):
         '''
         Preprocessing stage. Refers to Step 1 in the paper.
         '''
         # Preparing pressure field. Equates to function p(x) on the paper.
-        self.pressure_field = np.zeros(shape=[1, self.space_divisions_y, self.space_divisions_x])
+        self.pressure_field = np.zeros(
+            shape=[1, self.space_divisions_y, self.space_divisions_x])
         #print(f"presh field = {self.pressure_field}")
 
         # Precomputation for the DCTs to be performed. Transforming impulse to spatial forces. Skipped partitions as of now.
@@ -105,16 +108,19 @@ class PartitionData:
         # acoustic wave equation" paper.
         # For reference, see https://www.microsoft.com/en-us/research/wp-content/uploads/2016/10/4.pdf.
 
-        self.omega_i = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x, 1])
+        self.omega_i = np.zeros(
+            shape=[self.space_divisions_y, self.space_divisions_x, 1])
         for y in range(self.space_divisions_y):
             for x in range(self.space_divisions_x):
-                self.omega_i[y, x, 0] = self.sim_param.c * ((np.pi ** 2) * (((x ** 2) / (self.dimensions[0] ** 2)) + ((y ** 2) / (self.dimensions[1] ** 2)))) ** 0.5
+                self.omega_i[y, x, 0] = self.sim_param.c * ((np.pi ** 2) * (((x ** 2) / (
+                    self.dimensions[0] ** 2)) + ((y ** 2) / (self.dimensions[1] ** 2)))) ** 0.5
 
         # TODO Semi disgusting hack. Without it, the calculation of update rule (equation 9) would crash due to division by zero
         self.omega_i[0, 0] = 0.1
 
         # Update time stepping. Relates to M^(n+1) and M^n in equation 8.
-        self.M_previous = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x, 1])
+        self.M_previous = np.zeros(
+            shape=[self.space_divisions_y, self.space_divisions_x, 1])
         self.M_current = np.zeros(shape=self.M_previous.shape)
         self.M_next = None
 

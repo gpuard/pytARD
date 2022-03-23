@@ -32,7 +32,7 @@ sim_params = SIMP(
     visualize=visualize
 )
 
-SCALE = 50 # Scale of room. Gets calculated by speed of sound divided by SCALE
+SCALE = 30 # Scale of room. Gets calculated by speed of sound divided by SCALE
 
 partition_1 = PARTD(np.array([[int(c / SCALE)],[int(c / SCALE)]]), sim_params)
 partition_2 = PARTD(np.array([[int(c / SCALE)],[int(c / SCALE)]]), sim_params,do_impulse=False)
@@ -52,9 +52,9 @@ if True:
     ybtm = np.min(partition_1.pressure_field_results)
 
     fig = plt.figure(figsize=plt.figaspect(0.5))
-    ax_1 = fig.add_subplot(2, 2, 1, projection='3d')
-    ax_2 = fig.add_subplot(2, 2, 2, projection='3d')
-    ax_3 = fig.add_subplot(2, 2, 4, projection='3d')
+    ax_1 = fig.add_subplot(2, 2, 1)
+    ax_2 = fig.add_subplot(2, 2, 2)
+    ax_3 = fig.add_subplot(2, 2, 4)
 
     cool_bionicle_X_1 = np.linspace(0, partition_1.space_divisions_x, partition_1.space_divisions_x)
     cool_bionicle_Y_1 = np.linspace(0, partition_1.space_divisions_y, partition_1.space_divisions_y)
@@ -68,7 +68,8 @@ if True:
     cool_bionicle_Y_3 = np.linspace(0, partition_3.space_divisions_y, partition_3.space_divisions_y)
     X_3, Y_3 = np.meshgrid(cool_bionicle_X_3, cool_bionicle_Y_3)
 
-    plot_limit = np.min(partition_2.pressure_field_results[:]), np.max(partition_2.pressure_field_results[:])
+    plot_limit_min = np.min(partition_2.pressure_field_results[:])
+    plot_limit_max = np.max(partition_2.pressure_field_results[:])
 
     for i in range(0, len(partition_1.pressure_field_results), 50):
         Z_1 = partition_1.pressure_field_results[i]
@@ -80,13 +81,17 @@ if True:
         ax_3.cla()
 
         plt.title(f"t = {(sim_params.T * (i / sim_params.number_of_samples)):.4f}s")
-        ax_1.plot_surface(X_1, Y_1, Z_1, cmap=coom.coolwarm, antialiased=False)
-        ax_2.plot_surface(X_2, Y_2, Z_2, cmap=coom.coolwarm, antialiased=False)
-        ax_3.plot_surface(X_3, Y_3, Z_3, cmap=coom.coolwarm, antialiased=False)
+        # ax_1.plot_surface(X_1, Y_1, Z_1, cmap=coom.coolwarm, antialiased=False)
+        # ax_2.plot_surface(X_2, Y_2, Z_2, cmap=coom.coolwarm, antialiased=False)
+        # ax_3.plot_surface(X_3, Y_3, Z_3, cmap=coom.coolwarm, antialiased=False)
 
-        ax_1.set_zlim(plot_limit)
-        ax_2.set_zlim(plot_limit)
-        ax_3.set_zlim(plot_limit)
+        ax_1.imshow(Z_1)#, vmin=plot_limit_min, vmax=plot_limit_max)
+        ax_2.imshow(Z_2)#, vmin=plot_limit_min, vmax=plot_limit_max)
+        ax_3.imshow(Z_3)#, vmin=plot_limit_min, vmax=plot_limit_max)
+
+        # ax_1.set_zlim(plot_limit)
+        # ax_2.set_zlim(plot_limit)
+        # ax_3.set_zlim(plot_limit)
 
         plt.pause(0.005)
 

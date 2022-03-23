@@ -48,7 +48,7 @@ class ARDSimulator:
 
         # Initialize & position mics. 
         self.mic1 = Mic([int(part_data[0].dimensions[0] / 2), int(part_data[0].dimensions[1] / 2)], sim_parameters, "left")
-        self.mic2 = Mic([int(part_data[1].dimensions[0] / 2), int(part_data[1].dimensions[1] / 2)], sim_parameters, "right")
+        self.mic2 = Mic([int(part_data[2].dimensions[0] / 2), int(part_data[2].dimensions[1] / 2)], sim_parameters, "bottom")
 
 
     def preprocessing(self):
@@ -87,10 +87,15 @@ class ARDSimulator:
                 self.part_data[i].pressure_field_results.append(self.part_data[i].pressure_field.copy())
                 
                 if i == 0:
-                    self.mic1.record(self.part_data[0].pressure_field[int(self.part_data[0].space_divisions_y * (self.mic1.location[1] / self.part_data[0].dimensions[1]))][int(self.part_data[0].space_divisions_x * (self.mic1.location[0] / self.part_data[0].dimensions[0]))], t_s)
+                    pressure_field_y = int(self.part_data[0].space_divisions_y * (self.mic1.location[1] / self.part_data[0].dimensions[1]))
+                    pressure_field_x = int(self.part_data[0].space_divisions_x * (self.mic1.location[0] / self.part_data[0].dimensions[0]))
+                    self.mic1.record(self.part_data[0].pressure_field[pressure_field_y][pressure_field_x], t_s)
                 if i == 1:
-                    self.mic2.record(self.part_data[1].pressure_field[int(self.part_data[1].space_divisions_y * (self.mic2.location[1] / self.part_data[1].dimensions[1]))][int(self.part_data[1].space_divisions_x * (self.mic2.location[0] / self.part_data[1].dimensions[0]))], t_s)
-                
+                    pressure_field_y = int(self.part_data[2].space_divisions_y * (self.mic2.location[1] / self.part_data[2].dimensions[1]))
+                    pressure_field_x = int(self.part_data[2].space_divisions_x * (self.mic2.location[0] / self.part_data[2].dimensions[0]))
+                    self.mic2.record(self.part_data[2].pressure_field.copy().reshape(
+                        [self.part_data[2].space_divisions_y, self.part_data[2].space_divisions_x, 1])[pressure_field_y][pressure_field_x], t_s)
+
                 # Update time stepping to prepare for next time step / loop iteration.
                 self.part_data[i].M_previous = self.part_data[i].M_current.copy()
                 self.part_data[i].M_current = self.part_data[i].M_next.copy()
