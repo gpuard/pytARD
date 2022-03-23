@@ -1,7 +1,8 @@
+from common.parameters import SimulationParameters as SIMP
+
 from pytARD_1D.ard import ARDSimulator as ARDS
-from pytARD_1D.parameters import SimulationParameters as SIMP
 from pytARD_1D.partition_data import PartitionData as PARTD
-from pytARD_1D.microphone import Microphone as Mic
+
 import matplotlib.pyplot as plt
 import numpy as np
 
