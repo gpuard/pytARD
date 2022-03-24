@@ -4,100 +4,70 @@ from pytARD_2D.ard import ARDSimulator as ARDS
 from pytARD_2D.partition_data import PartitionData as PARTD
 
 import matplotlib.pyplot as plt
-from matplotlib import cm as coom
 import numpy as np
 
-# Room parameters
-duration = 1 # seconds
-Fs = 8000 # sample rate
-upper_frequency_limit = Fs # Hz
-c = 342 # m/s
-spatial_samples_per_wave_length = 6
-
-# Procedure parameters
-enable_multicore = False
-auralize = False
-verbose = True
-visualize = False
-
+from matplotlib.animation import FuncAnimation
+visualize = True
+ 
 # Compilation of room parameters into parameter class
 sim_params = SIMP(
-    upper_frequency_limit, 
-    duration, 
-    c=c, 
-    Fs=Fs,
-    spatial_samples_per_wave_length=spatial_samples_per_wave_length, 
-    enable_multicore=enable_multicore, 
-    verbose=verbose,
-    visualize=visualize
+    max_wave_frequency                  = 50, # in Hz 
+    simulation_time                     = 7, # in seconds
+    c                                   = 10, # speed of sound in meter/sec 
+    Fs                                  = 500, # sampling rate in samples/sec
+    spatial_samples_per_wave_length     = 3, 
+    enable_multicore                    = False, 
+    verbose                             = True,
 )
 
-partition_1 = PARTD(np.array([[int(c / 25)],[int(c / 25)]]), sim_params)
-partition_2 = PARTD(np.array([[int(c / 25)],[int(c / 25)]]), sim_params,do_impulse=False)
+partition_1 = PARTD((30,30), sim_params)
+partition_2 = PARTD((30,30), sim_params,do_impulse=False)
 
 part_data = [partition_1, partition_2]
+# part_data = [partition_1]
 
 # Instantiating and executing simulation
 sim = ARDS(sim_params, part_data)
 sim.preprocessing()
 sim.simulation()
 
-# Plotting waveform
-if True:
-    room_dims = np.linspace(0., partition_1.dimensions[0], len(partition_1.pressure_field_results[0]))
-    ytop = np.max(partition_1.pressure_field_results)
-    ybtm = np.min(partition_1.pressure_field_results)
+if visualize:
+    fig, ax = plt.subplots(nrows=2, ncols=2)
+    p = np.zeros_like(part_data[0].pressure_field_results[0])
 
-    fig = plt.figure(figsize=plt.figaspect(0.5))
-    ax_1 = fig.add_subplot(1, 2, 1, projection='3d')
+    # mi = np.absolute(np.min(part_data[0].pressure_field_results))
+    # ma = np.absolute(np.max(part_data[0].pressure_field_results))
+    # v = np.max([mi,ma])
+    # v = int(v)
+    # im = ax[0,0].imshow(p, interpolation='nearest', animated=True, vmin=-v, vmax=+v, cmap=plt.cm.RdBu)
     
-    ax_2 = fig.add_subplot(1, 2, 2, projection='3d')
+    im = [ax[0,0].imshow(p),ax[0,1].imshow(p)]
+    
+    # fig.tight_layout()
+    # for i in range(len(im)):
+    #     fig.colorbar(im[i])
 
-    cool_bionicle_X_1 = np.linspace(0, partition_1.space_divisions_x, partition_1.space_divisions_x)
-    cool_bionicle_Y_1 = np.linspace(0, partition_1.space_divisions_y, partition_1.space_divisions_y)
-    X_1, Y_1 = np.meshgrid(cool_bionicle_X_1, cool_bionicle_Y_1)
-
-    cool_bionicle_X_2 = np.linspace(0, partition_2.space_divisions_x, partition_2.space_divisions_x)
-    cool_bionicle_Y_2 = np.linspace(0, partition_2.space_divisions_y, partition_2.space_divisions_y)
-    X_2, Y_2 = np.meshgrid(cool_bionicle_X_2, cool_bionicle_Y_2)
-
-    plot_limit = np.min(partition_2.pressure_field_results[:]), np.max(partition_2.pressure_field_results[:])
-
-    for i in range(0, len(partition_1.pressure_field_results), 50):
-        '''
-        plt.clf()
-        plt.title(f"ARD 2D (t = {(sim_params.T * (i / sim_params.number_of_samples)):.4f}s)")
-        plt.subplot(1, 2, 1)
-        plt.plot(room_dims, partition_1.pressure_field_results[i], 'r', linewidth=1)
-        plt.ylim(top=ytop)
-        plt.ylim(bottom=ybtm)
-        plt.vlines(np.min(room_dims), ybtm, ytop, color='gray')
-        plt.vlines(np.max(room_dims), ybtm, ytop, color='gray')
-        plt.subplot(1, 2, 2)
-        plt.plot(room_dims, partition_2.pressure_field_results[i], 'b', linewidth=1)
-        plt.xlabel("Position [m]")
-        plt.ylabel("Displacement")
-        plt.ylim(top=ytop)
-        plt.ylim(bottom=ybtm)
-        plt.vlines(np.min(room_dims), ybtm, ytop, color='gray')
-        plt.vlines(np.max(room_dims), ybtm, ytop, color='gray')
-        plt.grid()
-        plt.pause(0.001)
-        '''
-        Z_1 = partition_1.pressure_field_results[i]
-        Z_2 = partition_2.pressure_field_results[i]
-
-        ax_1.cla()
-        ax_2.cla()
-
-        plt.title(f"Look at my cool Bionicle© product: (t = {(sim_params.T * (i / sim_params.number_of_samples)):.4f}s)")
-        ax_1.plot_surface(X_1, Y_1, Z_1, cmap=coom.coolwarm, antialiased=False)
-        ax_2.plot_surface(X_2, Y_2, Z_2, cmap=coom.coolwarm, antialiased=False)
-
-        ax_1.set_zlim(plot_limit)
-        ax_2.set_zlim(plot_limit)
-
-        plt.pause(0.005)
-
-    plot_step = 100
+    def init_func():
+        for i in range(len(im)):
+            im[i].set_data(np.zeros(part_data[0].pressure_field_results[0].shape))
+        # for a in range(len(ax)):
+        #     ax[0,i].grid(True)
+        return im,
+        
+    def update_plot(t):
+        for i in range(len(im)):
+            im[i].set_data(part_data[i].pressure_field_results[t])
+            im[i].autoscale() # need
+        # display current time step
+        t = sim_params.delta_t*i       
+        fig.suptitle("Time: %.2f sec" % t)
+        return im,
+    
+    # keep the reference
+    anim = FuncAnimation(   fig,
+                            update_plot,
+                            frames=np.arange(2, sim_params.number_of_time_samples,50),
+                            init_func=init_func,
+                            interval=1)       
+        
 

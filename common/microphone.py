@@ -4,7 +4,7 @@ from scipy.io.wavfile import write
 class Microphone():
     def __init__(self, location, sim_param, name):   
         self.location = location
-        self.signal = np.zeros(sim_param.number_of_samples)
+        self.signal = np.zeros(sim_param.number_of_time_samples)
         self.name = name + ".wav"
     
     def record(self, sample, index):
