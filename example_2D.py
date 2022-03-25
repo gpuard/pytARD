@@ -5,7 +5,6 @@ from pytARD_2D.partition_data import PartitionData as PARTD
 from pytARD_2D.impulse import Impulse, Gaussian, WaveFile
 
 import matplotlib.pyplot as plt
-from matplotlib import cm as coom
 import numpy as np
 
 # Room parameters
@@ -53,7 +52,7 @@ sim.preprocessing()
 sim.simulation()
 
 # Plotting waveform
-if True:
+if visualize:
     room_dims = np.linspace(0., partition_1.dimensions[0], len(partition_1.pressure_field_results[0]))
     ytop = np.max(partition_1.pressure_field_results)
     ybtm = np.min(partition_1.pressure_field_results)
@@ -88,17 +87,10 @@ if True:
         ax_3.cla()
 
         plt.title(f"t = {(sim_params.T * (i / sim_params.number_of_samples)):.4f}s")
-        # ax_1.plot_surface(X_1, Y_1, Z_1, cmap=coom.coolwarm, antialiased=False)
-        # ax_2.plot_surface(X_2, Y_2, Z_2, cmap=coom.coolwarm, antialiased=False)
-        # ax_3.plot_surface(X_3, Y_3, Z_3, cmap=coom.coolwarm, antialiased=False)
 
-        ax_1.imshow(Z_1)#, vmin=plot_limit_min, vmax=plot_limit_max)
-        ax_2.imshow(Z_2)#, vmin=plot_limit_min, vmax=plot_limit_max)
-        ax_3.imshow(Z_3)#, vmin=plot_limit_min, vmax=plot_limit_max)
-
-        # ax_1.set_zlim(plot_limit)
-        # ax_2.set_zlim(plot_limit)
-        # ax_3.set_zlim(plot_limit)
+        ax_1.imshow(Z_1)
+        ax_2.imshow(Z_2)
+        ax_3.imshow(Z_3)
 
         plt.pause(0.005)
 
