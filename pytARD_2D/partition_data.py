@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.io.wavfile import read
 from scipy.fftpack import idct, dct
+from pytARD_2D.impulse import Impulse
 
 
 class PartitionData:
@@ -8,8 +9,7 @@ class PartitionData:
         self,
         dimensions,
         sim_parameters,
-        do_impulse=True,
-        impulse_source=[0, 0]
+        impulse=None
     ):
         '''
         Parameter container class for ARD simulator. Contains all relevant data to instantiate
@@ -21,14 +21,13 @@ class PartitionData:
             Size of the partition (room) in meters.
         sim_parameters : SimulationParameters
             Instance of simulation parameter class.
-        do_impulse : bool
-            Determines if the impulse is generated on this partition.
+        impulse : Impulse
+            Determines if the impulse is generated on this partition, and which kind of impulse. 
         '''
         self.dimensions = dimensions
         self.sim_param = sim_parameters
 
         # Longest room dimension length dividied by H (voxel grid spacing).
-        # TODO Maybe do different X / Y space divisions?
         self.space_divisions_y = int(
             (dimensions[1]) * self.sim_param.spatial_samples_per_wave_length)
         self.space_divisions_x = int(
@@ -60,33 +59,21 @@ class PartitionData:
 
         # Fill impulse array with impulses.
         # TODO: Switch between different source signals via bool or enum? Also create source signal container
-        if do_impulse:
-            # Create indices for time samples. x = [1 2 3 4 5] -> sin(x_i * pi) -> sin(pi), sin(2pi) sin(3pi)
-            time_sample_indices = np.arange(
-                0, self.sim_param.number_of_samples, 1)
+        if impulse:
+            
 
             # Amplitude of gaussian impulse
             # TODO: Position source via parameter
             A = 100000
 
-            # TODO: Magic numbers! Bad!!!
-            '''
-            self.impulses[:, int(self.space_divisions_y / 2), int(self.space_divisions_x / 2)] = A * PartitionData.create_gaussian_impulse(
-                time_sample_indices, 2.5 * 4, 80)#- A * PartitionData.create_gaussian_impulse(time_sample_indices, 80 * 4 * 2, 80)
-            '''
+            
+            self.impulses[:, int(self.space_divisions_y / 2), int(self.space_divisions_x / 2)] = impulse.get()
+
             if self.sim_param.visualize:
                 import matplotlib.pyplot as plt
                 plt.plot(self.impulses[:, int(
                     self.space_divisions_y / 2), int(self.space_divisions_x / 2)])
                 plt.show()
-
-        # Uncomment to inject wave file. TODO: Consolidize into source class
-        
-        if do_impulse:
-            (fs, wav) = read('clap.wav')
-            self.impulses[:, int(
-                    self.space_divisions_y / 2), int(self.space_divisions_x / 2)] = 100 * wav[0:self.sim_param.number_of_samples]
-        
 
         if sim_parameters.verbose:
             print(
@@ -128,13 +115,4 @@ class PartitionData:
             print(f"Shape of omega_i: {self.omega_i.shape}")
             print(f"Shape of pressure field: {self.pressure_field.shape}")
 
-    @staticmethod
-    def create_gaussian_impulse(x, mu, sigma):
-        '''
-        Generate gaussian impulse
-        Parameters
-        ----------
-        Returns
-        -------
-        '''
-        return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sigma, 2.)))
+    

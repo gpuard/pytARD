@@ -2,6 +2,7 @@ from common.parameters import SimulationParameters as SIMP
 
 from pytARD_2D.ard import ARDSimulator as ARDS
 from pytARD_2D.partition_data import PartitionData as PARTD
+from pytARD_2D.impulse import Impulse, Gaussian, WaveFile
 
 import matplotlib.pyplot as plt
 from matplotlib import cm as coom
@@ -32,11 +33,15 @@ sim_params = SIMP(
     visualize=visualize
 )
 
+# Define impulse that gets curbstomped into the room
+impulse = Gaussian(sim_params, 10000)
+impulse = WaveFile(sim_params, 'clap.wav', 100)
+
 SCALE = 30 # Scale of room. Gets calculated by speed of sound divided by SCALE
 
-partition_1 = PARTD(np.array([[int(c / SCALE)],[int(c / SCALE)]]), sim_params)
-partition_2 = PARTD(np.array([[int(c / SCALE)],[int(c / SCALE)]]), sim_params,do_impulse=False)
-partition_3 = PARTD(np.array([[int(c / SCALE)],[int(c / SCALE)]]), sim_params,do_impulse=False)
+partition_1 = PARTD(np.array([[int(c / SCALE)],[int(c / SCALE)]]), sim_params, impulse)
+partition_2 = PARTD(np.array([[int(c / SCALE)],[int(c / SCALE)]]), sim_params)
+partition_3 = PARTD(np.array([[int(c / SCALE)],[int(c / SCALE)]]), sim_params)
 
 part_data = [partition_1, partition_2, partition_3]
 
