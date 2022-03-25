@@ -33,9 +33,9 @@ sim_params = SIMP(
     visualize=visualize
 )
 
-# Define impulse that gets curbstomped into the room
+# Define impulse that gets emitted into the room
 impulse = Gaussian(sim_params, 10000)
-impulse = WaveFile(sim_params, 'clap.wav', 100)
+# impulse = WaveFile(sim_params, 'clap.wav', 100)
 
 SCALE = 30 # Scale of room. Gets calculated by speed of sound divided by SCALE
 
