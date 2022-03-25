@@ -40,16 +40,21 @@ class ARDSimulator:
         )
 
         # TODO: Unify h of partition data, atm it's hard coded to first partition
-        self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_parameters.c / part_data[0].h_x) ** 2)
-        self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_parameters.c / part_data[0].h_y) ** 2)
-        self.FDTD_COEFFS_Z = fdtd_coeffs_not_normalized * ((sim_parameters.c / part_data[0].h_z) ** 2)
+        self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_parameters.c / part_data[0].h_x) ** 3)
+        self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_parameters.c / part_data[0].h_y) ** 3)
+        self.FDTD_COEFFS_Z = fdtd_coeffs_not_normalized * ((sim_parameters.c / part_data[0].h_z) ** 3)
 
         # FDTD kernel size.
         self.FDTD_KERNEL_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
 
         # Initialize & position mics. 
-        self.mic1 = Mic([int(part_data[0].dimensions[0] / 2), int(part_data[0].dimensions[1] / 2), int(part_data[0].dimensions[2] / 2)], sim_parameters, "left")
-        #self.mic2 = Mic([int(part_data[2].dimensions[0] / 2), int(part_data[2].dimensions[1] / 2)], sim_parameters, "bottom")
+        self.mic1 = Mic(
+            [
+                int(part_data[0].dimensions[0] / 2), 
+                int(part_data[0].dimensions[1] / 2), 
+                int(part_data[0].dimensions[2] / 2)
+            ], sim_parameters, "left"
+        )
 
 
     def preprocessing(self):
