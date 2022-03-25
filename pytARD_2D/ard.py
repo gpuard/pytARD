@@ -9,7 +9,7 @@ class ARDSimulator:
     ARD Simulation class. Creates and runs ARD simulator instance.
     '''
 
-    def __init__(self, sim_parameters, part_data):
+    def __init__(self, sim_parameters, part_data, pml_partitions):
         '''
         Create and run ARD simulator instance.
 
@@ -26,6 +26,10 @@ class ARDSimulator:
 
         # List of partition data (PartitionData objects)
         self.part_data = part_data
+        
+        # List containing PML-Partitions
+        self.pml_partitions = pml_partitions
+
 
         # 2D FDTD coefficents array. Normalize FDTD coefficents with space divisions and speed of sound. 
         fdtd_coeffs_not_normalized = np.array(
@@ -65,6 +69,8 @@ class ARDSimulator:
         '''
 
         for t_s in range(2, self.sim_param.number_of_time_samples):
+            
+            # AIR-Partitions (step 2)
             for i in range(len(self.part_data)):
                 #print(f"nu forces: {self.part_data[i].new_forces}")
                 # Execute DCT for next sample
@@ -72,16 +78,14 @@ class ARDSimulator:
 
                 # Updating mode using the update rule in equation 8.
                 # Relates to (2 * F^n) / (ω_i ^ 2) * (1 - cos(ω_i * Δ_t)) in equation 8.
-                self.part_data[i].force_field = ((2 * self.part_data[i].forces.reshape([self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x, 1])) / (
-                    (self.part_data[i].omega_i) ** 2)) * (1 - np.cos(self.part_data[i].omega_i * self.sim_param.delta_t))
+                term1 = 2 * self.part_data[i].forces / (self.part_data[i].omega_i ** 2) * (1 - np.cos(self.part_data[i].omega_i * self.sim_param.delta_t))
 
                 # Relates to M^(n+1) in equation 8.
                 self.part_data[i].M_next = 2 * self.part_data[i].M_current * \
-                np.cos(self.part_data[i].omega_i * self.sim_param.delta_t) - self.part_data[i].M_previous + self.part_data[i].force_field
+                np.cos(self.part_data[i].omega_i * self.sim_param.delta_t) - self.part_data[i].M_previous + term1
                 
                 # Convert modes to pressure values using inverse DCT.
-                self.part_data[i].pressure_field = idctn(self.part_data[i].M_next.reshape(
-                    self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x),type=1) 
+                self.part_data[i].pressure_field = idctn(self.part_data[i].M_next) 
                 
                 self.part_data[i].pressure_field_results.append(self.part_data[i].pressure_field.copy())
                 
@@ -96,26 +100,56 @@ class ARDSimulator:
 
                 # Update impulses
                 self.part_data[i].new_forces = self.part_data[i].impulses[t_s].copy()
+                
+            # PML-Partitions (step 3)    
+            for part in self.pml_partitions:
+                part.simulate(t_s)
+                
+            # # Interface handling AIR <-> AIR in ??x
+            # for y in range(self.part_data[i].space_divisions_y):
+            #     pressure_field_around_interface = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE, 1])
 
-            # Interface handling
-            for y in range(self.part_data[i].space_divisions_y):
+            #     # Left room
+            #     pressure_field_around_interface[0 : self.FDTD_KERNEL_SIZE] = self.part_data[0].pressure_field[y, -self.FDTD_KERNEL_SIZE : ].copy().reshape([self.FDTD_KERNEL_SIZE, 1])
 
-                pressure_field_around_interface = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE, 1])
+            #     # Right room
+            #     pressure_field_around_interface[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[1].pressure_field[y, 0 : self.FDTD_KERNEL_SIZE].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
 
-                # Left room
-                pressure_field_around_interface[0 : self.FDTD_KERNEL_SIZE] = self.part_data[0].pressure_field[y, -self.FDTD_KERNEL_SIZE : ].copy().reshape([self.FDTD_KERNEL_SIZE, 1])
+            #     new_forces_from_interface = self.FDTD_COEFFS.dot(pressure_field_around_interface)
 
-                # Right room
-                pressure_field_around_interface[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[1].pressure_field[y, 0 : self.FDTD_KERNEL_SIZE].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
+            #     self.part_data[0].new_forces[y, -3] += new_forces_from_interface[0]
+            #     self.part_data[0].new_forces[y, -2] += new_forces_from_interface[1]
+            #     self.part_data[0].new_forces[y, -1] += new_forces_from_interface[2]
+            #     self.part_data[1].new_forces[y, 0] += new_forces_from_interface[3]
+            #     self.part_data[1].new_forces[y, 1] += new_forces_from_interface[4]
+            #     self.part_data[1].new_forces[y, 2] += new_forces_from_interface[5]
+                
+            # # Interface handling AIR <-> PML ::: along X -> therefore for all y's
+            # for x in range(self.part_data[0].grid_shape[0]): 
+            #     assert self.part_data[0].grid_shape[0] == self.pml_partitions[0].grid_shape[0]
+            #     # TODO interfaces need to know which partitions are connected how to solve this? 
+            #     # Is it solution in both directions?
+                
+            #     # Assumption: source is in the room on the left. sound propagets in x to pml room on the right
+            #     # pi - pressure_field_interface
+            #     pi = np.zeros(shape=[6, 1])
 
-                new_forces_from_interface = self.FDTD_COEFFS.dot(pressure_field_around_interface)
+            #     # Left  - get p from the left room
+            #     pi[0:3] = self.part_data[0].pressure_field[x,-3:].copy().reshape(pi[0:3].shape)
 
-                self.part_data[0].new_forces[y, -3] += new_forces_from_interface[0]
-                self.part_data[0].new_forces[y, -2] += new_forces_from_interface[1]
-                self.part_data[0].new_forces[y, -1] += new_forces_from_interface[2]
-                self.part_data[1].new_forces[y, 0] += new_forces_from_interface[3]
-                self.part_data[1].new_forces[y, 1] += new_forces_from_interface[4]
-                self.part_data[1].new_forces[y, 2] += new_forces_from_interface[5]
+            #     # Right PML-Parition 
+            #     # Note the thickness of PML should be chosen to be at least 3 voxels?
+            #     pi[3:6] = self.pml_partitions[0].p[x,:3].copy().reshape(pi[3:].shape)
+
+            #     forcing_value = self.FDTD_COEFFS.dot(pi)
+
+            #     self.part_data[0].new_forces[x,-3] += forcing_value[0]
+            #     self.part_data[0].new_forces[x,-2] += forcing_value[1]
+            #     self.part_data[0].new_forces[x,-1] += forcing_value[2]
+            #     self.pml_partitions[0].f[x,0] += forcing_value[3]
+            #     self.pml_partitions[0].f[x,1] += forcing_value[4]
+            #     self.pml_partitions[0].f[x,2] += forcing_value[5]
+        
         
         # Microphones. TODO: Make mics dynamic
         # self.mic1.write_to_file(self.sim_param.Fs)
