@@ -33,11 +33,13 @@ sim_params = SIMP(
     visualize=visualize
 )
 
-# Define impulse that gets emitted into the room
-impulse = Gaussian(sim_params, 10000)
-# impulse = WaveFile(sim_params, 'clap.wav', 100)
-
 SCALE = 30 # Scale of room. Gets calculated by speed of sound divided by SCALE
+
+# Define impulse that gets emitted into the room
+impulse_location = np.array([[int((c / SCALE) / 2)],[int((c / SCALE) / 2)]])
+# impulse = Gaussian(sim_params, impulse_location, 10000)
+impulse = WaveFile(sim_params, impulse_location, 'clap.wav', 100) # Uncomment for wave file injection
+
 
 partition_1 = PARTD(np.array([[int(c / SCALE)],[int(c / SCALE)]]), sim_params, impulse)
 partition_2 = PARTD(np.array([[int(c / SCALE)],[int(c / SCALE)]]), sim_params)

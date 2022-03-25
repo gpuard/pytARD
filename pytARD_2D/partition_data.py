@@ -58,21 +58,15 @@ class PartitionData:
         self.pressure_field_results = []
 
         # Fill impulse array with impulses.
-        # TODO: Switch between different source signals via bool or enum? Also create source signal container
         if impulse:
-            
-
-            # Amplitude of gaussian impulse
-            # TODO: Position source via parameter
-            A = 100000
-
-            
-            self.impulses[:, int(self.space_divisions_y / 2), int(self.space_divisions_x / 2)] = impulse.get()
+            # Emit impulse into room
+            self.impulses[:, int(self.space_divisions_y * (impulse.location[1] / dimensions[1])), int(
+                self.space_divisions_x * (impulse.location[0] / dimensions[0]))] = impulse.get()
 
             if self.sim_param.visualize:
                 import matplotlib.pyplot as plt
-                plt.plot(self.impulses[:, int(
-                    self.space_divisions_y / 2), int(self.space_divisions_x / 2)])
+                plt.plot(self.impulses[:, int(self.space_divisions_y * (impulse.location[1] / dimensions[1])), int(
+                    self.space_divisions_x * (impulse.location[0] / dimensions[0]))])
                 plt.show()
 
         if sim_parameters.verbose:
