@@ -5,24 +5,27 @@ from pytARD_2D.partition_data import PartitionData as PARTD
 from pytARD_2D.pml_partition import PMLPartition as PMLP
 
 import numpy as np
-
+import matplotlib.gridspec as gridspec
 visualize = True
  
 # Compilation of room parameters into parameter class
 sim_params = SIMP(
     max_wave_frequency                  = 5, # maximal signal frequency in Hz 
-    simulation_time                     = 10, # in seconds
-    c                                   = 5, # speed of sound in meter/sec 
+    simulation_time                     = 20, # in seconds
+    c                                   = 1, # speed of sound in meter/sec 
     samples_per_second                  = 40, # sampling rate in samples/sec -> how often are the grid points checked
-    samples_per_wave_length             = 7, # number of samples per wavelength -> grid resolution
+    samples_per_wave_length             = 2, # number of samples per wavelength -> grid resolution
     enable_multicore                    = False, 
     verbose                             = True,
 )
 
-air_partition_1 = PARTD((20,20), sim_params)
-pml_partition_1 = PMLP((20,5), sim_params) #first dimesion is "y"
+air_partition_1 = PARTD((15,15), sim_params)
+# air_partition_2 = PARTD((20,20), sim_params, do_impulse=False)
+air_partition_2 = PARTD((15,15), sim_params)
 
-air_partitions = [air_partition_1]
+pml_partition_1 = PMLP((15,5), sim_params) #first dimesion is "y"
+
+air_partitions = [air_partition_1,air_partition_2]
 pml_partitions = [pml_partition_1]
 # air_partitions = [partition_1]
 
@@ -36,24 +39,39 @@ if visualize:
     import matplotlib.pyplot as plt
     from matplotlib.animation import FuncAnimation
 
-    fig, ax = plt.subplots(nrows=2, ncols=2, sharex=True, sharey=True)
+    fig, ax = plt.subplots(nrows=2, ncols=2, sharex=True, sharey=True, gridspec_kw = {'wspace':0, 'hspace':0})
     p = np.zeros_like(air_partitions[0].pressure_field_results[0])
+    
+    fig.suptitle("Time: %.2f sec" % 0)
+        
+    for i, a in enumerate(fig.axes):
+    # for  a in ax:
+        # a.grid('on', linestyle='--')
+        a.set_xticklabels([])
+        a.set_yticklabels([])
+        a.set_aspect('equal')
 
-    mi = np.min(air_partitions[0].pressure_field_results)
-    ma = np.max(air_partitions[0].pressure_field_results)
+    mi = np.min([air_partitions[0].pressure_field_results,air_partitions[1].pressure_field_results])
+    ma = np.max([air_partitions[0].pressure_field_results,air_partitions[1].pressure_field_results])
     v = np.max(np.abs([mi,ma]))
     
     v = np.max(np.abs([np.min(air_partition_1.pressure_field_results),np.max(air_partition_1.pressure_field_results)]))
     
-    im_air = [ax[0,0].imshow(np.zeros(air_partition_1.grid_shape), interpolation='nearest', animated=False, vmin=-v, vmax=+v)]
-    im_pml = [ax[0,1].imshow(np.zeros(pml_partition_1.grid_shape))]
-    ax[1,0].imshow(p)
-    ax[1,1].imshow(p)
-    
-    fig.tight_layout()
-    # for i in range(len(im)):
-    #     fig.colorbar(im[i])
+    # im_air = [ax[0,0].imshow(np.zeros(air_partition_1.grid_shape), interpolation='nearest', animated=False, vmin=-v, vmax=+v)]
+    # im_air = [ax[0,0].imshow(np.zeros(air_partition_1.grid_shape), interpolation='nearest', animated=False, cmap='jet', vmin=-v, vmax=+v),
+    #           ax[1,0].imshow(np.zeros(air_partition_1.grid_shape), interpolation='nearest', animated=False, cmap='jet', vmin=-v, vmax=+v),]
+    im_air = [ax[0,0].imshow(np.zeros(air_partition_1.grid_shape),vmin=mi, vmax=ma),
+              ax[1,0].imshow(np.zeros(air_partition_1.grid_shape),vmin=mi, vmax=ma),]
 
+    im_pml = [ax[0,1].imshow(np.zeros(pml_partition_1.grid_shape),vmin=mi, vmax=ma)]
+    # ax[1,0].imshow(p)
+    ax[1,1].imshow(p)
+        
+    # add space for colour bar
+    fig.subplots_adjust(right=0.85)
+    cbar_ax = fig.add_axes([0.88, 0.15, 0.04, 0.7])
+    fig.colorbar(im_air[0], cax=cbar_ax)
+    
     def init_func():
         for i in range(len(im_air)):
             im_air[i].set_data(np.zeros(air_partitions[i].grid_shape))
@@ -83,7 +101,7 @@ if visualize:
     # keep the reference
     anim = FuncAnimation(   fig,
                             update_plot,
-                            frames=np.arange(2, sim_params.number_of_time_samples,1),
+                            frames=np.arange(0, sim_params.number_of_time_samples,1),
                             init_func=init_func,
                             interval=1)       
         

@@ -67,9 +67,74 @@ class ARDSimulator:
         '''
         Simulation stage. Refers to Step 2 in the paper.
         '''
-
-        for t_s in range(2, self.sim_param.number_of_time_samples):
+        
+        s = np.array([2, -27, 270, -490, 270, -27, 2]) / (180 * self.sim_param.dx ** 2)
+        
+        for t_s in range(1, self.sim_param.number_of_time_samples):
             
+            # Interface handing (step 1)
+            # Interface handing AIR<-> AIR TOP -> DOWN
+            
+            pi_top = self.part_data[0].pressure_field[-3:,:]
+            pi_bot = self.part_data[1].pressure_field[:3,:]
+            
+            pi = np.concatenate((pi_top,pi_bot))
+            
+            interface_length = self.part_data[0].grid_shape[1]
+            fi = np.zeros((3,interface_length)) # forcing term produced" by interface
+            for il in range (interface_length): # all y values (column)
+                for j in [0,1,2]:# layer                  
+                    for i in range(j-3,-1+1):
+                        fi[j,il] += pi[i+3,il] * s[j-i+3]
+                        # fi += pi[j:3,j] * s[j-i+3]
+                    for i in range(0,2-j+1):
+                        fi[j,il] -= pi[i+3,il] * s[i+j+1+3]
+            self.part_data[1].new_forces = np.zeros_like(self.part_data[1].new_forces)
+            self.part_data[1].new_forces[:3,:] = self.sim_param.c**2 * fi
+ 
+            # Interface handing AIR<-> AIR TOP <- DOWN
+                       
+            fi = np.zeros((3,interface_length)) # forcing term produced" by interface
+            
+            for il in range (interface_length): # all y values (column)
+                for j in [0,1,2]:# layer                  
+                    for i in range(j-3,-1+1):
+                        fi[2-j,il] -= pi[i+3,il] * s[j-i+3]
+                        # fi += pi[j:3,j] * s[j-i+3]
+                    for i in range(0,2-j+1):
+                        fi[2-j,il] += pi[i+3,il] * s[i+j+1+3]
+            self.part_data[0].new_forces = np.zeros_like(self.part_data[0].new_forces)
+            self.part_data[0].new_forces[-3:,:] = self.sim_param.c**2 * fi
+           
+            # Interface handing PML <-> AIR 
+            # Interface handing AIR -> PML
+            
+            # pi_left = self.part_data[0].pressure_field[:,-3:]
+            # pi_right = self.pml_partitions.p[:,:3]
+                     
+            # pi = np.concatenate((pi_left,pi_right))
+            
+            # interface_length = self.part_data[0].grid_shape[1]
+            # fi = np.zeros((3,interface_length)) # forcing term produced" by interface
+            # for il in range (interface_length): # all y values (column)
+            #     for j in [0,1,2]:# layer                  
+            #         for i in range(j-3,-1+1):
+            #             fi[j,il] += pi[i+3,il] * s[j-i+3]
+            #             # fi += pi[j:3,j] * s[j-i+3]
+            #         for i in range(0,2-j+1):
+            #             fi[j,il] -= pi[i+3,il] * s[i+j+1+3]
+            # self.part_data[1].new_forces = np.zeros_like(self.part_data[1].new_forces)
+            # self.part_data[1].new_forces[:3,:] = self.sim_param.c**2 * fi        
+           
+ 
+            # for i in range(len(self.part_data)):
+            #     # Update forcing term (add source)
+            #     self.part_data[i].new_forces += self.part_data[i].impulses[t_s].copy()
+            #     # self.part_data[i].new_forces += self.part_data[i].impulses[t_s].copy()
+            
+            self.part_data[0].new_forces += self.part_data[0].impulses[t_s].copy()
+            self.part_data[1].new_forces += self.part_data[1].impulses[t_s].copy() 
+                    
             # AIR-Partitions (step 2)
             for i in range(len(self.part_data)):
                 #print(f"nu forces: {self.part_data[i].new_forces}")
@@ -85,7 +150,8 @@ class ARDSimulator:
                 np.cos(self.part_data[i].omega_i * self.sim_param.delta_t) - self.part_data[i].M_previous + term1
                 
                 # Convert modes to pressure values using inverse DCT.
-                self.part_data[i].pressure_field = idctn(self.part_data[i].M_next) 
+                # self.part_data[i].pressure_field = idctn(self.part_data[i].M_next) 
+                self.part_data[i].pressure_field = idctn(self.part_data[i].M_current) 
                 
                 self.part_data[i].pressure_field_results.append(self.part_data[i].pressure_field.copy())
                 
@@ -98,34 +164,32 @@ class ARDSimulator:
                 self.part_data[i].M_previous = self.part_data[i].M_current.copy()
                 self.part_data[i].M_current = self.part_data[i].M_next.copy()
 
-                # Update impulses
-                self.part_data[i].new_forces = self.part_data[i].impulses[t_s].copy()
-                
-            # PML-Partitions (step 3)    
-            for part in self.pml_partitions:
-                part.simulate(t_s)
-                
+
+            # # PML-Partitions (step 3)    
+            # for part in self.pml_partitions:
+            #     part.simulate(t_s)
+
             # # Interface handling AIR <-> AIR in ??x
-            # for y in range(self.part_data[i].space_divisions_y):
+            # for y in range(self.part_data[i].grid_shape[1]):
             #     pressure_field_around_interface = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE, 1])
 
-            #     # Left room
-            #     pressure_field_around_interface[0 : self.FDTD_KERNEL_SIZE] = self.part_data[0].pressure_field[y, -self.FDTD_KERNEL_SIZE : ].copy().reshape([self.FDTD_KERNEL_SIZE, 1])
+            #     # Top room
+            #     pressure_field_around_interface[0 : self.FDTD_KERNEL_SIZE] = self.part_data[0].pressure_field[-self.FDTD_KERNEL_SIZE :,y].copy().reshape([self.FDTD_KERNEL_SIZE, 1])
 
-            #     # Right room
-            #     pressure_field_around_interface[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[1].pressure_field[y, 0 : self.FDTD_KERNEL_SIZE].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
+            #     # Down room
+            #     pressure_field_around_interface[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[1].pressure_field[0 : self.FDTD_KERNEL_SIZE,y].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
 
             #     new_forces_from_interface = self.FDTD_COEFFS.dot(pressure_field_around_interface)
 
-            #     self.part_data[0].new_forces[y, -3] += new_forces_from_interface[0]
-            #     self.part_data[0].new_forces[y, -2] += new_forces_from_interface[1]
-            #     self.part_data[0].new_forces[y, -1] += new_forces_from_interface[2]
-            #     self.part_data[1].new_forces[y, 0] += new_forces_from_interface[3]
-            #     self.part_data[1].new_forces[y, 1] += new_forces_from_interface[4]
-            #     self.part_data[1].new_forces[y, 2] += new_forces_from_interface[5]
+            #     self.part_data[0].new_forces[-3,y] += new_forces_from_interface[0]
+            #     self.part_data[0].new_forces[-2,y] += new_forces_from_interface[1]
+            #     self.part_data[0].new_forces[-1,y] += new_forces_from_interface[2]
+            #     self.part_data[1].new_forces[ 0,y] += new_forces_from_interface[3]
+            #     self.part_data[1].new_forces[ 1,y] += new_forces_from_interface[4]
+            #     self.part_data[1].new_forces[ 2,y] += new_forces_from_interface[5]
                 
             # # Interface handling AIR <-> PML ::: along X -> therefore for all y's
-            # for x in range(self.part_data[0].grid_shape[0]): 
+            # for y in range(self.part_data[0].grid_shape[0]): 
             #     assert self.part_data[0].grid_shape[0] == self.pml_partitions[0].grid_shape[0]
             #     # TODO interfaces need to know which partitions are connected how to solve this? 
             #     # Is it solution in both directions?
@@ -135,20 +199,20 @@ class ARDSimulator:
             #     pi = np.zeros(shape=[6, 1])
 
             #     # Left  - get p from the left room
-            #     pi[0:3] = self.part_data[0].pressure_field[x,-3:].copy().reshape(pi[0:3].shape)
+            #     pi[0:3] = self.part_data[0].pressure_field[y,-3:].copy().reshape(pi[0:3].shape)
 
             #     # Right PML-Parition 
             #     # Note the thickness of PML should be chosen to be at least 3 voxels?
-            #     pi[3:6] = self.pml_partitions[0].p[x,:3].copy().reshape(pi[3:].shape)
+            #     pi[3:6] = self.pml_partitions[0].p[y,:3].copy().reshape(pi[3:].shape)
 
             #     forcing_value = self.FDTD_COEFFS.dot(pi)
 
-            #     self.part_data[0].new_forces[x,-3] += forcing_value[0]
-            #     self.part_data[0].new_forces[x,-2] += forcing_value[1]
-            #     self.part_data[0].new_forces[x,-1] += forcing_value[2]
-            #     self.pml_partitions[0].f[x,0] += forcing_value[3]
-            #     self.pml_partitions[0].f[x,1] += forcing_value[4]
-            #     self.pml_partitions[0].f[x,2] += forcing_value[5]
+            #     self.part_data[0].new_forces[y,-3] += forcing_value[0]
+            #     self.part_data[0].new_forces[y,-2] += forcing_value[1]
+            #     self.part_data[0].new_forces[y,-1] += forcing_value[2]
+            #     self.pml_partitions[0].f[y,0] += forcing_value[3]
+            #     self.pml_partitions[0].f[y,1] += forcing_value[4]
+            #     self.pml_partitions[0].f[y,2] += forcing_value[5]
         
         
         # Microphones. TODO: Make mics dynamic

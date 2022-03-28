@@ -53,10 +53,12 @@ class PartitionData:
 
         # Instantiate forces array, which corresponds to F in update rule (results of DCT computation). TODO: Elaborate more
         self.forces = None
-
+        # f_spectral = None
+        
         # Instantiate updated forces array. Combination of impulse and/or contribution of the interface.
         # DCT of new_forces will be written into forces. TODO: Is that correct?
-        self.new_forces = None
+        # self.new_forces = None
+        self.new_forces = np.zeros(self.grid_shape)
 
         # Impulse array which keeps track of impulses in space over time.
         # self.impulses = np.zeros(
@@ -68,7 +70,8 @@ class PartitionData:
         self.pressure_field = None
 
         # Array for pressure field results (auralisation and visualisation)
-        self.pressure_field_results = []
+        # self.pressure_field_results = []
+        self.pressure_field_results = [np.zeros(self.grid_shape),np.zeros(self.grid_shape)] # we skipp 2 first steps
 
         # Fill impulse array with impulses.
         # TODO: Switch between different source signals via bool or enum? Also create source signal container
@@ -80,9 +83,9 @@ class PartitionData:
             # Amplitude of gaussian impulse
             
             # Shape of the signal
-            A = 1e5
-            mu = time_sample_indices[1] # when is the peak
-            sigma = len(time_sample_indices)/200 # temporal spread - 0.05% of the time
+            A = 400e20
+            mu = time_sample_indices[20] # when is the peak
+            sigma = 10 # temporal spread
 
             # Position of signal source on the grid.
             src_pos_i = int(self.grid_shape[0] / 2)
@@ -91,10 +94,9 @@ class PartitionData:
             # Step at which the signal occures.
             t_start = 0
             
+            # here the forcing terms for each voexel at each moment of time are precomputed
             self.impulses[t_start:t_start+len(time_sample_indices), src_pos_i, src_pos_j] = PartitionData.create_gaussian_impulse(time_sample_indices, A, mu, sigma)
-
-            
-            # self.impulses[t_start:t_start+len(time_sample_indices), src_pos_i, src_pos_j] = A * PartitionData.create_gaussian_impulse(time_sample_indices, mu, sigma) #- A * PartitionData.create_gaussian_impulse(time_sample_indices, 80 * 4 * 2, 80)
+            # self.impulses[t_start:t_start+len(time_sample_indices), src_pos_i, src_pos_j] = PartitionData.create_gaussian_impulse(time_sample_indices, A, mu, sigma) - PartitionData.create_gaussian_impulse(time_sample_indices, A, mu+10, sigma)
 
             # if self.sim_param.visualize:
             #     import matplotlib.pyplot as plt
@@ -116,6 +118,8 @@ class PartitionData:
     def preprocessing(self):
         '''
         Preprocessing stage. Refers to Step 1 in the paper.
+        
+        for the time step t = 0
         '''
         # Preparing pressure field. Equates to function p(x) on the paper.
         self.pressure_field = np.zeros(shape=self.grid_shape)
@@ -123,7 +127,7 @@ class PartitionData:
 
         # Precomputation for the DCTs to be performed. Transforming impulse to spatial forces. Skipped partitions as of now.
         self.new_forces = self.impulses[0].copy()
-
+        
         # Relates to equation 5 and 8 of "An efficient GPU-based time domain solver for the
         # acoustic wave equation" paper.
         # For reference, see https://www.microsoft.com/en-us/research/wp-content/uploads/2016/10/4.pdf.
