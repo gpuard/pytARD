@@ -72,8 +72,25 @@ class ARDSimulator:
         
         for t_s in range(1, self.sim_param.number_of_time_samples):
             
+            ###########################
+            # RESETING FORCING FIELDS #
+            ###########################
+
+            for part in self.pml_partitions:
+                part.f = np.zeros_like(part.f)
+                
+            for part in self.part_data:
+                part.new_forces = np.zeros_like(part.new_forces)
+                
+            ###############################
+            # STEP 1: HANDLING INTERFACES #
+            ###############################
+            
+            ### AIR - AIR ###
+            
             # Interface handing (step 1)
-            # Interface handing AIR<-> AIR TOP -> DOWN
+            # Interface handing AIR<-> AIR 
+            # TOP -> DOWN
             
             pi_top = self.part_data[0].pressure_field[-3:,:]
             pi_bot = self.part_data[1].pressure_field[:3,:]
@@ -89,10 +106,11 @@ class ARDSimulator:
                         # fi += pi[j:3,j] * s[j-i+3]
                     for i in range(0,2-j+1):
                         fi[j,il] -= pi[i+3,il] * s[i+j+1+3]
-            self.part_data[1].new_forces = np.zeros_like(self.part_data[1].new_forces)
-            self.part_data[1].new_forces[:3,:] = self.sim_param.c**2 * fi
+            # self.part_data[1].new_forces = np.zeros_like(self.part_data[1].new_forces)
+            self.part_data[1].new_forces[:3,:] += self.sim_param.c**2 * fi
  
-            # Interface handing AIR<-> AIR TOP <- DOWN
+            # Interface handing AIR<-> AIR 
+            # TOP <- DOWN
                        
             fi = np.zeros((3,interface_length)) # forcing term produced" by interface
             
@@ -103,41 +121,109 @@ class ARDSimulator:
                         # fi += pi[j:3,j] * s[j-i+3]
                     for i in range(0,2-j+1):
                         fi[2-j,il] += pi[i+3,il] * s[i+j+1+3]
-            self.part_data[0].new_forces = np.zeros_like(self.part_data[0].new_forces)
-            self.part_data[0].new_forces[-3:,:] = self.sim_param.c**2 * fi
+            self.part_data[0].new_forces[-3:,:] += self.sim_param.c**2 * fi
            
-            # Interface handing PML <-> AIR 
-            # Interface handing AIR -> PML
+            ### PML - AIR ###
+            # LEFT(PML) -> RIGHT(AIR)
             
-            # pi_left = self.part_data[0].pressure_field[:,-3:]
-            # pi_right = self.pml_partitions.p[:,:3]
+            pi_left = self.part_data[0].pressure_field[:,-3:]
+            pi_right = self.pml_partitions[0].p[:,:3]
                      
-            # pi = np.concatenate((pi_left,pi_right))
+            pi = np.hstack((pi_left,pi_right))
             
-            # interface_length = self.part_data[0].grid_shape[1]
-            # fi = np.zeros((3,interface_length)) # forcing term produced" by interface
+            interface_length = self.part_data[0].grid_shape[0]
+            fi = np.zeros((interface_length,3)) # forcing term produced" by interface
+            for il in range (interface_length): # all y values (column)
+                for j in [0,1,2]:# layer                  
+                    for i in range(j-3,-1+1):
+                        fi[il,j] += pi[il,i+3] * s[j-i+3]
+                        # fi += pi[j:3,j] * s[j-i+3]
+                    for i in range(0,2-j+1):
+                        fi[il,j] -= pi[il,i+3] * s[i+j+1+3]     
+            self.pml_partitions[0].f[:,:3] += self.sim_param.c**2 * fi        
+           
+            # # RIGHT(pml) TO LEFT(air)
+            # pi_left = self.part_data[0].pressure_field[:,-3:]
+            # # pi_right = self.part_data[2].pressure_field[:,:3]
+            # # pi_right = self.part_data[2].p[:,:3]
+            # pi_right = self.pml_partitions[0].p[:,:3]
+                     
+            # pi = np.hstack((pi_left,pi_right))
+            
+            # interface_length = self.part_data[0].grid_shape[0]
+            # fi = np.zeros((interface_length,3)) # forcing term produced" by interface
             # for il in range (interface_length): # all y values (column)
             #     for j in [0,1,2]:# layer                  
             #         for i in range(j-3,-1+1):
-            #             fi[j,il] += pi[i+3,il] * s[j-i+3]
+            #             fi[il,2-j] -= pi[il,i+3] * s[j-i+3]
             #             # fi += pi[j:3,j] * s[j-i+3]
             #         for i in range(0,2-j+1):
-            #             fi[j,il] -= pi[i+3,il] * s[i+j+1+3]
-            # self.part_data[1].new_forces = np.zeros_like(self.part_data[1].new_forces)
-            # self.part_data[1].new_forces[:3,:] = self.sim_param.c**2 * fi        
-           
+            #             fi[il,2-j] += pi[il,i+3] * s[i+j+1+3]
+            # self.part_data[0].new_forces = np.zeros_like(self.part_data[0].new_forces) # nicht überschreiben, this the first time  so initialize with zeors
+            # self.part_data[0].new_forces[:,-3:] += self.sim_param.c**2 * fi           
+            # self.part_data[0].new_forces[:,:3] += self.sim_param.c**2 * fi  # du kannst sehen was da passiert (gegenphase)         
  
-            # for i in range(len(self.part_data)):
-            #     # Update forcing term (add source)
-            #     self.part_data[i].new_forces += self.part_data[i].impulses[t_s].copy()
-            #     # self.part_data[i].new_forces += self.part_data[i].impulses[t_s].copy()
+            # # for i in range(len(self.part_data)):
+            # #     # Update forcing term (add source)
+            # #     self.part_data[i].new_forces += self.part_data[i].impulses[t_s].copy()
+            # #     # self.part_data[i].new_forces += self.part_data[i].impulses[t_s].copy()
             
+            # X-Interface
+            #############
+            # AIR - AIR #
+            #############
+  
+            # LEFT -> RIGHT
+            pi_left = self.part_data[1].pressure_field[:,-3:]
+            pi_right = self.part_data[2].pressure_field[:,:3]
+                     
+            pi = np.hstack((pi_left,pi_right))
+            
+            interface_length = self.part_data[1].grid_shape[1]
+            fi = np.zeros((interface_length,3))
+            for il in range (interface_length):
+                for j in [0,1,2]:# layer                  
+                    for i in range(j-3,-1+1):
+                        fi[il,j] += pi[il,i+3] * s[j-i+3]
+                    for i in range(0,2-j+1):
+                        fi[il,j] -= pi[il,i+3] * s[i+j+1+3]
+            self.part_data[2].new_forces[:,:3] += self.sim_param.c**2 * fi   
+            
+            # LEFT <- RIGHT
+            pi_left = self.part_data[1].pressure_field[:,-3:]
+            pi_right = self.part_data[2].pressure_field[:,:3]
+                     
+            pi = np.hstack((pi_left,pi_right))
+            
+            interface_length = self.part_data[1].grid_shape[1]
+            fi = np.zeros((interface_length,3)) # forcing term produced" by interface
+            for il in range (interface_length): # all y values (column)
+                for j in [0,1,2]:# layer                  
+                    for i in range(j-3,-1+1):
+                        fi[il,2-j] -= pi[il,i+3] * s[j-i+3]
+                    for i in range(0,2-j+1):
+                        fi[il,2-j] += pi[il,i+3] * s[i+j+1+3]
+            self.part_data[1].new_forces[:,-3:] += self.sim_param.c**2 * fi           
+            
+            
+            #####################
+            # INJECTING SOURCES #
+            #####################
+ 
+            # # for i in range(len(self.part_data)):
+            # #     # Update forcing term (add source)
+            # #     self.part_data[i].new_forces += self.part_data[i].impulses[t_s].copy()
+            # #     # self.part_data[i].new_forces += self.part_data[i].impulses[t_s].copy()
             self.part_data[0].new_forces += self.part_data[0].impulses[t_s].copy()
             self.part_data[1].new_forces += self.part_data[1].impulses[t_s].copy() 
-                    
-            # AIR-Partitions (step 2)
+              
+            ###############################
+            # STEP 2: PARTITIONS HANDLING #
+            ###############################
+            
+            # Handle AIR-Partitions (step 2)
             for i in range(len(self.part_data)):
-                #print(f"nu forces: {self.part_data[i].new_forces}")
+                
                 # Execute DCT for next sample
                 self.part_data[i].forces = dctn(self.part_data[i].new_forces, type=1)
 
@@ -164,10 +250,10 @@ class ARDSimulator:
                 self.part_data[i].M_previous = self.part_data[i].M_current.copy()
                 self.part_data[i].M_current = self.part_data[i].M_next.copy()
 
-
             # # PML-Partitions (step 3)    
-            # for part in self.pml_partitions:
-            #     part.simulate(t_s)
+            for pml_part in self.pml_partitions:
+                pml_part.simulate(t_s)
+   
 
             # # Interface handling AIR <-> AIR in ??x
             # for y in range(self.part_data[i].grid_shape[1]):
@@ -218,54 +304,3 @@ class ARDSimulator:
         # Microphones. TODO: Make mics dynamic
         # self.mic1.write_to_file(self.sim_param.Fs)
         # self.mic2.write_to_file(self.sim_param.Fs)
-
-
-
-'''
-0NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNXKOkkkkkkkOKXNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNXOo;´...  ....´;cokKXNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNNNNNXOc..               .,lkXNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNNNNXx´       ...............lKNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNNNXx´.   ....´,,,;:::::;,´...dXNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNNXx´.....,;:ccllooooolcc:;´..:0NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNN0;  ...´;:cloddxxxddolcc:,...oXNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNNO´  ..´,;:clooddddoooolc:,...´dKNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNXd.   ..,;:ccloodddddoc:;;,´...:dKNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNXd.    ..,;::cccloddolc:;;;;;,;clkXXNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNN0:     ..´,;;,:lllolcccccc:::;;lkKXNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNNNO;......,;;;;cllcccc:clolcc:;,:kXXNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNNNNk:;:;´´;::clllllc:ccclddolc:,l0NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNNNNXOlcc:´,:ccllodoc:llc:looolc;oXNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN0dc:,´;:cloddocccll:::cllc:dXNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNKkl:´´;:loooc::clc:::cll:;oKNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNKOx;´;clllc:ccccccccc:;,;oxOKXXXNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNO:.´;:llcccclllc::;,´´,,;:ccclodxO0KNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNXK0kdc,..´,;::;::clllc;´´,,.´,;;,.......,cokKXNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNNNNNXKKOOxo:,´,;;;,,,,,,´,,;:c::;´´,;;,,;;:;....     ..´;cox0XNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNNNXKko:,´.......;;;;;;:::,,´´,,,,,,,;:c;.´;::,.   .........´´´;ckKNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNNXkc,..   ......´;;;;:::cccc:;;;;;::c:;´..´;:;....´´,,,,,,,´´....´lOXNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNNNXx;............´;;;;;;:c;,,;:::::;;,´..  .´::;´´,,,,,´............,:dKNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNNNXOl´..............,;;;;;:ll,..........   ..,,;;,,´.................,;..l0NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNNN0l´...............,,´´,;;;:ol,........ ...´;,´´´...................´,....;kXNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNNN0:........ ..............´;:cdxl;..... ..´´..´´............................´dXNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNN0c.´´´,,...................´;:okOxc´.....´..´´´...............................oKNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNXo´.....´´....................´,:lddc,´..´´´,,´...............................´;oKNNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNNNO;..........´´....................´;loc,´´,,´´´..............................,,.´oKNNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNNN0c...................................´lkd;´,,´..´............´´´,,,,;;;,....;;´...´oKNNNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNN0c....................................´ckkl;;;:ll;´´´,,;;;,,,,,;,,´´.......,;´.......l0NNNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNNKl´´´.............´;;;;;;;;,´........´´,lO0xooxO0Odc;;,,,´...........  ...´,´..........c0NNNNNNNNNNNNNNNNNNNNNNN
-0NNNNNNXd,´´.....................´´´.´,;;;;;;,,ckKKOkkxxO00o,......  ...´´..  ..................cOXNNNNNNNNNNNNNNNNNNNNN
-0NNNNNXo.............´´........................,x00OOkxkOOkl,.  ..  .............................,xXNNNNNNNNNNNNNNNNNNNN
-0NNNNNO;...´´.....   ..................   ......,::;:cc:,''...   ..    .....','...................;kXNNNNNNNNNNNNNNNNNNN
-0NNNNNk;';;;,......... ...     .......     ........              ......',,,,'......................'dXNNNNNNNNNNNNNNNXXX
-0NNNNXx;''...................  .. ..            .......',',,,,,,,,,,,,,,,'....................''....;ONNNNNNNXXXXXXXXXXX
-0NNNNk;......................'','...........'',,,,,,;;;;;,,,,,,,','..............'c:......''.....   .xXNNXK0OOOOO000KKKK
-0NNNKc...............,,'......,c:,',;;;;,,,,,,''.................................,kKd,......      ...ck000OOOOOOOOOOO00K
-0NNNk,............';:,........;;'................................................:0NXd.        ..,;ldkOO0000000000000000
-0NNXo............,:,.........;:'................................................'oXNNO,    ...'cdxkO000KKKKKK00000000000
-0NNXo.........'.............'c:...............'............''''''....'......... .xNNNXx,....;oxkkOO000KKK0KKK00KKKKK0000
-0NNXo........,;'............;l,...........''..............':ccc::::::;;,,,'..   .dXNNNXx;.'lk0OkkO000KKK00000KKKKKKKKKK0
-0NNXx'.....'',::;;,'........cc'...........................;oddolllcccccclll:,.  .oXNNNNXx:lk00OxkO00000000000KKKKKKKKKKK
-
-
-'''

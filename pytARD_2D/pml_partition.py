@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+2# -*- coding: utf-8 -*-
 """
 Created on Thu Mar 24 19:11:54 2022
 
@@ -55,9 +55,11 @@ class PMLPartition():
         # kxMin = 0.2
         kMax = 20.0
         
-        kx =  kMax * (width_x-i)**2 / width_x**2
+        # kx =  kMax * (width_x-i)**2 / width_x**2
+        kx = 0.05
+        # kx = 20
         ky = kMax * (width_y-j)**2 / width_y**2 # this means lateral to wave propagation profile is changing
-        
+        # ky = 0.05
         return kx,ky
         
     def simulate(self, t):
@@ -79,7 +81,7 @@ class PMLPartition():
                 
                 Dphi = dphi1dx + dphi2dy
                 
-                term3 = self.c*self.c*D2p + Dphi
+                term3 = self.c**2 * D2p + Dphi
                 
                 term4 = kx*ky*self.p[x,y]
                 self.pn[x,y] = (term2 + self.dt*self.dt*(term3 - term4))/(1+term1) + self.f[x,y]  # do need forcing field???
