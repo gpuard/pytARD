@@ -10,7 +10,7 @@ class PartitionData:
         dimensions,
         sim_parameters,
         do_impulse = True,
-        source_location = (2, -2)
+        source_location = (5, -5)
     ):
         '''
         Parameter container class for ARD simulator. Contains all relevant data to instantiate
@@ -71,7 +71,7 @@ class PartitionData:
 
         # Array for pressure field results (auralisation and visualisation)
         # self.pressure_field_results = []
-        self.pressure_field_results = [np.zeros(self.grid_shape),np.zeros(self.grid_shape)] # we skipp 2 first steps
+        self.pressure_field_results = [np.zeros(self.grid_shape)] # we skipp 1 first steps
 
         # Fill impulse array with impulses.
         # TODO: Switch between different source signals via bool or enum? Also create source signal container

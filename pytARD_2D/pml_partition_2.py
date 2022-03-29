@@ -42,8 +42,8 @@ class PMLPartition():
         self.dt = simulation_parameters.delta_t
 
         self.f = np.zeros(self.grid_shape) # forcing field in current time step
-        self.pressure_field_results = list()
         
+        self.pressure_field_results = [np.zeros(self.grid_shape)] # first time step is skipped
         # PML damping values
         # switcher = dict()
         # switcher['P_LEFT'] = (0.2,0.0)

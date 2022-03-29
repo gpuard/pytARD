@@ -6,28 +6,31 @@ from pytARD_2D.partition_data import PartitionData as PARTD
 from pytARD_2D.pml_partition_2 import PMLPartition as PMLP
 
 import numpy as np
-visualize = True
+
+plot            = True
+video_output    = True
  
 # Compilation of room parameters into parameter class
 sim_params = SIMP(
     max_wave_frequency                  = 5, # maximal signal frequency in Hz 
     simulation_time                     = 20, # in seconds
-    c                                   = 1, # speed of sound in meter/sec 
-    samples_per_second                  = 40, # sampling rate in samples/sec -> how often are the grid points checked
-    samples_per_wave_length             = 2, # number of samples per wavelength -> grid resolution
+    c                                   = 2, # speed of sound in meter/sec 
+    samples_per_second                  = 2*40, # sampling rate in samples/sec -> how often are the grid points checked
+    samples_per_wave_length             = 4, # number of samples per wavelength -> grid resolution
     enable_multicore                    = False, 
     verbose                             = True,
 )
 
+(subroom_x,subroom_y) = (10,10)
 
-air_partition_1 = PARTD((15,15), sim_params)
-air_partition_2 = PARTD((15,15), sim_params)
-air_partition_3 = PARTD((15,15), sim_params, do_impulse=False)
+air_partition_1 = PARTD((subroom_x, subroom_y), sim_params, do_impulse=False)
+air_partition_2 = PARTD((subroom_x, subroom_y), sim_params)
+air_partition_3 = PARTD((subroom_x, subroom_y), sim_params, do_impulse=False)
 air_partitions = [air_partition_1,air_partition_2,air_partition_3]
 
 
-# pml_partition_1 = PMLP((15,15), sim_params) #first dimesion is "y"
-pml_partition_1 = PMLP((15,15), sim_params) #first dimesion is "y"
+# pml_partition_1 = PMLP((subroom_x, subroom_y), sim_params) #first dimesion is "y"
+pml_partition_1 = PMLP((subroom_x, subroom_y), sim_params) #first dimesion is "y"
 pml_partitions = [pml_partition_1]
 
 
@@ -35,6 +38,7 @@ pml_partitions = [pml_partition_1]
 sim = ARDS(sim_params, air_partitions, pml_partitions)
 sim.preprocessing()
 sim.simulation()
+
 # ######
 # room_dim_x = 20
 # room_dim_y = 20
@@ -44,12 +48,10 @@ sim.simulation()
 #     results.append(room)
 # #####
 
-
-
-if visualize:
+if plot:
     
     import matplotlib.pyplot as plt
-    from matplotlib.animation import FuncAnimation, FFMpegWriter
+    from matplotlib.animation import FuncAnimation
     
     fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(10,10), sharex=True, sharey=True, gridspec_kw = {'wspace':0, 'hspace':0})
     p = np.zeros_like(air_partitions[0].pressure_field_results[0])
@@ -81,10 +83,10 @@ if visualize:
 
     im_pml = [ax[0,1].imshow(np.zeros(pml_partition_1.grid_shape),vmin=mi, vmax=ma)]
         
-    # add space for colour bar
+    # attach color bar
     # fig.subplots_adjust(right=0.85)
-    # cbar_ax = fig.add_axes([0.88, 0.15, 0.04, 0.7])
-    # fig.colorbar(im_air[0], cax=cbar_ax)
+    # cbar_ax = fig.add_axes([0.88, 0.15, 0.04, 0.6])
+    # fig.colorbar(im_pml[0], cax=cbar_ax)
     
     def init_func():
         for i in range(len(im_air)):
@@ -119,9 +121,12 @@ if visualize:
                             frames=np.arange(0, sim_params.number_of_time_samples,1),
                             init_func=init_func,
                             interval=1)       
+    if video_output:
         
-    writervideo = FFMpegWriter(fps=60)
-    anim.save("2d-ard_video.mp4",
-              dpi=300,
-              # fps=60,
-              writer=writervideo) 
+        from matplotlib.animation import FuncAnimation, FFMpegWriter
+        
+        writervideo = FFMpegWriter(fps=60)
+        anim.save("2d-ard_video.mp4",
+                  dpi=300,
+                  # fps=60,
+                  writer=writervideo) 
