@@ -142,31 +142,31 @@ class ARDSimulator:
                         fi[il,j] -= pi[il,i+3] * s[i+j+1+3]     
             self.pml_partitions[0].f[:,:3] += self.sim_param.c**2 * fi        
            
-            # # RIGHT(pml) TO LEFT(air)
-            # pi_left = self.part_data[0].pressure_field[:,-3:]
-            # # pi_right = self.part_data[2].pressure_field[:,:3]
-            # # pi_right = self.part_data[2].p[:,:3]
-            # pi_right = self.pml_partitions[0].p[:,:3]
+            # RIGHT(pml) TO LEFT(air)
+            pi_left = self.part_data[0].pressure_field[:,-3:]
+            # pi_right = self.part_data[2].pressure_field[:,:3]
+            # pi_right = self.part_data[2].p[:,:3]
+            pi_right = self.pml_partitions[0].p[:,:3]
                      
-            # pi = np.hstack((pi_left,pi_right))
+            pi = np.hstack((pi_left,pi_right))
             
-            # interface_length = self.part_data[0].grid_shape[0]
-            # fi = np.zeros((interface_length,3)) # forcing term produced" by interface
-            # for il in range (interface_length): # all y values (column)
-            #     for j in [0,1,2]:# layer                  
-            #         for i in range(j-3,-1+1):
-            #             fi[il,2-j] -= pi[il,i+3] * s[j-i+3]
-            #             # fi += pi[j:3,j] * s[j-i+3]
-            #         for i in range(0,2-j+1):
-            #             fi[il,2-j] += pi[il,i+3] * s[i+j+1+3]
-            # self.part_data[0].new_forces = np.zeros_like(self.part_data[0].new_forces) # nicht überschreiben, this the first time  so initialize with zeors
-            # self.part_data[0].new_forces[:,-3:] += self.sim_param.c**2 * fi           
-            # self.part_data[0].new_forces[:,:3] += self.sim_param.c**2 * fi  # du kannst sehen was da passiert (gegenphase)         
+            interface_length = self.part_data[0].grid_shape[0]
+            fi = np.zeros((interface_length,3)) # forcing term produced" by interface
+            for il in range (interface_length): # all y values (column)
+                for j in [0,1,2]:# layer                  
+                    for i in range(j-3,-1+1):
+                        fi[il,2-j] -= pi[il,i+3] * s[j-i+3]
+                        # fi += pi[j:3,j] * s[j-i+3]
+                    for i in range(0,2-j+1):
+                        fi[il,2-j] += pi[il,i+3] * s[i+j+1+3]
+                        
+            self.part_data[0].new_forces[:,-3:] += self.sim_param.c**2 * fi           
+            self.part_data[0].new_forces[:,:3] += self.sim_param.c**2 * fi  # du kannst sehen was da passiert (gegenphase)         
  
-            # # for i in range(len(self.part_data)):
-            # #     # Update forcing term (add source)
-            # #     self.part_data[i].new_forces += self.part_data[i].impulses[t_s].copy()
-            # #     # self.part_data[i].new_forces += self.part_data[i].impulses[t_s].copy()
+            # for i in range(len(self.part_data)):
+            #     # Update forcing term (add source)
+            #     self.part_data[i].new_forces += self.part_data[i].impulses[t_s].copy()
+            #     # self.part_data[i].new_forces += self.part_data[i].impulses[t_s].copy()
             
             # X-Interface
             #############
