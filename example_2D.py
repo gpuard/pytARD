@@ -2,7 +2,8 @@ from common.parameters import SimulationParameters as SIMP
 
 from pytARD_2D.ard import ARDSimulator as ARDS
 from pytARD_2D.partition_data import PartitionData as PARTD
-from pytARD_2D.pml_partition import PMLPartition as PMLP
+# from pytARD_2D.pml_partition import PMLPartition as PMLP
+from pytARD_2D.pml_partition_2 import PMLPartition as PMLP
 
 import numpy as np
 visualize = True
@@ -25,6 +26,7 @@ air_partition_3 = PARTD((15,15), sim_params, do_impulse=False)
 air_partitions = [air_partition_1,air_partition_2,air_partition_3]
 
 
+# pml_partition_1 = PMLP((15,15), sim_params) #first dimesion is "y"
 pml_partition_1 = PMLP((15,15), sim_params) #first dimesion is "y"
 pml_partitions = [pml_partition_1]
 
@@ -47,8 +49,8 @@ sim.simulation()
 if visualize:
     
     import matplotlib.pyplot as plt
-    from matplotlib.animation import FuncAnimation
-
+    from matplotlib.animation import FuncAnimation, FFMpegWriter
+    
     fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(10,10), sharex=True, sharey=True, gridspec_kw = {'wspace':0, 'hspace':0})
     p = np.zeros_like(air_partitions[0].pressure_field_results[0])
     
@@ -118,4 +120,8 @@ if visualize:
                             init_func=init_func,
                             interval=1)       
         
-
+    writervideo = FFMpegWriter(fps=60)
+    anim.save("2d-ard_video.mp4",
+              dpi=300,
+              # fps=60,
+              writer=writervideo) 
