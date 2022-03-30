@@ -76,35 +76,41 @@ class PartitionData:
         # Fill impulse array with impulses.
         # TODO: Switch between different source signals via bool or enum? Also create source signal container
         if do_impulse:
-            # Create indices for time samples. x = [1 2 3 4 5] -> sin(x_i * pi) -> sin(pi), sin(2pi) sin(3pi)
-            time_sample_indices = np.arange(
-                0, int(self.sim_param.number_of_time_samples/4), 1)
-
-            # Amplitude of gaussian impulse
-            
-            # Shape of the signal
-            A = 400e20
-            mu = time_sample_indices[20] # when is the peak
-            sigma = 10 # temporal spread
-
-            # Position of signal source on the grid.
-            # src_pos_i = int(self.grid_shape[0] / 2)
-            # src_pos_j = int(self.grid_shape[1] / 2)
-            
-            (src_pos_i, src_pos_j) = source_location          
-            
-            # Step at which the signal occures.
-            t_start = 0
-            
-            # here the forcing terms for each voexel at each moment of time are precomputed
-            self.impulses[t_start:t_start+len(time_sample_indices), src_pos_i, src_pos_j] = PartitionData.create_gaussian_impulse(time_sample_indices, A, mu, sigma)
-            # self.impulses[t_start:t_start+len(time_sample_indices), src_pos_i, src_pos_j] = PartitionData.create_gaussian_impulse(time_sample_indices, A, mu, sigma) - PartitionData.create_gaussian_impulse(time_sample_indices, A, mu+10, sigma)
-
-            # if self.sim_param.visualize:
-            #     import matplotlib.pyplot as plt
-            #     plt.plot(self.impulses[:, int(self.space_divisions_y  / 2), int(self.space_divisions_x / 2)])
-            #     plt.show()
-
+            stype="1"
+            if stype =="1":
+                # Create indices for time samples. x = [1 2 3 4 5] -> sin(x_i * pi) -> sin(pi), sin(2pi) sin(3pi)
+                time_sample_indices = np.arange(
+                    0, int(self.sim_param.number_of_time_samples/4), 1)
+    
+                # Amplitude of gaussian impulse
+                
+                # Shape of the signal
+                A = 400e20
+                mu = time_sample_indices[20] # when is the peak
+                sigma = 10 # temporal spread
+    
+                # Position of signal source on the grid.
+                # src_pos_i = int(self.grid_shape[0] / 2)
+                # src_pos_j = int(self.grid_shape[1] / 2)
+                
+                (src_pos_i, src_pos_j) = source_location          
+                
+                # Step at which the signal occures.
+                t_start = 0
+                
+                # here the forcing terms for each voexel at each moment of time are precomputed
+                self.impulses[t_start:t_start+len(time_sample_indices), src_pos_i, src_pos_j] = PartitionData.create_gaussian_impulse(time_sample_indices, A, mu, sigma)
+                # self.impulses[t_start:t_start+len(time_sample_indices), src_pos_i, src_pos_j] = PartitionData.create_gaussian_impulse(time_sample_indices, A, mu, sigma) - PartitionData.create_gaussian_impulse(time_sample_indices, A, mu+10, sigma)
+    
+                # if self.sim_param.visualize:
+                #     import matplotlib.pyplot as plt
+                #     plt.plot(self.impulses[:, int(self.space_divisions_y  / 2), int(self.space_divisions_x / 2)])
+                #     plt.show()
+            if stype == "2":
+                f0 = 4.9
+                (src_pos_i, src_pos_j) = source_location 
+                time = np.arange(0, self.sim_param.number_of_time_samples * self.sim_param.delta_t , self.sim_param.delta_t)
+                self.impulses[:, src_pos_i, src_pos_j] = -np.pi**2 * 2 * f0 * np.exp( -np.pi**2 * (time - 1)**2)
 
         # Uncomment to inject wave file. TODO: Consolidize into source class
         '''

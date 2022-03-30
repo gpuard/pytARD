@@ -13,10 +13,10 @@ video_output    = True
 # Compilation of room parameters into parameter class
 sim_params = SIMP(
     max_wave_frequency                  = 5, # maximal signal frequency in Hz 
-    simulation_time                     = 20, # in seconds
-    c                                   = 2, # speed of sound in meter/sec 
-    samples_per_second                  = 2*40, # sampling rate in samples/sec -> how often are the grid points checked
-    samples_per_wave_length             = 4, # number of samples per wavelength -> grid resolution
+    simulation_time                     = 25, # in seconds
+    c                                   = 1, # speed of sound in meter/sec 
+    samples_per_second                  = 40, # sampling rate in samples/sec -> how often are the grid points checked
+    samples_per_wave_length             = 2, # number of samples per wavelength -> grid resolution
     enable_multicore                    = False, 
     verbose                             = True,
 )
