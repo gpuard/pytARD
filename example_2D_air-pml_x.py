@@ -1,9 +1,18 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Mar 31 06:45:00 2022
+
+@author: smailnik@students.zhaw.ch
+"""
+
 from common.parameters import SimulationParameters as SIMP
 
-from pytARD_2D.ard import ARDSimulator as ARDS
+# from pytARD_2D.ard import ARDSimulator as ARDS
+from pytARD_2D.ard_simple import ARDSimulator as ARDS
 from pytARD_2D.partition_data import PartitionData as PARTD
 # from pytARD_2D.pml_partition import PMLPartition as PMLP
 from pytARD_2D.pml_partition_2 import PMLPartition as PMLP
+
 import numpy as np
 
 plot            = True
@@ -21,12 +30,14 @@ sim_params = SIMP(
 )
 
 (subroom_x,subroom_y) = (10,10)
+src_loc_1 = (subroom_x/2,-2) # in meter
+src_loc_2 = (subroom_x/2, 2) # in meter
 
-air_partition_1 = PARTD((subroom_x, subroom_y), sim_params, do_impulse=False)
-air_partition_2 = PARTD((subroom_x, subroom_y), sim_params)
-air_partition_3 = PARTD((subroom_x, subroom_y), sim_params, do_impulse=False)
-air_partitions = [air_partition_1,air_partition_2,air_partition_3]
-
+air_partition_1 = PARTD((subroom_x, subroom_y), sim_params, do_impulse=True, source_location = src_loc_1)
+air_partition_2 = PARTD((subroom_x, subroom_y), sim_params, do_impulse=True, source_location = src_loc_2)
+air_partitions = [air_partition_1,air_partition_2]
+# TODO: shorten the layer
+# TODO: add right partition
 
 # pml_partition_1 = PMLP((subroom_x, subroom_y), sim_params) #first dimesion is "y"
 pml_partition_1 = PMLP((subroom_x, subroom_y), sim_params) #first dimesion is "y"
@@ -52,7 +63,7 @@ if plot:
     import matplotlib.pyplot as plt
     from matplotlib.animation import FuncAnimation
     
-    fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(10,10), sharex=True, sharey=True, gridspec_kw = {'wspace':0, 'hspace':0})
+    fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(10,10), sharex=True, sharey=True, gridspec_kw = {'wspace':0, 'hspace':0})
     p = np.zeros_like(air_partitions[0].pressure_field_results[0])
     
     fig.suptitle("Time: %.2f sec" % 0)
@@ -66,21 +77,20 @@ if plot:
     #     a.set_aspect('equal')
     
     # result = np.zeros()
-    mi = np.min([air_partitions[0].pressure_field_results,air_partitions[1].pressure_field_results,air_partitions[2].pressure_field_results])
-    ma = np.max([air_partitions[0].pressure_field_results,air_partitions[1].pressure_field_results,air_partitions[2].pressure_field_results])
+    mi = np.min([air_partitions[0].pressure_field_results,air_partitions[1].pressure_field_results])
+    ma = np.max([air_partitions[0].pressure_field_results,air_partitions[1].pressure_field_results])
     v = np.max(np.abs([mi,ma]))
     
     v = np.max(np.abs([np.min(air_partition_1.pressure_field_results),np.max(air_partition_1.pressure_field_results)]))
     
-    # im_air = [ax[0,0].imshow(np.zeros(air_partition_1.grid_shape), interpolation='nearest', animated=False, vmin=-v, vmax=+v)]
-    # im_air = [ax[0,0].imshow(np.zeros(air_partition_1.grid_shape), interpolation='nearest', animated=False, cmap='jet', vmin=-v, vmax=+v),
+    # im_air = [ax[0].imshow(np.zeros(air_partition_1.grid_shape), interpolation='nearest', animated=False, vmin=-v, vmax=+v)]
+    # im_air = [ax[0].imshow(np.zeros(air_partition_1.grid_shape), interpolation='nearest', animated=False, cmap='jet', vmin=-v, vmax=+v),
     #           ax[1,0].imshow(np.zeros(air_partition_1.grid_shape), interpolation='nearest', animated=False, cmap='jet', vmin=-v, vmax=+v),]
     
-    im_air = [ax[0,0].imshow(np.zeros(air_partition_1.grid_shape),vmin=mi, vmax=ma),
-              ax[1,0].imshow(np.zeros(air_partition_2.grid_shape),vmin=mi, vmax=ma),
-              ax[1,1].imshow(np.zeros(air_partition_3.grid_shape),vmin=mi, vmax=ma)]
+    im_air = [ax[0].imshow(np.zeros(air_partition_1.grid_shape),vmin=mi, vmax=ma),
+              ax[2].imshow(np.zeros(air_partition_2.grid_shape),vmin=mi, vmax=ma)]
 
-    im_pml = [ax[0,1].imshow(np.zeros(pml_partition_1.grid_shape),vmin=mi, vmax=ma)]
+    im_pml = [ax[1].imshow(np.zeros(pml_partition_1.grid_shape),vmin=mi, vmax=ma)]
         
     # attach color bar
     # fig.subplots_adjust(right=0.85)
@@ -126,7 +136,7 @@ if plot:
         from datetime import datetime
 
         writervideo = FFMpegWriter(fps=60)
-        filename  = "2d-ard_pml_demo_" + datetime.now().strftime("%d-%m-%Y_%H-%M-%S") + ".mp4"
+        filename  = datetime.now().strftime("%d-%m-%Y_%H-%M-%S") + "2d-ard_pml_x_demo_lpml_2_sources" + ".mp4"
         anim.save(filename,
                   dpi=300,
                   # fps=60,

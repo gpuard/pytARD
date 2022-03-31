@@ -10,7 +10,7 @@ class PartitionData:
         dimensions,
         sim_parameters,
         do_impulse = True,
-        source_location = (5, -5)
+        source_location = (0, 0)
     ):
         '''
         Parameter container class for ARD simulator. Contains all relevant data to instantiate
@@ -93,7 +93,7 @@ class PartitionData:
                 # src_pos_i = int(self.grid_shape[0] / 2)
                 # src_pos_j = int(self.grid_shape[1] / 2)
                 
-                (src_pos_i, src_pos_j) = source_location          
+                (src_pos_i, src_pos_j) = (int(source_location[0]/self.dx),int(source_location[1]/self.dy))         
                 
                 # Step at which the signal occures.
                 t_start = 0

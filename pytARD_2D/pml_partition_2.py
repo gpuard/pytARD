@@ -14,7 +14,7 @@ class PMLPartition():
                     partition_dimensions, 
                     simulation_parameters,
                     case = 'P_LEFT'):
-
+        self.case = case
         self.pml_dimesions = np.array(partition_dimensions)
         self.grid_coordinates = None
         # self.coefs_central_d2_6 = np.array([2.0, -27.0, 270.0, -490.0, 270.0, -27.0, 2.0])/180.0
@@ -24,7 +24,11 @@ class PMLPartition():
         self.dy = simulation_parameters.dy
         
         self.grid_x = np.arange(0,self.pml_dimesions[0],self.dx)
-        self.grid_y = np.arange(0,self.pml_dimesions[1],self.dy)      
+        self.grid_y = np.arange(0,self.pml_dimesions[1],self.dy)
+        
+        # self.grid_x = np.arange(0,self.pml_dimesions[0],self.dx)
+        # self.grid_y = np.arange(0,5) 
+        
         self.speedOfSound = simulation_parameters.c
         
         self.grid_shape = (len(self.grid_x),len(self.grid_y))
@@ -69,12 +73,12 @@ class PMLPartition():
             ky = 0.0
             
             # TODO fix
-            if True: # LEFT
+            if self.case == 'P_LEFT': # LEFT
                 kx = (20 - i)*self.kxMin/10.0 if (i < 20) else 0.0
                 ky = 0.05 if (i < 20) else 0.0            
-            # else: # RIGHT
-            #     kx = (i - 20)*self.self.kxMax/10.0 if (i > 20) else 0.0
-            #     ky = 0.05 if (i > 20) else 0.0
+            else: # RIGHT
+                kx = (i - 20)*self.self.kxMax/10.0 if (i > 20) else 0.0
+                ky = 0.05 if (i > 20) else 0.0
             
             # kx = (self.self.kxMax*i + self.self.kxMin*(width - 1 - i)) / width
             for j in range(self.grid_shape[1]):
