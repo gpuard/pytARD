@@ -69,16 +69,6 @@ class PartitionData:
                 int(self.space_divisions_y * (impulse.location[1] / dimensions[1])), 
                 int(self.space_divisions_x * (impulse.location[0] / dimensions[0]))] = impulse.get()
 
-            '''
-            if self.sim_param.visualize:
-                import matplotlib.pyplot as plt
-                plt.plot(self.impulses[:, 
-                    int(self.space_divisions_z * (impulse.location[2] / dimensions[2])),
-                    int(self.space_divisions_y * (impulse.location[1] / dimensions[1])), 
-                    int(self.space_divisions_x * (impulse.location[0] / dimensions[0]))])
-                plt.show()
-            '''
-
         if sim_parameters.verbose:
             print(
                 f"Created partition with dimensions {self.dimensions} m\nℎ (z): {self.h_z}, ℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions: {self.space_divisions_y} ({self.dimensions/self.space_divisions_y} m each)")

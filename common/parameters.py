@@ -9,7 +9,6 @@ class SimulationParameters:
         spatial_samples_per_wave_length=4,
         c=343,
         Fs=8000,
-        enable_multicore=True,
         auralize=None,
         verbose=False,
         visualize=False
@@ -35,8 +34,6 @@ class SimulationParameters:
             Speed of sound [m/s]. Depends on air temperature, pressure and humidity. 
         Fs : int
             Sampling rate. The higher, the more fidelity but lower performance.
-        enable_multicore : bool
-            Enables performance optimization by enabling multicore/multi-CPU processing.
         auralize : ndarray
             Auralizes (= makes hearable) the room by creating an impulse response (IR).
             Format is a list with mic positions. If array is empty, no auralization is being made.
@@ -64,7 +61,6 @@ class SimulationParameters:
         # Calculate time stepping (Δ_t)
         self.delta_t = T / self.number_of_samples
 
-        self.enable_multicore = enable_multicore
         self.auralize = auralize
         self.verbose = verbose
         self.visualize = visualize

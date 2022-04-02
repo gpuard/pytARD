@@ -15,7 +15,6 @@ c = 342 # m/s
 spatial_samples_per_wave_length = 6
 
 # Procedure parameters
-enable_multicore = False
 auralize = False
 verbose = True
 visualize = False
@@ -27,7 +26,6 @@ sim_params = SIMP(
     c=c, 
     Fs=Fs,
     spatial_samples_per_wave_length=spatial_samples_per_wave_length, 
-    enable_multicore=enable_multicore, 
     verbose=verbose,
     visualize=visualize
 )
