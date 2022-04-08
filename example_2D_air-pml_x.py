@@ -136,8 +136,9 @@ if plot:
         from datetime import datetime
 
         writervideo = FFMpegWriter(fps=60)
+        fileloc = "videos/"
         filename  = datetime.now().strftime("%d-%m-%Y_%H-%M-%S") + "_2d-ard_pml_x_demo_lpml_2_sources" + ".mp4"
-        anim.save(filename,
+        anim.save(fileloc+filename,
                   dpi=300,
                   # fps=60,
                   writer=writervideo) 
