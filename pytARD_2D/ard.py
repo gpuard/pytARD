@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fft import idctn, dctn
-from common.microphone import Microphone as Mic
 
 
 class ARDSimulator:
@@ -9,7 +8,7 @@ class ARDSimulator:
     ARD Simulation class. Creates and runs ARD simulator instance.
     '''
 
-    def __init__(self, sim_parameters, part_data):
+    def __init__(self, sim_parameters, part_data, mics=[]):
         '''
         Create and run ARD simulator instance.
 
@@ -47,18 +46,7 @@ class ARDSimulator:
         self.FDTD_KERNEL_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
 
         # Initialize & position mics. 
-        self.mic1 = Mic(
-            0, 
-            [int(part_data[0].dimensions[0] / 2), 
-            int(part_data[0].dimensions[1] / 2)], 
-            sim_parameters, "left"
-        )
-        self.mic2 = Mic(
-            2, 
-            [int(part_data[2].dimensions[0] / 2), 
-            int(part_data[2].dimensions[1] / 2)], 
-            sim_parameters, "bottom"
-        )
+        self.mics = mics
 
 
     def preprocessing(self):
@@ -96,15 +84,13 @@ class ARDSimulator:
                 
                 self.part_data[i].pressure_field_results.append(self.part_data[i].pressure_field.copy())
                 
-                if i == 0:
-                    pressure_field_y = int(self.part_data[0].space_divisions_y * (self.mic1.location[1] / self.part_data[0].dimensions[1]))
-                    pressure_field_x = int(self.part_data[0].space_divisions_x * (self.mic1.location[0] / self.part_data[0].dimensions[0]))
-                    self.mic1.record(self.part_data[0].pressure_field[pressure_field_y][pressure_field_x], t_s)
-                if i == 1:
-                    pressure_field_y = int(self.part_data[2].space_divisions_y * (self.mic2.location[1] / self.part_data[2].dimensions[1]))
-                    pressure_field_x = int(self.part_data[2].space_divisions_x * (self.mic2.location[0] / self.part_data[2].dimensions[0]))
-                    self.mic2.record(self.part_data[2].pressure_field.copy().reshape(
-                        [self.part_data[2].space_divisions_y, self.part_data[2].space_divisions_x, 1])[pressure_field_y][pressure_field_x], t_s)
+                for m_i in range(len(self.mics)):
+                    p_num = self.mics[m_i].partition_number
+                    pressure_field_y = int(self.part_data[p_num].space_divisions_y * (self.mics[m_i].location[1] / self.part_data[p_num].dimensions[1]))
+                    pressure_field_x = int(self.part_data[p_num].space_divisions_x * (self.mics[m_i].location[0] / self.part_data[p_num].dimensions[0]))
+                    
+                    self.mics[m_i].record(self.part_data[p_num].pressure_field.copy().reshape(
+                        [self.part_data[p_num].space_divisions_y, self.part_data[p_num].space_divisions_x, 1])[pressure_field_y][pressure_field_x], t_s)
 
                 # Update time stepping to prepare for next time step / loop iteration.
                 self.part_data[i].M_previous = self.part_data[i].M_current.copy()
@@ -156,8 +142,8 @@ class ARDSimulator:
                 self.part_data[2].new_forces[2, x] += new_forces_from_interface_x[5]
 
         # Microphones. TODO: Make mics dynamic
-        self.mic1.write_to_file(self.sim_param.Fs)
-        self.mic2.write_to_file(self.sim_param.Fs)
+        for i in range(len(self.mics)):
+            self.mics[i].write_to_file(self.sim_param.Fs)
 
 
 '''

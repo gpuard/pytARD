@@ -1,6 +1,6 @@
 import pickle
 import lzma
-from datetime import date
+from datetime import date, datetime
 
 class Serializer():
     def __init__(self, compressed=False):
@@ -8,7 +8,7 @@ class Serializer():
 
     def create_filename(self):
         # TODO: put reference to rooms, sizes etc.
-        return f"pytard_{date.today()}"
+        return f"pytard_{date.today()}_{datetime.now().time()}"
 
     def dump(self, sim_params, partitions):
         file_path = self.create_filename() + ".xz"

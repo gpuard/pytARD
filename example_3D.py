@@ -2,7 +2,7 @@ from common.parameters import SimulationParameters as SIMP
 
 from pytARD_3D.ard import ARDSimulator as ARDS
 from pytARD_3D.partition_data import PartitionData as PARTD
-from common.impulse import Gaussian, UnitImpulse, WaveFile
+from common.impulse import Gaussian, Unit, WaveFile
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -44,7 +44,7 @@ impulse_location = np.array([
 
 # Define impulse location that gets emitted into the room
 # impulse = Gaussian(sim_params, impulse_location, 1)
-impulse = UnitImpulse(sim_params, impulse_location, 1)
+impulse = Unit(sim_params, impulse_location, 1)
 # impulse = WaveFile(sim_params, impulse_location, 'clap.wav', 100) # Uncomment for wave file injection
 
 partition_1 = PARTD(np.array([
