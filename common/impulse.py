@@ -93,7 +93,7 @@ class WaveFile(Impulse):
         return self.amplitude * self.wav[0:self.sim_param.number_of_samples]
 
 
-class UnitImpulse(Impulse):
+class Unit(Impulse):
     '''
     TODO: Docs
     '''
