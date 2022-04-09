@@ -2,8 +2,9 @@ from common.parameters import SimulationParameters as SIMP
 
 from pytARD_2D.ard import ARDSimulator as ARDS
 from pytARD_2D.partition_data import PartitionData as PARTD
-# from pytARD_2D.pml_partition import PMLPartition as PMLP
 from pytARD_2D.pml_partition_2 import PMLPartition as PMLP
+
+from pytARD_2D.impulse import Impulse, Gaussian, WaveFile
 import numpy as np
 
 plot            = True
@@ -20,6 +21,7 @@ sim_params = SIMP(
     verbose                             = True,
 )
 
+
 (subroom_x,subroom_y) = (10,10)
 
 air_partition_1 = PARTD((subroom_x, subroom_y), sim_params, do_impulse=False)
@@ -31,6 +33,15 @@ air_partitions = [air_partition_1,air_partition_2,air_partition_3]
 # pml_partition_1 = PMLP((subroom_x, subroom_y), sim_params) #first dimesion is "y"
 pml_partition_1 = PMLP((subroom_x, subroom_y), sim_params) #first dimesion is "y"
 pml_partitions = [pml_partition_1]
+
+
+# SCALE = 30 # Scale of room. Gets calculated by speed of sound divided by SCALE
+
+# # Define impulse that gets emitted into the room
+# impulse_location = np.array([[int((c / SCALE) / 2)],[int((c / SCALE) / 2)]])
+# # impulse = Gaussian(sim_params, impulse_location, 10000)
+# impulse = WaveFile(sim_params, impulse_location, 'clap.wav', 100) # Uncomment for wave file injection
+
 
 
 # Instantiating and executing simulation
@@ -47,6 +58,7 @@ sim.simulation()
 #     results.append(room)
 # #####
 
+
 if plot:
     
     import matplotlib.pyplot as plt
@@ -56,6 +68,7 @@ if plot:
     p = np.zeros_like(air_partitions[0].pressure_field_results[0])
     
     fig.suptitle("Time: %.2f sec" % 0)
+
 
     for i, a in enumerate(fig.axes):
     # for  a in ax:
@@ -79,6 +92,7 @@ if plot:
     im_air = [ax[0,0].imshow(np.zeros(air_partition_1.grid_shape),vmin=mi, vmax=ma),
               ax[1,0].imshow(np.zeros(air_partition_2.grid_shape),vmin=mi, vmax=ma),
               ax[1,1].imshow(np.zeros(air_partition_3.grid_shape),vmin=mi, vmax=ma)]
+
 
     im_pml = [ax[0,1].imshow(np.zeros(pml_partition_1.grid_shape),vmin=mi, vmax=ma)]
         

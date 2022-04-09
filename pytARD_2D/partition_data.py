@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.io.wavfile import read
 from scipy.fftpack import idct, dct
+from pytARD_2D.impulse import Impulse
 
 
 class PartitionData:
@@ -10,8 +11,9 @@ class PartitionData:
         dimensions,
         sim_parameters,
         do_impulse = True,
-        source_location = (0, 0)
-    ):
+        source_location = (0, 0),
+        impulse=None
+        ):
         '''
         Parameter container class for ARD simulator. Contains all relevant data to instantiate
         and run ARD simulator.
@@ -22,14 +24,13 @@ class PartitionData:
             Size of the partition (room) in meters.
         sim_parameters : SimulationParameters
             Instance of simulation parameter class.
-        do_impulse : bool
-            Determines if the impulse is generated on this partition.
+        impulse : Impulse
+            Determines if the impulse is generated on this partition, and which kind of impulse. 
         '''
         self.dimensions = np.array(dimensions)
         self.sim_param = sim_parameters
 
         # Longest room dimension length dividied by H (voxel grid spacing).
-        # TODO Maybe do different X / Y space divisions?
         self.space_divisions_y = int(
             (dimensions[1]) * self.sim_param.samples_per_wave_length)
         self.space_divisions_x = int(
@@ -49,7 +50,6 @@ class PartitionData:
 
         print(f"dx = {self.dx}")
         print(f"dy = {self.dy}")
-
 
         # Instantiate forces array, which corresponds to F in update rule (results of DCT computation). TODO: Elaborate more
         self.forces = None
@@ -74,6 +74,7 @@ class PartitionData:
         self.pressure_field_results = [np.zeros(self.grid_shape)] # we skipp 1 first steps
 
         # Fill impulse array with impulses.
+
         # TODO: Switch between different source signals via bool or enum? Also create source signal container
         if do_impulse:
             stype="1"
@@ -112,15 +113,21 @@ class PartitionData:
                 time = np.arange(0, self.sim_param.number_of_time_samples * self.sim_param.delta_t , self.sim_param.delta_t)
                 self.impulses[:, src_pos_i, src_pos_j] = -np.pi**2 * 2 * f0 * np.exp( -np.pi**2 * (time - 1)**2)
 
-        # Uncomment to inject wave file. TODO: Consolidize into source class
-        '''
-        if do_impulse:
-            (fs, wav) = read('track.wav')
-            self.impulses[:, int(self.space_divisions * 0.9)] = 100 * wav[0:self.sim_param.number_of_time_samples]
-        '''
+
+        if impulse:
+            # Emit impulse into room
+            self.impulses[:, int(self.space_divisions_y * (impulse.location[1] / dimensions[1])), int(
+                self.space_divisions_x * (impulse.location[0] / dimensions[0]))] = impulse.get()
+
+            if self.sim_param.visualize:
+                import matplotlib.pyplot as plt
+                plt.plot(self.impulses[:, int(self.space_divisions_y * (impulse.location[1] / dimensions[1])), int(
+                    self.space_divisions_x * (impulse.location[0] / dimensions[0]))])
+                plt.show()
 
         if sim_parameters.verbose:
-            print(f"Created partition with dimensions {self.dimensions} \n (y): {self.h_y}, (x): {self.h_x} | Space divisions: {self.space_divisions_y} ({self.dimensions/self.space_divisions_y} m each)")
+            print(
+                f"Created partition with dimensions {self.dimensions} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions: {self.space_divisions_y} ({self.dimensions/self.space_divisions_y} m each)")
 
 
     def preprocessing(self):
@@ -130,7 +137,9 @@ class PartitionData:
         for the time step t = 0
         '''
         # Preparing pressure field. Equates to function p(x) on the paper.
+
         self.pressure_field = np.zeros(shape=self.grid_shape)
+
         #print(f"presh field = {self.pressure_field}")
 
         # Precomputation for the DCTs to be performed. Transforming impulse to spatial forces. Skipped partitions as of now.
@@ -139,6 +148,7 @@ class PartitionData:
         # Relates to equation 5 and 8 of "An efficient GPU-based time domain solver for the
         # acoustic wave equation" paper.
         # For reference, see https://www.microsoft.com/en-us/research/wp-content/uploads/2016/10/4.pdf.
+
 
         # self.omega_i = np.zeros(shape=self.grid_shape)
         # for y in range(self.space_divisions_y):
@@ -150,17 +160,21 @@ class PartitionData:
             for x in range(self.grid_shape[0]):
                 self.omega_i[x,y] = self.sim_param.c * ((np.pi ** 2) * (((x ** 2) / (self.dimensions[0] ** 2)) + ((y ** 2) / (self.dimensions[1] ** 2)))) ** 0.5
 
+
         # TODO Semi disgusting hack. Without it, the calculation of update rule (equation 9) would crash due to division by zero
         self.omega_i[0, 0] = 0.1
 
         # Update time stepping. Relates to M^(n+1) and M^n in equation 8.
+
         self.M_previous = np.zeros(shape=self.grid_shape)
+
         self.M_current = np.zeros(shape=self.M_previous.shape)
         self.M_next = None
 
         if self.sim_param.verbose:
             print(f"Shape of omega_i: {self.omega_i.shape}")
             print(f"Shape of pressure field: {self.pressure_field.shape}")
+
 
     @staticmethod
     def create_gaussian_impulse(t, A, mu, sigma):
@@ -184,3 +198,4 @@ class PartitionData:
 
         '''
         return np.exp(-np.power(t - mu, 2.) / (2 * np.power(sigma, 2.)))
+
