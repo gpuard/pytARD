@@ -47,8 +47,18 @@ class ARDSimulator:
         self.FDTD_KERNEL_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
 
         # Initialize & position mics. 
-        self.mic1 = Mic([int(part_data[0].dimensions[0] / 2), int(part_data[0].dimensions[1] / 2)], sim_parameters, "left")
-        self.mic2 = Mic([int(part_data[2].dimensions[0] / 2), int(part_data[2].dimensions[1] / 2)], sim_parameters, "bottom")
+        self.mic1 = Mic(
+            0, 
+            [int(part_data[0].dimensions[0] / 2), 
+            int(part_data[0].dimensions[1] / 2)], 
+            sim_parameters, "left"
+        )
+        self.mic2 = Mic(
+            2, 
+            [int(part_data[2].dimensions[0] / 2), 
+            int(part_data[2].dimensions[1] / 2)], 
+            sim_parameters, "bottom"
+        )
 
 
     def preprocessing(self):

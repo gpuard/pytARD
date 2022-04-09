@@ -3,6 +3,8 @@ from common.parameters import SimulationParameters as SIMP
 from pytARD_2D.ard import ARDSimulator as ARDS
 from pytARD_2D.partition_data import PartitionData as PARTD
 from common.impulse import Gaussian, WaveFile
+from common.serializer import Serializer
+from common.plotter import Plotter
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,6 +20,7 @@ spatial_samples_per_wave_length = 6
 auralize = False
 verbose = True
 visualize = False
+write_to_file = False
 
 # Compilation of room parameters into parameter class
 sim_params = SIMP(
@@ -44,13 +47,25 @@ partition_3 = PARTD(np.array([[int(c / SCALE)],[int(c / SCALE)]]), sim_params)
 
 part_data = [partition_1, partition_2, partition_3]
 
+# Instantiation serializer for reading and writing simulation state data
+serializer = Serializer(compressed=True)
+
 # Instantiating and executing simulation
 sim = ARDS(sim_params, part_data)
 sim.preprocessing()
 sim.simulation()
 
+# Write partitions and state data to disk
+if write_to_file:
+    if verbose: print("Writing state data to disk. Please wait...")
+    serializer.dump(sim_params, part_data)
+
 # Plotting waveform
-if visualize:
+if True: # if visualize:
+    plotter = Plotter()
+    plotter.set_data_from_simulation(sim_params, part_data)
+    plotter.plot_2D()
+    '''
     room_dims = np.linspace(0., partition_1.dimensions[0], len(partition_1.pressure_field_results[0]))
     ytop = np.max(partition_1.pressure_field_results)
     ybtm = np.min(partition_1.pressure_field_results)
@@ -95,4 +110,5 @@ if visualize:
         plt.pause(0.005)
 
     plot_step = 100
+    '''
 
