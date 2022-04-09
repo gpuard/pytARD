@@ -82,7 +82,7 @@ class Plotter():
         pass
 
 
-    def plot(self):
+    def plot(self, mic_posi):
         # TODO Check which dimension it is and call corresponding plot function
         dimension = len(self.partitions[0].dimensions)
         if self.verbose: 

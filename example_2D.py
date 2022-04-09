@@ -1,5 +1,6 @@
 from pytARD_2D.ard import ARDSimulator as ARDS
 from pytARD_2D.partition_data import PartitionData as PARTD
+from pytARD_2D.interface import InterfaceData2D, Direction
 
 from common.parameters import SimulationParameters as SIMP
 from common.impulse import Gaussian, Unit, WaveFile
@@ -48,44 +49,32 @@ partition_3 = PARTD(np.array([[int(c / SCALE)], [int(c / SCALE)]]), sim_params)
 # Compilation of all partitions into one part_data object. Add or remove rooms here. TODO change to obj.append()
 part_data = [partition_1, partition_2, partition_3]
 
+# Interfaces of the room. Interfaces connect the room together
+interfaces = []
+interfaces.append(InterfaceData2D(0, 1, Direction.Horizontal))
+interfaces.append(InterfaceData2D(1, 2, Direction.Vertical))
+
 # Microphones (are optional)
 mic1 = Mic(
-    # Parition number
-    0, 
-
+    0, # Parition number
     # Position
     [int(part_data[0].dimensions[0] / 2), 
     int(part_data[0].dimensions[1] / 2)], 
-
     sim_params, 
-    
-    # Name of resulting wave file
-    "left"
+    "left" # Name of resulting wave file
 )
 mic2 = Mic(
-    # Parition number
     1, 
-
-    # Position
     [int(part_data[1].dimensions[0] / 2), 
     int(part_data[1].dimensions[1] / 2)], 
-
     sim_params, 
-    
-    # Name of resulting wave file
     "right"
 )
 mic3 = Mic(
-    # Parition number
     2, 
-
-    # Position
     [int(part_data[2].dimensions[0] / 2), 
     int(part_data[2].dimensions[1] / 2)], 
-
     sim_params, 
-    
-    # Name of resulting wave file
     "bottom"
 )
 
@@ -96,7 +85,7 @@ mics = [mic1, mic2, mic3]
 serializer = Serializer(compressed=True)
 
 # Instantiating and executing simulation
-sim = ARDS(sim_params, part_data, mics)
+sim = ARDS(sim_params, part_data, interfaces, mics)
 sim.preprocessing()
 sim.simulation()
 

@@ -2,13 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fft import idctn, dctn
 
+from pytARD_2D.interface import Interface2D
 
 class ARDSimulator:
     '''
     ARD Simulation class. Creates and runs ARD simulator instance.
     '''
 
-    def __init__(self, sim_parameters, part_data, mics=[]):
+    def __init__(self, sim_param, part_data, interface_data, mics=[]):
         '''
         Create and run ARD simulator instance.
 
@@ -21,29 +22,14 @@ class ARDSimulator:
         '''
 
         # Parameter class instance (SimulationParameters)
-        self.sim_param = sim_parameters
+        self.sim_param = sim_param
 
         # List of partition data (PartitionData objects)
         self.part_data = part_data
 
-        # 2D FDTD coefficents array. Normalize FDTD coefficents with space divisions and speed of sound. 
-        fdtd_coeffs_not_normalized = np.array(
-            [
-                [-0.,         -0.,         -0.01111111,  0.01111111,  0.,          0.        ],
-                [-0.,         -0.01111111,  0.15,       -0.15,        0.01111111,  0.        ],
-                [-0.01111111,  0.15,       -1.5,         1.5,        -0.15,        0.01111111],
-                [ 0.01111111, -0.15,        1.5,        -1.5,         0.15,       -0.01111111],
-                [ 0.,          0.01111111, -0.15,        0.15,       -0.01111111, -0.        ],
-                [ 0.,          0.,          0.01111111, -0.01111111, -0.,         -0.        ]
-            ]
-        )
-
-        # TODO: Unify h of partition data, atm it's hard coded to first partition
-        self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_parameters.c / part_data[0].h_x) ** 2)
-        self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_parameters.c / part_data[0].h_y) ** 2)
-
-        # FDTD kernel size.
-        self.FDTD_KERNEL_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
+        # List of interfaces (InterfaceData objects)
+        self.interface_data = interface_data
+        self.interfaces = Interface2D(sim_param, part_data)
 
         # Initialize & position mics. 
         self.mics = mics
@@ -84,6 +70,7 @@ class ARDSimulator:
                 
                 self.part_data[i].pressure_field_results.append(self.part_data[i].pressure_field.copy())
                 
+                # Loop through microphones and record pressure field at given position
                 for m_i in range(len(self.mics)):
                     p_num = self.mics[m_i].partition_number
                     pressure_field_y = int(self.part_data[p_num].space_divisions_y * (self.mics[m_i].location[1] / self.part_data[p_num].dimensions[1]))
@@ -99,47 +86,9 @@ class ARDSimulator:
                 # Update impulses
                 self.part_data[i].new_forces = self.part_data[i].impulses[t_s].copy()
 
-            # Interface handling Left -> Right (through y axis)
-            for y in range(self.part_data[i].space_divisions_y):
-                pressure_field_around_interface_y = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE, 1])
-
-                # Left room
-                pressure_field_around_interface_y[0 : self.FDTD_KERNEL_SIZE] = self.part_data[0].pressure_field[y, -self.FDTD_KERNEL_SIZE : ].copy().reshape([self.FDTD_KERNEL_SIZE, 1])
-
-                # Right top room
-                pressure_field_around_interface_y[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[1].pressure_field[y, 0 : self.FDTD_KERNEL_SIZE].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
-
-                # Calculate new forces transmitted into room
-                new_forces_from_interface_y = self.FDTD_COEFFS_Y.dot(pressure_field_around_interface_y)
-
-                # Add everything together
-                self.part_data[0].new_forces[y, -3] += new_forces_from_interface_y[0]
-                self.part_data[0].new_forces[y, -2] += new_forces_from_interface_y[1]
-                self.part_data[0].new_forces[y, -1] += new_forces_from_interface_y[2]
-                self.part_data[1].new_forces[y, 0] += new_forces_from_interface_y[3]
-                self.part_data[1].new_forces[y, 1] += new_forces_from_interface_y[4]
-                self.part_data[1].new_forces[y, 2] += new_forces_from_interface_y[5]
-        
-            # Interface handling Right -> Bottom (through x axis)
-            for x in range(self.part_data[i].space_divisions_x):
-                pressure_field_around_interface_x = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE, 1])
-
-                # Right top room
-                pressure_field_around_interface_x[0 : self.FDTD_KERNEL_SIZE] = self.part_data[1].pressure_field[-self.FDTD_KERNEL_SIZE : , x].copy().reshape([self.FDTD_KERNEL_SIZE, 1])
-
-                # Right bottom room
-                pressure_field_around_interface_x[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[2].pressure_field[0 : self.FDTD_KERNEL_SIZE, x].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
-
-                # Calculate new forces transmitted into room
-                new_forces_from_interface_x = self.FDTD_COEFFS_X.dot(pressure_field_around_interface_x)
-
-                # Add everything together
-                self.part_data[1].new_forces[-3, x] += new_forces_from_interface_x[0]
-                self.part_data[1].new_forces[-2, x] += new_forces_from_interface_x[1]
-                self.part_data[1].new_forces[-1, x] += new_forces_from_interface_x[2]
-                self.part_data[2].new_forces[0, x] += new_forces_from_interface_x[3]
-                self.part_data[2].new_forces[1, x] += new_forces_from_interface_x[4]
-                self.part_data[2].new_forces[2, x] += new_forces_from_interface_x[5]
+            # Interface monke go here
+            for interface in self.interface_data:
+                self.interfaces.handle_interface(interface)
 
         # Microphones. TODO: Make mics dynamic
         for i in range(len(self.mics)):
