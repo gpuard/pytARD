@@ -18,6 +18,18 @@ class Impulse():
         '''
         raise NotImplementedError("This method is deliberately not implemented")
 
+    @staticmethod
+    def plot_waveform():
+        '''
+        if self.sim_param.visualize:
+            import matplotlib.pyplot as plt
+            plt.plot(self.impulses[:, 
+                int(self.space_divisions_z * (impulse.location[2] / dimensions[2])),
+                int(self.space_divisions_y * (impulse.location[1] / dimensions[1])), 
+                int(self.space_divisions_x * (impulse.location[0] / dimensions[0]))])
+            plt.show()
+        '''
+
 
 class Gaussian(Impulse):
     '''
@@ -79,3 +91,27 @@ class WaveFile(Impulse):
         TODO: Docs
         '''
         return self.amplitude * self.wav[0:self.sim_param.number_of_samples]
+
+
+class UnitImpulse(Impulse):
+    '''
+    TODO: Docs
+    '''
+    def __init__(self, sim_param, location, amplitude):
+        '''
+        TODO: Docs
+        '''
+        self.sim_param = sim_param
+        self.location = location
+        self.amplitude = amplitude
+        self.impulse = np.zeros(self.sim_param.number_of_samples)
+        self.impulse[0] = 1
+        self.impulse[1] = 1
+
+
+    def get(self):
+        '''
+        TODO: Docs
+        '''
+        
+        return self.amplitude * self.impulse
