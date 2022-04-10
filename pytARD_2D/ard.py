@@ -9,7 +9,7 @@ class ARDSimulator:
     ARD Simulation class. Creates and runs ARD simulator instance.
     '''
 
-    def __init__(self, sim_param, part_data, interface_data, mics=[]):
+    def __init__(self, sim_param, part_data, interface_data=[], mics=[]):
         '''
         Create and run ARD simulator instance.
 
@@ -48,7 +48,9 @@ class ARDSimulator:
         '''
         Simulation stage. Refers to Step 2 in the paper.
         '''
-
+        if self.sim_param.verbose:
+            print(f"Simulation started.")
+        
         for t_s in range(2, self.sim_param.number_of_samples):
             for i in range(len(self.part_data)):
                 #print(f"nu forces: {self.part_data[i].new_forces}")
@@ -59,6 +61,8 @@ class ARDSimulator:
                 # Relates to (2 * F^n) / (ω_i ^ 2) * (1 - cos(ω_i * Δ_t)) in equation 8.
                 self.part_data[i].force_field = ((2 * self.part_data[i].forces.reshape([self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x, 1])) / (
                     (self.part_data[i].omega_i) ** 2)) * (1 - np.cos(self.part_data[i].omega_i * self.sim_param.delta_t))
+
+                self.part_data[i].force_field[0, 0, 0] = 0
 
                 # Relates to M^(n+1) in equation 8.
                 self.part_data[i].M_next = 2 * self.part_data[i].M_current * \
@@ -90,9 +94,9 @@ class ARDSimulator:
             for interface in self.interface_data:
                 self.interfaces.handle_interface(interface)
 
-        # Microphones. TODO: Make mics dynamic
-        for i in range(len(self.mics)):
-            self.mics[i].write_to_file(self.sim_param.Fs)
+        if self.sim_param.verbose:
+            print(f"Simulation completed successfully.\n")
+        
 
 
 '''

@@ -39,10 +39,9 @@ class PartitionData:
         self.h_y = dimensions[1] / self.space_divisions_y
         self.h_x = dimensions[0] / self.space_divisions_y
 
-        if sim_parameters.verbose:
-            print(f"h_z = {self.h_z}")
-            print(f"h_x = {self.h_x}")
-            print(f"h_y = {self.h_y}")
+        # Check stability of wave equation
+        CFL = (sim_parameters.c * sim_parameters.delta_t) / self.h_x
+        assert(CFL <= 1, f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than 1. Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length.")
 
         # Instantiate forces array, which corresponds to F in update rule (results of DCT computation). TODO: Elaborate more
         self.forces = None

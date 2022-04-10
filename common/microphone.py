@@ -12,9 +12,12 @@ class Microphone():
     def record(self, sample, index):
         self.signal[index] = sample
 
-    def write_to_file(self, Fs):
+    def write_to_file(self, Fs, normalize_divisor=None):
         # Normalize data
-        normalized_signal = self.signal / np.max(self.signal)
+        if normalize_divisor:
+            normalized_signal = self.signal / normalize_divisor
+        else:
+            normalized_signal = self.signal / np.max(self.signal)
 
         # Write to file
         write(self.name, Fs, normalized_signal.astype(np.float))

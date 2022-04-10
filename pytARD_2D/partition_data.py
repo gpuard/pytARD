@@ -2,6 +2,7 @@ import numpy as np
 from scipy.io.wavfile import read
 from scipy.fftpack import idct, dct
 
+from common.parameters import SimulationParameters
 
 class PartitionData:
     def __init__(
@@ -26,18 +27,17 @@ class PartitionData:
         self.dimensions = dimensions
         self.sim_param = sim_parameters
 
-        # Longest room dimension length dividied by H (voxel grid spacing).
-        self.space_divisions_y = int(
-            (dimensions[1]) * self.sim_param.spatial_samples_per_wave_length)
-        self.space_divisions_x = int(
-            (dimensions[0]) * self.sim_param.spatial_samples_per_wave_length)
-
         # Voxel grid spacing. Changes automatically according to frequency
-        self.h_y = dimensions[1] / self.space_divisions_y
-        self.h_x = dimensions[0] / self.space_divisions_y
+        self.h_y = SimulationParameters.calculate_voxelization_step(sim_parameters) #dimensions[1] / self.space_divisions_y
+        self.h_x = SimulationParameters.calculate_voxelization_step(sim_parameters)  #dimensions[0] / self.space_divisions_x
 
-        print(f"h_x = {self.h_x}")
-        print(f"h_y = {self.h_y}")
+        # Check stability of wave equation
+        CFL = (sim_parameters.c * sim_parameters.delta_t) / self.h_x
+        assert(CFL <= 1, f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than 1. Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length.")
+
+        # Longest room dimension length dividied by H (voxel grid spacing).
+        self.space_divisions_y = int(dimensions[1] / self.h_y)
+        self.space_divisions_x = int(dimensions[0] / self.h_x)
 
         # Instantiate forces array, which corresponds to F in update rule (results of DCT computation). TODO: Elaborate more
         self.forces = None
@@ -70,7 +70,7 @@ class PartitionData:
 
         if sim_parameters.verbose:
             print(
-                f"Created partition with dimensions {self.dimensions} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions: {self.space_divisions_y} ({self.dimensions/self.space_divisions_y} m each)")
+                f"Created partition with dimensions {self.dimensions} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions (y): {self.space_divisions_y} (x): {self.space_divisions_x} | CFL = {CFL}\n")
 
     def preprocessing(self):
         '''
@@ -95,8 +95,8 @@ class PartitionData:
                 self.omega_i[y, x, 0] = self.sim_param.c * ((np.pi ** 2) * (((x ** 2) / (
                     self.dimensions[0] ** 2)) + ((y ** 2) / (self.dimensions[1] ** 2)))) ** 0.5
 
-        # TODO Semi disgusting hack. Without it, the calculation of update rule (equation 9) would crash due to division by zero
-        self.omega_i[0, 0] = 0.1
+        # TODO Semi disgusting hack - Without it, the calculation of update rule (equation 9) would crash due to division by zero
+        # self.omega_i[0, 0] = 1e-16
 
         # Update time stepping. Relates to M^(n+1) and M^n in equation 8.
         self.M_previous = np.zeros(
@@ -105,7 +105,6 @@ class PartitionData:
         self.M_next = None
 
         if self.sim_param.verbose:
-            print(f"Shape of omega_i: {self.omega_i.shape}")
-            print(f"Shape of pressure field: {self.pressure_field.shape}")
+            print(f"Preprocessing started.\nShape of omega_i: {self.omega_i.shape}\nShape of pressure field: {self.pressure_field.shape}\n")
 
     

@@ -97,7 +97,7 @@ class Unit(Impulse):
     '''
     TODO: Docs
     '''
-    def __init__(self, sim_param, location, amplitude):
+    def __init__(self, sim_param, location, amplitude, target_frequency):
         '''
         TODO: Docs
         '''
@@ -105,9 +105,10 @@ class Unit(Impulse):
         self.location = location
         self.amplitude = amplitude
         self.impulse = np.zeros(self.sim_param.number_of_samples)
-        self.impulse[0] = 1
-        self.impulse[1] = 1
-
+        
+        number_of_1s = int((sim_param.number_of_samples / sim_param.T) / target_frequency)
+        print(f"uno numberino's = {number_of_1s}")
+        self.impulse[0 : number_of_1s] = 1
 
     def get(self):
         '''
