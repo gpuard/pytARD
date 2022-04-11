@@ -79,8 +79,8 @@ class SimulationParameters:
 
         Parameters
         ----------
-        spatial_samples_per_wave_length : int
-            Number of spatial samples per wave length. Usually 2 to 4.
+        sim_param : SimulationParameters
+            ARD simulation parameter object
 
         Returns
         -------

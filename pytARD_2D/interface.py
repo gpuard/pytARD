@@ -48,13 +48,13 @@ class Interface2D():
         '''
         if interface_data.direction == Direction.Horizontal:
             for y in range(self.part_data[interface_data.part1_index].space_divisions_y):
-                pressure_field_around_interface_y = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE, 1])
+                pressure_field_around_interface_y = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE])
 
                 # Left room
-                pressure_field_around_interface_y[0 : self.FDTD_KERNEL_SIZE] = self.part_data[interface_data.part1_index].pressure_field[y, -self.FDTD_KERNEL_SIZE : ].copy().reshape([self.FDTD_KERNEL_SIZE, 1])
+                pressure_field_around_interface_y[0 : self.FDTD_KERNEL_SIZE] = self.part_data[interface_data.part1_index].pressure_field[y, -self.FDTD_KERNEL_SIZE : ].copy()#.reshape([self.FDTD_KERNEL_SIZE, 1])
 
                 # Right top room
-                pressure_field_around_interface_y[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[interface_data.part2_index].pressure_field[y, 0 : self.FDTD_KERNEL_SIZE].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
+                pressure_field_around_interface_y[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[interface_data.part2_index].pressure_field[y, 0 : self.FDTD_KERNEL_SIZE].copy()#.reshape(self.FDTD_KERNEL_SIZE, 1)
 
                 # Calculate new forces transmitted into room
                 new_forces_from_interface_y = self.FDTD_COEFFS_Y.dot(pressure_field_around_interface_y)
@@ -69,13 +69,13 @@ class Interface2D():
     
         elif interface_data.direction == Direction.Vertical:
             for x in range(self.part_data[interface_data.part1_index].space_divisions_x):
-                pressure_field_around_interface_x = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE, 1])
+                pressure_field_around_interface_x = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE])
 
                 # Right top room
-                pressure_field_around_interface_x[0 : self.FDTD_KERNEL_SIZE] = self.part_data[interface_data.part1_index].pressure_field[-self.FDTD_KERNEL_SIZE : , x].copy().reshape([self.FDTD_KERNEL_SIZE, 1])
+                pressure_field_around_interface_x[0 : self.FDTD_KERNEL_SIZE] = self.part_data[interface_data.part1_index].pressure_field[-self.FDTD_KERNEL_SIZE : , x].copy()#.reshape([self.FDTD_KERNEL_SIZE, 1])
 
                 # Right bottom room
-                pressure_field_around_interface_x[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[interface_data.part2_index].pressure_field[0 : self.FDTD_KERNEL_SIZE, x].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
+                pressure_field_around_interface_x[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[interface_data.part2_index].pressure_field[0 : self.FDTD_KERNEL_SIZE, x].copy()#.reshape(self.FDTD_KERNEL_SIZE, 1)
 
                 # Calculate new forces transmitted into room
                 new_forces_from_interface_x = self.FDTD_COEFFS_X.dot(pressure_field_around_interface_x)

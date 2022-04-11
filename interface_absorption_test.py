@@ -11,7 +11,7 @@ from common.microphone import Microphone as Mic
 import numpy as np
 
 # Room parameters
-duration = 2/342  #  seconds
+duration = 4/342  #  seconds
 Fs = 8000  # sample rate
 upper_frequency_limit = 600  # Hz
 c = 342  # m/s
@@ -40,15 +40,15 @@ impulse = Unit(sim_params, impulse_location, 1, upper_frequency_limit)
 #impulse = WaveFile(sim_params, impulse_location, 'clap_8000.wav', 100)
 
 # Paritions of long room
-long_room = PARTD(np.array([2, 1]), sim_params, impulse)
+control_room = PARTD(np.array([2, 1]), sim_params, impulse)
 
 # Paritions of two concatenated small rooms
-short_room_left = PARTD(np.array([1, 1]), sim_params, impulse)
-short_room_right = PARTD(np.array([1, 1]), sim_params)
+test_room_left = PARTD(np.array([1, 1]), sim_params, impulse)
+test_room_right = PARTD(np.array([1, 1]), sim_params)
 
 # Compilation of all partitions into one part_data object. Add or remove rooms here. TODO change to obj.append()
-control_room = [long_room]
-concatenated_room = [short_room_left, short_room_right]
+control_room = [control_room]
+test_room = [test_room_left, test_room_right]
 
 # Interfaces of the concatenated room.
 interfaces = []
@@ -85,7 +85,7 @@ short_room_mic2 = Mic(
 
 # Compilation of all microphones into one mics object. Add or remove mics here. TODO change to obj.append()
 control_mics = [long_room_mic1, long_room_mic2]
-concatenated_mics = [short_room_mic1, short_room_mic2]
+test_mics = [short_room_mic1, short_room_mic2]
 
 
 # Instantiation serializer for reading and writing simulation state data
@@ -111,7 +111,7 @@ control_sim.simulation()
 # write_and_plot(control_room)
 
 # Instantiating and executing test simulation
-test_sim = ARDS(sim_params, concatenated_room, interfaces, mics=concatenated_mics)
+test_sim = ARDS(sim_params, test_room, interfaces, mics=test_mics)
 test_sim.preprocessing()
 test_sim.simulation()
 
@@ -125,7 +125,7 @@ def find_best_peak(mics):
 
 both_mic_peaks = []
 both_mic_peaks.append(find_best_peak(control_mics))
-both_mic_peaks.append(find_best_peak(concatenated_mics))
+both_mic_peaks.append(find_best_peak(test_mics))
 best_peak = np.max(both_mic_peaks)
 
 def write_mic_files(mics, peak):
@@ -133,7 +133,7 @@ def write_mic_files(mics, peak):
         mics[i].write_to_file(Fs, peak)
 
 write_mic_files(control_mics, best_peak)
-write_mic_files(concatenated_mics, best_peak)
+write_mic_files(test_mics, best_peak)
 
 # Call to plot concatenated room
 #write_and_plot(concatenated_room)
