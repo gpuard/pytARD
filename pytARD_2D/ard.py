@@ -59,15 +59,15 @@ class ARDSimulator:
             for i in range(len(self.part_data)):
                 #print(f"nu forces: {self.part_data[i].new_forces}")
                 # Execute DCT for next sample
-                self.part_data[i].forces = dctn(self.part_data[i].new_forces, type=1)
+                self.part_data[i].forces = dctn(self.part_data[i].new_forces, type=1, s=[self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x])
 
                 # Updating mode for spectral coefficients p.
                 # Relates to (2 * F^n) / (ω_i ^ 2) * (1 - cos(ω_i * Δ_t)) in equation 8.
-                self.part_data[i].force_field = ((2 * self.part_data[i].forces.reshape([self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x, 1])) / (
+                self.part_data[i].force_field = ((2 * self.part_data[i].forces) / ( # self.part_data[i].force_field = ((2 * self.part_data[i].forces.reshape([self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x, 1])) / (
                     (self.part_data[i].omega_i) ** 2)) * (1 - np.cos(self.part_data[i].omega_i * self.sim_param.delta_t))
 
                 # Other semi disgusting hack. Without it, the calculation of update rule (equation 9) would crash due to division by zero TODO: clean up.
-                self.part_data[i].force_field[0, 0, 0] = 0
+                #self.part_data[i].force_field[0, 0]= 0
 
                 # Relates to M^(n+1) in equation 8.
                 self.part_data[i].M_next = 2 * self.part_data[i].M_current * \
@@ -75,7 +75,10 @@ class ARDSimulator:
                 
                 # Convert modes to pressure values using inverse DCT.
                 self.part_data[i].pressure_field = idctn(self.part_data[i].M_next.reshape(
-                    self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x), type=1) 
+                    self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x), type=1, s=[self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x]) 
+
+                # Normalize pressure p by using normalization constant.
+                self.part_data[i].pressure_field *= self.sim_param.normalization_constant
                 
                 self.part_data[i].pressure_field_results.append(self.part_data[i].pressure_field.copy())
                 

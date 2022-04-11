@@ -11,11 +11,11 @@ from common.microphone import Microphone as Mic
 import numpy as np
 
 # Room parameters
-duration = 4/342  #  seconds
 Fs = 8000  # sample rate
-upper_frequency_limit = 600  # Hz
+upper_frequency_limit = Fs / 7  # Hz
 c = 342  # m/s
-spatial_samples_per_wave_length = 6
+duration = 0.25 #  seconds
+spatial_samples_per_wave_length = 4
 
 # Procedure parameters
 verbose = True
@@ -30,21 +30,22 @@ sim_params = SIMP(
     c=c,
     Fs=Fs,
     spatial_samples_per_wave_length=spatial_samples_per_wave_length,
+    normalization_constant=1,
     verbose=verbose,
     visualize=visualize
 )
 
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want
-impulse_location = np.array([[0.5], [0.5]])
-impulse = Unit(sim_params, impulse_location, 1, upper_frequency_limit)
+impulse_location = np.array([[0.5], [1]])
+impulse = Unit(sim_params, impulse_location, 1, upper_frequency_limit-100)
 #impulse = WaveFile(sim_params, impulse_location, 'clap_8000.wav', 100)
 
 # Paritions of long room
-control_room = PARTD(np.array([2, 1]), sim_params, impulse)
+control_room = PARTD(np.array([2, 2]), sim_params, impulse)
 
 # Paritions of two concatenated small rooms
-test_room_left = PARTD(np.array([1, 1]), sim_params, impulse)
-test_room_right = PARTD(np.array([1, 1]), sim_params)
+test_room_left = PARTD(np.array([1, 2]), sim_params, impulse)
+test_room_right = PARTD(np.array([1, 2]), sim_params)
 
 # Compilation of all partitions into one part_data object. Add or remove rooms here. TODO change to obj.append()
 control_room = [control_room]
@@ -58,27 +59,27 @@ interfaces.append(InterfaceData2D(0, 1, Direction.Horizontal))
 long_room_mic1 = Mic(
     0, # Parition number
     # Position
-    [0.5, 0.5], 
+    [0.5, 1], 
     sim_params, 
     "control_before" # Name of resulting wave file
 )
 long_room_mic2 = Mic(
     0, # Parition number
     # Position
-    [1.5, 0.5], 
+    [1.5, 1], 
     sim_params, 
     "control_after" # Name of resulting wave file
 )
 
 short_room_mic1 = Mic(
     0, 
-    [0.5, 0.5], 
+    [0.5, 1], 
     sim_params, 
     "interface_before"
 )
 short_room_mic2 = Mic(
-    1, 
-    [0.5, 0.5], 
+    1,
+    [0.5, 1], 
     sim_params, 
     "interface_after"
 )

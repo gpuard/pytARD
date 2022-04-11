@@ -89,18 +89,18 @@ class PartitionData:
         # For reference, see https://www.microsoft.com/en-us/research/wp-content/uploads/2016/10/4.pdf.
 
         self.omega_i = np.zeros(
-            shape=[self.space_divisions_y, self.space_divisions_x, 1])
+            shape=[self.space_divisions_y, self.space_divisions_x])
         for y in range(self.space_divisions_y):
             for x in range(self.space_divisions_x):
-                self.omega_i[y, x, 0] = self.sim_param.c * ((np.pi ** 2) * (((x ** 2) / (
+                self.omega_i[y, x] = self.sim_param.c * ((np.pi ** 2) * (((x ** 2) / (
                     self.dimensions[0] ** 2)) + ((y ** 2) / (self.dimensions[1] ** 2)))) ** 0.5
 
         # TODO Semi disgusting hack - Without it, the calculation of update rule (equation 9) would crash due to division by zero TODO: clean up.
-        # self.omega_i[0, 0] = 1e-16
+        self.omega_i[0, 0] = 1e-16
 
         # Update time stepping. Relates to M^(n+1) and M^n in equation 8.
         self.M_previous = np.zeros(
-            shape=[self.space_divisions_y, self.space_divisions_x, 1])
+            shape=[self.space_divisions_y, self.space_divisions_x])
         self.M_current = np.zeros(shape=self.M_previous.shape)
         self.M_next = None
 

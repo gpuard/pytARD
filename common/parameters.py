@@ -9,6 +9,7 @@ class SimulationParameters:
         spatial_samples_per_wave_length=6,
         c=343,
         Fs=8000,
+        normalization_constant=1,
         auralize=None,
         verbose=False,
         visualize=False
@@ -62,6 +63,7 @@ class SimulationParameters:
         # Calculate time stepping (Δ_t)
         self.delta_t = T / self.number_of_samples
 
+        self.normalization_constant = normalization_constant
         self.auralize = auralize
         self.verbose = verbose
         self.visualize = visualize
