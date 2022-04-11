@@ -14,7 +14,7 @@ import numpy as np
 Fs = 8000  # sample rate
 upper_frequency_limit = Fs / 7  # Hz
 c = 342  # m/s
-duration = 0.25 #  seconds
+duration = 0.3 #  seconds
 spatial_samples_per_wave_length = 4
 
 # Procedure parameters
@@ -37,7 +37,7 @@ sim_params = SIMP(
 
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want
 impulse_location = np.array([[0.5], [1]])
-impulse = Unit(sim_params, impulse_location, 1, upper_frequency_limit-100)
+impulse = Unit(sim_params, impulse_location, 1, upper_frequency_limit)
 #impulse = WaveFile(sim_params, impulse_location, 'clap_8000.wav', 100)
 
 # Paritions of long room
@@ -61,27 +61,27 @@ long_room_mic1 = Mic(
     # Position
     [0.5, 1], 
     sim_params, 
-    "control_before" # Name of resulting wave file
+    "before_control" # Name of resulting wave file
 )
 long_room_mic2 = Mic(
     0, # Parition number
     # Position
     [1.5, 1], 
     sim_params, 
-    "control_after" # Name of resulting wave file
+    "after_control" # Name of resulting wave file
 )
 
 short_room_mic1 = Mic(
     0, 
     [0.5, 1], 
     sim_params, 
-    "interface_before"
+    "before_test"
 )
 short_room_mic2 = Mic(
     1,
     [0.5, 1], 
     sim_params, 
-    "interface_after"
+    "after_test"
 )
 
 # Compilation of all microphones into one mics object. Add or remove mics here. TODO change to obj.append()
@@ -137,22 +137,25 @@ write_mic_files(control_mics, best_peak)
 write_mic_files(test_mics, best_peak)
 
 # Call to plot concatenated room
-#write_and_plot(concatenated_room)
+# write_and_plot(test_room)
 
+def do_the_differino(filename1, filename2, output_file_name):
+    # Calculate the heckin' differinos between frickin' wave files
+    from scipy.io.wavfile import read, write
+    fsl, left = read(filename1)
+    fsr, right = read(filename2)
 
-# Calculate difference between wave files
-from scipy.io.wavfile import read, write
-fsl, left = read('control_after.wav')
-fsr, right = read('interface_after.wav')
+    left = np.array(left, dtype=np.float)
+    right = np.array(right, dtype=np.float)
 
-left = np.array(left, dtype=np.float)
-right = np.array(right, dtype=np.float)
+    diff = []
 
-diff = []
+    for i in range(0, len(left)):
+        diff.append(left[i] - right[i])
 
-for i in range(0, len(left)):
-    diff.append(left[i] - right[i])
+    diff = np.array(diff)
 
-diff = np.array(diff)
+    write(output_file_name, fsl, diff.astype(np.float))
 
-write('diff.wav', fsl, diff.astype(np.float))
+do_the_differino("after_control.wav", "after_test.wav", "after_diff.wav")
+do_the_differino("before_control.wav", "before_test.wav", "before_diff.wav")

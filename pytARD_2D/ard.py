@@ -70,8 +70,7 @@ class ARDSimulator:
                 #self.part_data[i].force_field[0, 0]= 0
 
                 # Relates to M^(n+1) in equation 8.
-                self.part_data[i].M_next = 2 * self.part_data[i].M_current * \
-                np.cos(self.part_data[i].omega_i * self.sim_param.delta_t) - self.part_data[i].M_previous + self.part_data[i].force_field
+                self.part_data[i].M_next = (2 * self.part_data[i].M_current * np.cos(self.part_data[i].omega_i * self.sim_param.delta_t) - self.part_data[i].M_previous + self.part_data[i].force_field)
                 
                 # Convert modes to pressure values using inverse DCT.
                 self.part_data[i].pressure_field = idctn(self.part_data[i].M_next.reshape(
@@ -96,9 +95,7 @@ class ARDSimulator:
                 self.part_data[i].M_current = self.part_data[i].M_next.copy()
 
                 # Update impulses
-                self.part_data[i].new_forces = self.part_data[i].impulses[t_s].copy()
-
-            
+                self.part_data[i].new_forces = self.part_data[i].impulses[t_s].copy()    
 
         if self.sim_param.verbose:
             print(f"Simulation completed successfully.\n")
