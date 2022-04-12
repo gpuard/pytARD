@@ -2,14 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fft import idctn, dctn
 
-from pytARD_2D.interface import Interface2D
+from pytARD_2D.interface2 import Interface2D
 
 class ARDSimulator:
     '''
     ARD Simulation class. Creates and runs ARD simulator instance.
     '''
 
-    def __init__(self, sim_param, part_data, interface_data, mics=[]):
+    def __init__(self, sim_param, part_data, interfaces, mics=[]):
         '''
         Create and run ARD simulator instance.
 
@@ -28,8 +28,9 @@ class ARDSimulator:
         self.part_data = part_data
 
         # List of interfaces (InterfaceData objects)
-        self.interface_data = interface_data
-        self.interfaces = Interface2D(sim_param, part_data)
+        # self.interface_data = interface_data
+        # self.interfaces = Interface2D(sim_param, part_data)
+        self.interfaces = interfaces
 
         # Initialize & position mics. 
         self.mics = mics
@@ -87,8 +88,8 @@ class ARDSimulator:
                 self.part_data[i].new_forces = self.part_data[i].impulses[t_s].copy()
 
             # Interface monke go here
-            for interface in self.interface_data:
-                self.interfaces.handle_interface(interface)
+            for infs in self.interfaces:
+                infs.handle_interface()
 
         # Microphones. TODO: Make mics dynamic
         for i in range(len(self.mics)):
