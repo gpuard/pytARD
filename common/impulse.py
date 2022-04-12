@@ -107,8 +107,8 @@ class Unit(Impulse):
         self.impulse = np.zeros(self.sim_param.number_of_samples)
         
         number_of_1s = int((sim_param.number_of_samples / sim_param.T) / target_frequency)
-        print(f"uno numberino's = {number_of_1s}")
         self.impulse[0 : number_of_1s] = 1
+        print(f"# of ones: {number_of_1s}")
 
     def get(self):
         '''

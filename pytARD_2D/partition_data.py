@@ -89,12 +89,12 @@ class PartitionData:
         # For reference, see https://www.microsoft.com/en-us/research/wp-content/uploads/2016/10/4.pdf.
         
         self.omega_i = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
-        '''
+        
         for y in range(self.space_divisions_y):
             for x in range(self.space_divisions_x):
                 self.omega_i[y, x] = self.sim_param.c * ((np.pi ** 2) * ((((x + 1) ** 2) / (
                     self.dimensions[0] ** 2)) + (((y + 1) ** 2) / (self.dimensions[1] ** 2)))) ** 0.5
-        '''
+        
         '''
         ly = self.space_divisions_y ** 2
         lx = self.space_divisions_x ** 2
@@ -102,14 +102,14 @@ class PartitionData:
         for i in range(1, self.space_divisions_y + 1):
             for j in range(1, self.space_divisions_x + 1):
                 self.omega_i[i - 1, j - 1] = self.sim_param.c * np.pi * np.sqrt(i * i / ly + j * j / lx)
-        '''  
+         
         x2 = self.space_divisions_x ** 2
         y2 = self.space_divisions_y ** 2
         for i in range(1, self.space_divisions_y + 1):
             for j in range(1, self.space_divisions_x + 1):
                 #idx = (i - 1) * self.space_divisions_x + (j - 1)
                 self.omega_i[i - 1, j - 1] = self.sim_param.c * np.pi * np.sqrt(i * i / y2 + j * j / x2)
-                
+        '''        
 
         # TODO Semi disgusting hack - Without it, the calculation of update rule (equation 9) would crash due to division by zero TODO: clean up.
         #self.omega_i[0, 0] = 1e-16

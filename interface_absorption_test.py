@@ -14,7 +14,7 @@ import numpy as np
 Fs = 8000  # sample rate
 upper_frequency_limit = Fs / 7  # Hz
 c = 342  # m/s
-duration = 0.3 #  seconds
+duration = 0.2 #  seconds
 spatial_samples_per_wave_length = 4
 
 # Procedure parameters
@@ -39,6 +39,7 @@ sim_params = SIMP(
 impulse_location = np.array([[0.5], [1]])
 impulse = Unit(sim_params, impulse_location, 1, upper_frequency_limit)
 #impulse = WaveFile(sim_params, impulse_location, 'clap_8000.wav', 100)
+#impulse = Gaussian(sim_params, impulse_location, 10000)
 
 # Paritions of long room
 control_room = PARTD(np.array([2, 2]), sim_params, impulse)
@@ -131,7 +132,7 @@ best_peak = np.max(both_mic_peaks)
 
 def write_mic_files(mics, peak):
     for i in range(len(mics)):
-        mics[i].write_to_file(Fs, peak)
+        mics[i].write_to_file(peak, upper_frequency_limit)
 
 write_mic_files(control_mics, best_peak)
 write_mic_files(test_mics, best_peak)
@@ -139,8 +140,7 @@ write_mic_files(test_mics, best_peak)
 # Call to plot concatenated room
 # write_and_plot(test_room)
 
-def do_the_differino(filename1, filename2, output_file_name):
-    # Calculate the heckin' differinos between frickin' wave files
+def diff(filename1, filename2, output_file_name):
     from scipy.io.wavfile import read, write
     fsl, left = read(filename1)
     fsr, right = read(filename2)
@@ -157,5 +157,51 @@ def do_the_differino(filename1, filename2, output_file_name):
 
     write(output_file_name, fsl, diff.astype(np.float))
 
-do_the_differino("after_control.wav", "after_test.wav", "after_diff.wav")
-do_the_differino("before_control.wav", "before_test.wav", "before_diff.wav")
+diff("after_control.wav", "after_test.wav", "after_diff.wav")
+diff("before_control.wav", "before_test.wav", "before_diff.wav")
+ 
+# shows the sound waves
+def visualize(paths, dB=False):
+    from scipy.io.wavfile import read, write
+    import matplotlib.pyplot as plt
+
+    signals = []
+    times = []
+
+    for path in paths:
+    # reading the audio file
+        f_rate, x = read(path)
+        
+        # reads all the frames
+        # -1 indicates all or max frames
+        signal = np.array(x, dtype=np.float)
+        signals.append(signal)
+
+        time = np.linspace(
+            0, # start
+            len(signal) / f_rate,
+            num = len(signal)
+        )
+
+        times.append(time)
+
+    # using matplotlib to plot
+    # creates a new figure
+    fig = plt.figure()
+    gs = fig.add_gridspec(len(paths), hspace=0)
+    axs = gs.subplots(sharex=True, sharey=True)
+
+    for i in range(len(paths)):
+        if dB:
+            signal_to_plot = 20 * np.log10(np.abs(signals[i]))
+        else:
+            signal_to_plot = signals[i]
+        axs[i].plot(times[i], signal_to_plot)
+        axs[i].set_ylabel(paths[i] + "          ", rotation=0, labelpad=20)
+        axs[i].grid()
+
+    plt.xlabel("Time")
+    plt.plot(time, signal)
+    plt.show()
+
+visualize(["after_control.wav", "after_test.wav", "after_diff.wav","before_control.wav", "before_test.wav", "before_diff.wav"], dB=False)

@@ -59,7 +59,7 @@ class ARDSimulator:
             for i in range(len(self.part_data)):
                 #print(f"nu forces: {self.part_data[i].new_forces}")
                 # Execute DCT for next sample
-                self.part_data[i].forces = dctn(self.part_data[i].new_forces, type=1, s=[self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x])
+                self.part_data[i].forces = dctn(self.part_data[i].new_forces, type=2, s=[self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x])
 
                 # Updating mode for spectral coefficients p.
                 # Relates to (2 * F^n) / (ω_i ^ 2) * (1 - cos(ω_i * Δ_t)) in equation 8.
@@ -74,7 +74,7 @@ class ARDSimulator:
                 
                 # Convert modes to pressure values using inverse DCT.
                 self.part_data[i].pressure_field = idctn(self.part_data[i].M_next.reshape(
-                    self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x), type=1, s=[self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x]) 
+                    self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x), type=2, s=[self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x]) 
 
                 # Normalize pressure p by using normalization constant.
                 self.part_data[i].pressure_field *= self.sim_param.normalization_constant
