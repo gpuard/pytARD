@@ -1,6 +1,7 @@
 from pytARD_2D.ard import ARDSimulator as ARDS
 from pytARD_2D.partition_data import PartitionData as PARTD
-from pytARD_2D.interface import InterfaceData2D, Direction
+from pytARD_2D.pml_partition import PMLPartition as PPML
+from pytARD_2D.interface2 import Interface2D, inf_type
 
 from common.parameters import SimulationParameters as SIMP
 from common.impulse import Gaussian, Unit, WaveFile
@@ -15,7 +16,8 @@ spatial_samples_per_wave_length = 5
 
 # Procedure parameters
 verbose = True
-visualize = True
+visualize = False
+animation = True
 write_to_file = True
 video_output = False
 
@@ -43,9 +45,14 @@ source = Gaussian(sim_params, impulse_location, 10000)
 air_partition_1 = PARTD(np.array([[room_y], [room_x]]), sim_params, source)
 air_partitions = [air_partition_1]
 
+# PML-Paritions
+pml_paritition1 = PPML((room_y,4),sim_params,case = 'LEFT')
+pml_paritions = [pml_paritition1]
+
 # # INTERFACES
 # interface1 = InterfaceData2D(0, 1, Direction.Horizontal)
-# interfaces = [interface1]
+interface1 = Interface2D(5,air_partition_1, pml_paritition1, inf_type.VERTICAL, sim_params)
+interfaces = [interface1]
 
 # # Microphones (are optional)
 # mic1 = Mic(
@@ -67,12 +74,12 @@ air_partitions = [air_partition_1]
 # SIMULATION
 # sim = ARDS(sim_params, part_data, interfaces, mics)
 # sim = ARDS(sim_params, part_data, interfaces)
-sim = ARDS(sim_params, air_partitions,[])
+sim = ARDS(sim_params, air_partitions,interfaces)
 sim.preprocessing()
 sim.simulation()
 
 
-if visualize:
+if animation:
     
     import matplotlib.pyplot as plt
     from matplotlib.animation import FuncAnimation
@@ -116,7 +123,7 @@ if visualize:
                             update_plot,
                             frames=range(sim_params.number_of_time_samples),
                             init_func=init_func,
-                            interval=100,
+                            interval=1,
                             blit=False)       
     if video_output:
         

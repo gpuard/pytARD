@@ -2,7 +2,6 @@ import numpy as np
 from scipy.io.wavfile import read
 from scipy.fftpack import idct, dct
 
-
 class PartitionData:
     def __init__(
         self,
