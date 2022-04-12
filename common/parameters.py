@@ -1,5 +1,4 @@
-
-
+import numpy as np
 
 class SimulationParameters:
     def __init__(
@@ -57,14 +56,33 @@ class SimulationParameters:
 
         # Calculating the number of samples the simulation takes.
         self.number_of_samples = int(T * Fs)
+        self.number_of_time_samples = int(T * Fs)
 
-        # Calculate time stepping (Δ_t)
-        self.delta_t = T / self.number_of_samples
-
+        
         self.auralize = auralize
         self.verbose = verbose
         self.visualize = visualize
+        
+        self.min_wave_length = c / max_simulation_frequency
+        self.samples_per_wave_length = spatial_samples_per_wave_length
+        # checking if spacial steping good enough
+        if self.min_wave_length / self.samples_per_wave_length > c / (2 * max_simulation_frequency):
+            self.samples_per_wave_length = 2
+            print("FORCED (Nyquist): samples_per_wave_length = ",self.samples_per_wave_length )
+                                                                                                                                    
+        self.dx = self.min_wave_length / self.samples_per_wave_length
+        self.dy = self.dx
+        
+        # checking if time steping good enough(depends on dx)
+        if T / self.number_of_samples >= self.dx / (self.c * np.sqrt(3)):
+            self.Fs = np.ceil(self.c * np.sqrt(3) / self.dx)
+            print("FORCED (CFL): Fs = ", self.Fs)
+            self.number_of_time_samples = int(T * self.Fs)
+            self.number_of_samples = self.number_of_time_samples
 
+        
+        self.delta_t = 1 / self.Fs
+        
         if verbose:
             print(f"Insantiated simulation.\nNumber of samples: {self.number_of_samples} | Δ_t: {self.delta_t}")
 

@@ -49,7 +49,7 @@ class ARDSimulator:
         Simulation stage. Refers to Step 2 in the paper.
         '''
 
-        for t_s in range(2, self.sim_param.number_of_samples):
+        for t_s in range(1, self.sim_param.number_of_samples):
             for i in range(len(self.part_data)):
                 #print(f"nu forces: {self.part_data[i].new_forces}")
                 # Execute DCT for next sample

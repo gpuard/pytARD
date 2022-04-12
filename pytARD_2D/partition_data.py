@@ -33,9 +33,9 @@ class PartitionData:
             (dimensions[0]) * self.sim_param.spatial_samples_per_wave_length)
 
         # Voxel grid spacing. Changes automatically according to frequency
-        self.h_y = dimensions[1] / self.space_divisions_y
-        self.h_x = dimensions[0] / self.space_divisions_y
-
+        self.h_y = dimensions[0] / self.space_divisions_y
+        self.h_x = dimensions[1] / self.space_divisions_x
+        self.grid_shape = (self.space_divisions_y,self.space_divisions_x)
         print(f"h_x = {self.h_x}")
         print(f"h_y = {self.h_y}")
 
@@ -54,7 +54,7 @@ class PartitionData:
         self.pressure_field = None
 
         # Array for pressure field results (auralisation and visualisation)
-        self.pressure_field_results = []
+        self.pressure_field_results = [np.zeros(self.grid_shape)]
 
         # Fill impulse array with impulses.
         if impulse:
@@ -108,4 +108,3 @@ class PartitionData:
             print(f"Shape of omega_i: {self.omega_i.shape}")
             print(f"Shape of pressure field: {self.pressure_field.shape}")
 
-    
