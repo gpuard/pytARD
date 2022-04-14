@@ -71,7 +71,7 @@ class Interface2D():
             for x in range(self.part_data[interface_data.part1_index].space_divisions_x):
                 pressure_field_around_interface_x = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE, 1])
 
-                # Right top room
+                # Right top room
                 pressure_field_around_interface_x[0 : self.FDTD_KERNEL_SIZE] = self.part_data[interface_data.part1_index].pressure_field[-self.FDTD_KERNEL_SIZE : , x].copy().reshape([self.FDTD_KERNEL_SIZE, 1])
 
                 # Right bottom room

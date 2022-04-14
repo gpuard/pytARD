@@ -11,13 +11,13 @@ from common.microphone import Microphone as Mic
 import numpy as np
 
 # Room parameters
-duration = 1  #  seconds
+duration = 1  #  seconds
 Fs = 8000  # sample rate
 upper_frequency_limit = Fs  # Hz
 c = 342  # m/s
 spatial_samples_per_wave_length = 6
 
-# Procedure parameters
+# Procedure parameters
 verbose = True
 visualize = False
 write_to_file = True
@@ -81,7 +81,7 @@ mic3 = Mic(
 # Compilation of all microphones into one mics object. Add or remove mics here. TODO change to obj.append()
 mics = [mic1, mic2, mic3]
 
-# Instantiation serializer for reading and writing simulation state data
+# Instantiation serializer for reading and writing simulation state data
 serializer = Serializer(compressed=True)
 
 # Instantiating and executing simulation

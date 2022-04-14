@@ -74,7 +74,7 @@ class SimulationParameters:
         self.dy = self.dx
         
         # checking if time steping good enough(depends on dx)
-        if T / self.number_of_samples >= self.dx / (self.c * np.sqrt(3)):
+        if 1 / self.Fs >= self.dx / (self.c * np.sqrt(3)):
             self.Fs = np.ceil(self.c * np.sqrt(3) / self.dx)
             print("FORCED (CFL): Fs = ", self.Fs)
             self.number_of_time_samples = int(T * self.Fs)
@@ -82,9 +82,9 @@ class SimulationParameters:
 
         
         self.delta_t = 1 / self.Fs
-        
+        self.dt = self.delta_t
         if verbose:
-            print(f"Insantiated simulation.\nNumber of samples: {self.number_of_samples} | Δ_t: {self.delta_t}")
+            print(f"Insantiated simulation.\nNumber of samples: {self.number_of_samples} | Δ_t: {self.dt}")
 
     @staticmethod
     def calculate_voxelization_step(c, spatial_samples_per_wave_length, max_simulation_frequency):

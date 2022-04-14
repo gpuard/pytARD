@@ -2,17 +2,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fft import idctn, dctn
 
-from pytARD_2D.interface2 import Interface2D
+from pytARD_2D.interface import Interface2D
 
 class ARDSimulator:
     '''
     ARD Simulation class. Creates and runs ARD simulator instance.
     '''
 
-    def __init__(self, sim_param, part_data, interfaces, mics=[]):
+    def __init__(self, sim_param, part_data, interface_data, mics=[]):
         '''
         Create and run ARD simulator instance.
-
         Parameters
         ----------
         sim_parameters : SimulationParameters
@@ -28,9 +27,8 @@ class ARDSimulator:
         self.part_data = part_data
 
         # List of interfaces (InterfaceData objects)
-        # self.interface_data = interface_data
-        # self.interfaces = Interface2D(sim_param, part_data)
-        self.interfaces = interfaces
+        self.interface_data = interface_data
+        self.interfaces = Interface2D(sim_param, part_data)
 
         # Initialize & position mics. 
         self.mics = mics
@@ -71,7 +69,7 @@ class ARDSimulator:
                 
                 self.part_data[i].pressure_field_results.append(self.part_data[i].pressure_field.copy())
                 
-                # Loop through microphones and record pressure field at given position
+                # Loop through microphones and record pressure field at given position
                 for m_i in range(len(self.mics)):
                     p_num = self.mics[m_i].partition_number
                     pressure_field_y = int(self.part_data[p_num].space_divisions_y * (self.mics[m_i].location[1] / self.part_data[p_num].dimensions[1]))
@@ -88,8 +86,8 @@ class ARDSimulator:
                 self.part_data[i].new_forces = self.part_data[i].impulses[t_s].copy()
 
             # Interface monke go here
-            for infs in self.interfaces:
-                infs.handle_interface()
+            for interface in self.interface_data:
+                self.interfaces.handle_interface(interface)
 
         # Microphones. TODO: Make mics dynamic
         for i in range(len(self.mics)):
@@ -141,6 +139,4 @@ class ARDSimulator:
 0NNXo.........'.............'c:...............'............''''''....'......... .xNNNXx,....;oxkkOO000KKK0KKK00KKKKK0000
 0NNXo........,;'............;l,...........''..............':ccc::::::;;,,,'..   .dXNNNXx;.'lk0OkkO000KKK00000KKKKKKKKKK0
 0NNXx'.....'',::;;,'........cc'...........................;oddolllcccccclll:,.  .oXNNNNXx:lk00OxkO00000000000KKKKKKKKKKK
-
-
 '''

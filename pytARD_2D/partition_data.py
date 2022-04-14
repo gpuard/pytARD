@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 from scipy.io.wavfile import read
 from scipy.fftpack import idct, dct
+
 
 class PartitionData:
     def __init__(
@@ -12,7 +14,6 @@ class PartitionData:
         '''
         Parameter container class for ARD simulator. Contains all relevant data to instantiate
         and run ARD simulator.
-
         Parameters
         ----------
         dimensions : ndarray
@@ -52,12 +53,12 @@ class PartitionData:
         # Array, which stores air pressure at each given point in time in the voxelized grid
         self.pressure_field = None
 
-        # Array for pressure field results (auralisation and visualisation)
+        # Array for pressure field results (auralisation and visualisation)
         self.pressure_field_results = [np.zeros(self.grid_shape)]
 
         # Fill impulse array with impulses.
         if impulse:
-            # Emit impulse into room
+            # Emit impulse into room
             self.impulses[:, int(self.space_divisions_y * (impulse.location[1] / dimensions[1])), int(
                 self.space_divisions_x * (impulse.location[0] / dimensions[0]))] = impulse.get()
 
@@ -97,7 +98,7 @@ class PartitionData:
         # TODO Semi disgusting hack. Without it, the calculation of update rule (equation 9) would crash due to division by zero
         self.omega_i[0, 0] = 0.1
 
-        # Update time stepping. Relates to M^(n+1) and M^n in equation 8.
+        # Update time stepping. Relates to M^(n+1) and M^n in equation 8.
         self.M_previous = np.zeros(
             shape=[self.space_divisions_y, self.space_divisions_x, 1])
         self.M_current = np.zeros(shape=self.M_previous.shape)
@@ -106,4 +107,4 @@ class PartitionData:
         if self.sim_param.verbose:
             print(f"Shape of omega_i: {self.omega_i.shape}")
             print(f"Shape of pressure field: {self.pressure_field.shape}")
-
+ 
