@@ -3,51 +3,36 @@ import matplotlib.pyplot as plt
 from scipy.fftpack import idct, dct
 from common.microphone import Microphone as Mic
 
+from pytARD_1D.interface import Interface1D
+
 
 class ARDSimulator:
     '''
     ARD Simulation class. Creates and runs ARD simulator instance.
     '''
 
-    def __init__(self, sim_parameters, part_data):
+    def __init__(self, sim_param, part_data, interface_data=[], mics=[]):
         '''
         Create and run ARD simulator instance.
 
         Parameters
         ----------
-        sim_parameters : SimulationParameters
+        sim_param : SimulationParameters
             Instance of simulation parameter class.
         part_data : list
             List of PartitionData objects.
         '''
 
         # Parameter class instance (SimulationParameters)
-        self.sim_param = sim_parameters
+        self.sim_param = sim_param
 
         # List of partition data (PartitionData objects)
         self.part_data = part_data
 
-        # 1D FDTD coefficents array. Normalize FDTD coefficents with space divisions and speed of sound. 
-        fdtd_coeffs_not_normalized = np.array(
-            [
-                [-0.,         -0.,         -0.01111111,  0.01111111,  0.,          0.        ],
-                [-0.,         -0.01111111,  0.15,       -0.15,        0.01111111,  0.        ],
-                [-0.01111111,  0.15,       -1.5,         1.5,        -0.15,        0.01111111],
-                [ 0.01111111, -0.15,        1.5,        -1.5,         0.15,       -0.01111111],
-                [ 0.,          0.01111111, -0.15,        0.15,       -0.01111111, -0.        ],
-                [ 0.,          0.,          0.01111111, -0.01111111, -0.,         -0.        ]
-            ]
-        )
+        self.interface_data = interface_data
+        self.interfaces = Interface1D(sim_param, part_data)
 
-        # TODO: Unify h of partition data, atm it's hard coded to first partition
-        self.FDTD_COEFFS = fdtd_coeffs_not_normalized * (sim_parameters.c / part_data[0].h) 
-
-        # FDTD kernel size.
-        self.FDTD_KERNEL_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
-
-        # Initialize & position mics. 
-        self.mic1 = Mic(int(part_data[0].dimensions / 2), sim_parameters, "left")
-        self.mic2 = Mic(int(part_data[1].dimensions / 4), sim_parameters, "right")
+        self.mics = mics
 
 
     def preprocessing(self):
@@ -63,8 +48,10 @@ class ARDSimulator:
         '''
         Simulation stage. Refers to Step 2 in the paper.
         '''
-
         for t_s in range(2, self.sim_param.number_of_samples):
+            for interface in self.interface_data:
+                self.interfaces.handle_interface(interface)
+
             for i in range(len(self.part_data)):
                 #print(f"nu forces: {self.part_data[i].new_forces}")
                 # Execute DCT for next sample
@@ -83,11 +70,10 @@ class ARDSimulator:
                 self.part_data[i].pressure_field = idct(self.part_data[i].M_next.reshape(
                     self.part_data[i].space_divisions), n=self.part_data[i].space_divisions, type=1)
                 
-                self.part_data[i].pressure_field_results.append(self.part_data[i].pressure_field.copy())
-                if i == 0:
-                    self.mic1.record(self.part_data[0].pressure_field[int(self.part_data[0].space_divisions * (self.mic1.location / self.part_data[0].dimensions))], t_s)
-                if i == 1:
-                    self.mic2.record(self.part_data[1].pressure_field[int(self.part_data[1].space_divisions * (self.mic2.location / self.part_data[1].dimensions))], t_s)
+                # Record signal with mics
+                for m_i in range(len(self.mics)):
+                    p_num = self.mics[m_i].partition_number                    
+                    self.mics[m_i].record(self.part_data[p_num].pressure_field[int(self.part_data[p_num].space_divisions * (self.mics[m_i].location / self.part_data[p_num].dimensions))], t_s)
                 
                 # Update time stepping to prepare for next time step / loop iteration.
                 self.part_data[i].M_previous = self.part_data[i].M_current.copy()
@@ -95,27 +81,6 @@ class ARDSimulator:
 
                 # Update impulses
                 self.part_data[i].new_forces = self.part_data[i].impulses[t_s].copy()
-
-            pressure_field_around_interface = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE, 1])
-
-            # Left rod
-            pressure_field_around_interface[0 : self.FDTD_KERNEL_SIZE] = self.part_data[0].pressure_field[-self.FDTD_KERNEL_SIZE : ].copy().reshape([self.FDTD_KERNEL_SIZE, 1])
-
-            # Right rod
-            pressure_field_around_interface[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[1].pressure_field[0 : self.FDTD_KERNEL_SIZE].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
-
-            new_forces_from_interface = self.FDTD_COEFFS.dot(pressure_field_around_interface)
-
-            self.part_data[0].new_forces[-3] += new_forces_from_interface[0]
-            self.part_data[0].new_forces[-2] += new_forces_from_interface[1]
-            self.part_data[0].new_forces[-1] += new_forces_from_interface[2]
-            self.part_data[1].new_forces[0] += new_forces_from_interface[3]
-            self.part_data[1].new_forces[1] += new_forces_from_interface[4]
-            self.part_data[1].new_forces[2] += new_forces_from_interface[5]
-        
-        # Microphones. TODO: Make mics dynamic
-        self.mic1.write_to_file(self.sim_param.Fs)
-        self.mic2.write_to_file(self.sim_param.Fs)
 
 
 
