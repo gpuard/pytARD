@@ -8,10 +8,14 @@ class InfType(enum.Enum):
     
 class Interface():
       
-    def __init__(self, width, partL, partR, inf_type, sim_params):
+    def __init__(self, partL, partR, inf_type, simulation_parameters, width):
+        self.wave_speed = simulation_parameters.wave_speed
         self.partL = partL
         self.partR = partR
         self.inf_type = inf_type
+        self.width = width # number of points
+        self.p = None
+
         # todo extend
         if self.inf_type == InfType.HORIZONTAL:
             self.dy = width # number points
@@ -78,3 +82,31 @@ class Interface():
                 self.partR.f[0, x] +=.f_from_interface_x[3]
                 self.partR.f[1, x] +=.f_from_interface_x[4]
                 self.partR.f[2, x] +=.f_from_interface_x[5]
+
+class XInterface(Interface):
+    # along x axis
+    def __init__(self, partL, partR, inf_type, simulation_parameters, width):
+        self.grid_shape  = None
+        self.p = np.concatenate((partL.p,partL.p))
+        self.f = np.zeros()
+    def simulate(self):
+            for y in range(self.partL.space_divisions_y):
+                self.p = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE, 1])
+
+                # Left room
+                pressure_field_around_interface_y[0 : self.FDTD_KERNEL_SIZE] = self.partL.pressure_field[y, -self.FDTD_KERNEL_SIZE : ].copy().reshape([self.FDTD_KERNEL_SIZE, 1])
+
+                # Right room
+                pressure_field_around_interface_y[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.partR.pressure_field[y, 0 : self.FDTD_KERNEL_SIZE].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
+
+                # Calculate new forces transmitted into room
+               .f_from_interface_y = self.FDTD_COEFFS_Y.dot(pressure_field_around_interface_y)
+
+                # Add everything together
+                self.partL.f[y, -3] +=.f_from_interface_y[0]
+                self.partL.f[y, -2] +=.f_from_interface_y[1]
+                self.partL.f[y, -1] +=.f_from_interface_y[2]
+                self.partR.f[y, 0] +=.f_from_interface_y[3]
+                self.partR.f[y, 1] +=.f_from_interface_y[4]
+                self.partR.f[y, 2] +=.f_from_interface_y[5]
+    

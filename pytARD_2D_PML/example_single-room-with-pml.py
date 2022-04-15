@@ -16,8 +16,8 @@ video_output = False
 
 sim_params = SimulationParameters(  wave_speed = 20, # in meter per second
                                     max_simulation_frequency = 30, # in herz
-                                    samples_per_wave_length = 7, # samples per meter
-                                    simulation_time = 3, # in seconds
+                                    samples_per_wave_length = 10, # samples per meter
+                                    simulation_time = 2, # in seconds
                                     time_sampling_rate = 200, # in samples per second
                                     verbose = True, 
                                     visualize = True)
@@ -31,7 +31,7 @@ source_loc = (room_y/2, room_x/2)
 signal = GaussianFirstDerivative(   sim_params, 
                                     signal_location = (room_y/2,room_x/2), 
                                     dominant_frequency = 25,
-                                    time_offset = 1)
+                                    time_offset = 0.1)
 
 # AIR-Partitions
 air_partition_1 = AirPartition((room_y, room_x), sim_params, signal)
