@@ -10,7 +10,7 @@ class ARDSimulator:
     ARD Simulation class. Creates and runs ARD simulator instance.
     '''
 
-    def __init__(self, sim_param, part_data, normalization_factor, interface_data=[], mics=[]):
+    def __init__(self, sim_param, air_partitions, pml_partitons=[], normalization_factor=1, interface_data=[], mics=[]):
         '''
         Create and run ARD simulator instance.
 
@@ -26,11 +26,13 @@ class ARDSimulator:
         self.sim_param = sim_param
 
         # List of partition data (PartitionData objects)
-        self.part_data = part_data
+        self.part_data = air_partitions
+
+        self.pml_partitions = pml_partitons
 
         # List of interfaces (InterfaceData objects)
         self.interface_data = interface_data
-        self.interfaces = Interface2D(sim_param, part_data)
+        self.interfaces = Interface2D(sim_param, air_partitions)
 
         # Initialize & position mics.
         self.mics = mics
@@ -81,8 +83,6 @@ class ARDSimulator:
                 self.part_data[i].M_next = (2 * self.part_data[i].M_current * np.cos(
                     self.part_data[i].omega_i * self.sim_param.delta_t) - self.part_data[i].M_previous + self.part_data[i].force_field)
 
-                
-
                 # Convert modes to pressure values using inverse DCT.
                 self.part_data[i].pressure_field = idctn(self.part_data[i].M_next.reshape(
                     self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x), type=2, s=[self.part_data[i].space_divisions_y, self.part_data[i].space_divisions_x])
@@ -111,6 +111,34 @@ class ARDSimulator:
 
                 # Update impulses
                 self.part_data[i].new_forces = self.part_data[i].impulses[t_s].copy()
+
+            # Handle PML partitions
+            for i in range(len(self.pml_partitions)):
+                for y in range(self.part_data[0].space_divisions_y):
+                    pressure_field_around_interface_y = np.zeros(shape=[2 * self.interfaces.FDTD_KERNEL_SIZE])
+
+                    # Left room
+                    pressure_field_around_interface_y[0 : self.interfaces.FDTD_KERNEL_SIZE] = self.part_data[0].pressure_field[y, -self.interfaces.FDTD_KERNEL_SIZE : ].copy()#.reshape([self.FDTD_KERNEL_SIZE, 1])
+
+                    # Right top room
+                    pressure_field_around_interface_y[self.interfaces.FDTD_KERNEL_SIZE : 2 * self.interfaces.FDTD_KERNEL_SIZE] = self.pml_partitions[0].p[0 : self.interfaces.FDTD_KERNEL_SIZE, y].copy()#.reshape(self.FDTD_KERNEL_SIZE, 1)
+
+                    # Calculate new forces transmitted into room
+                    new_forces_from_interface_y = self.interfaces.FDTD_COEFFS_Y.dot(pressure_field_around_interface_y)
+
+                    # Add everything together
+                    # Left air side
+                    self.part_data[0].new_forces[y, -3] += new_forces_from_interface_y[0]
+                    self.part_data[0].new_forces[y, -2] += new_forces_from_interface_y[1]
+                    self.part_data[0].new_forces[y, -1] += new_forces_from_interface_y[2]
+                    
+                    # Right PML side
+                    self.pml_partitions[0].f[0, y] += self.sim_param.c ** 2 * new_forces_from_interface_y[3]
+                    self.pml_partitions[0].f[1, y] += self.sim_param.c ** 2 * new_forces_from_interface_y[4]
+                    self.pml_partitions[0].f[2, y] += self.sim_param.c ** 2 * new_forces_from_interface_y[5]
+                    
+                self.pml_partitions[i].simulate()
+                
 
         if self.sim_param.verbose:
             print(f"Simulation completed successfully.\n")
