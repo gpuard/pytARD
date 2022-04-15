@@ -56,11 +56,11 @@ test_mic_after = Mic(1, int(c / 2), sim_param, "after_test")
 test_mics = [test_mic_before, test_mic_after]
 
 # Instantiating and executing simulation
-control_sim = ARDS(sim_param, control_room, mics=control_mics)
+control_sim = ARDS(sim_param, control_room, .5, mics=control_mics)
 control_sim.preprocessing()
 control_sim.simulation()
 
-test_sim = ARDS(sim_param, test_room, interface_data=interfaces, mics=test_mics)
+test_sim = ARDS(sim_param, test_room, 1, interface_data=interfaces, mics=test_mics)
 test_sim.preprocessing()
 test_sim.simulation()
 

@@ -1,8 +1,9 @@
+from common.parameters import SimulationParameters
+
 import numpy as np
 from scipy.io.wavfile import read
 from scipy.fftpack import idct, dct
 
-from common.parameters import SimulationParameters
 
 class PartitionData:
     def __init__(
@@ -87,14 +88,25 @@ class PartitionData:
         # Relates to equation 5 and 8 of "An efficient GPU-based time domain solver for the
         # acoustic wave equation" paper.
         # For reference, see https://www.microsoft.com/en-us/research/wp-content/uploads/2016/10/4.pdf.
-        
         self.omega_i = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
-        
+
+        # Initialize omega_i
         for y in range(self.space_divisions_y):
             for x in range(self.space_divisions_x):
-                self.omega_i[y, x] = self.sim_param.c * ((np.pi ** 2) * ((((x + 1) ** 2) / (
-                    self.dimensions[0] ** 2)) + (((y + 1) ** 2) / (self.dimensions[1] ** 2)))) ** 0.5
-        
+                self.omega_i[y, x] = self.sim_param.c * ((np.pi ** 2) * (((x ** 2) / (
+                    self.dimensions[0] ** 2)) + ((y ** 2) / (self.dimensions[1] ** 2)))) ** 0.5
+
+        # Hack
+        self.omega_i[0, 0] = 1e-8
+        '''
+        print(self.omega_i[0])
+        print("\n")
+        print(self.omega_i[1])
+        print("\n")
+
+        for o in range(len(self.omega_i)):
+            print(np.where(self.omega_i[o] == 0))
+        '''    
         '''
         ly = self.space_divisions_y ** 2
         lx = self.space_divisions_x ** 2
@@ -111,12 +123,8 @@ class PartitionData:
                 self.omega_i[i - 1, j - 1] = self.sim_param.c * np.pi * np.sqrt(i * i / y2 + j * j / x2)
         '''        
 
-        # TODO Semi disgusting hack - Without it, the calculation of update rule (equation 9) would crash due to division by zero TODO: clean up.
-        #self.omega_i[0, 0] = 1e-16
-
         # Update time stepping. Relates to M^(n+1) and M^n in equation 8.
-        self.M_previous = np.zeros(
-            shape=[self.space_divisions_y, self.space_divisions_x])
+        self.M_previous = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
         self.M_current = np.zeros(shape=self.M_previous.shape)
         self.M_next = None
 

@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fftpack import idct, dct
 from common.microphone import Microphone as Mic
+from tqdm import tqdm
 
 from pytARD_1D.interface import Interface1D
 
@@ -11,7 +12,7 @@ class ARDSimulator:
     ARD Simulation class. Creates and runs ARD simulator instance.
     '''
 
-    def __init__(self, sim_param, part_data, interface_data=[], mics=[]):
+    def __init__(self, sim_param, part_data, normalization_factor, interface_data=[], mics=[]):
         '''
         Create and run ARD simulator instance.
 
@@ -32,6 +33,8 @@ class ARDSimulator:
         self.interface_data = interface_data
         self.interfaces = Interface1D(sim_param, part_data)
 
+        self.normalization_factor = normalization_factor
+
         self.mics = mics
 
 
@@ -48,14 +51,14 @@ class ARDSimulator:
         '''
         Simulation stage. Refers to Step 2 in the paper.
         '''
-        for t_s in range(2, self.sim_param.number_of_samples):
+        for t_s in tqdm(range(2, self.sim_param.number_of_samples)):
             for interface in self.interface_data:
                 self.interfaces.handle_interface(interface)
 
             for i in range(len(self.part_data)):
                 #print(f"nu forces: {self.part_data[i].new_forces}")
                 # Execute DCT for next sample
-                self.part_data[i].forces = dct(self.part_data[i].new_forces, n=self.part_data[i].space_divisions, type=1)
+                self.part_data[i].forces = dct(self.part_data[i].new_forces, n=self.part_data[i].space_divisions, type=2)
 
                 # Updating mode using the update rule in equation 8.
                 # Relates to (2 * F^n) / (ω_i ^ 2) * (1 - cos(ω_i * Δ_t)) in equation 8.
@@ -68,8 +71,11 @@ class ARDSimulator:
                 
                 # Convert modes to pressure values using inverse DCT.
                 self.part_data[i].pressure_field = idct(self.part_data[i].M_next.reshape(
-                    self.part_data[i].space_divisions), n=self.part_data[i].space_divisions, type=1)
+                    self.part_data[i].space_divisions), n=self.part_data[i].space_divisions, type=2)
                 
+                # Normalize pressure p by using normalization constant.
+                self.part_data[i].pressure_field *= self.normalization_factor
+
                 # Record signal with mics
                 for m_i in range(len(self.mics)):
                     p_num = self.mics[m_i].partition_number                    

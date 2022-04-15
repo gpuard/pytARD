@@ -36,17 +36,17 @@ sim_params = SIMP(
 )
 
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want
-impulse_location = np.array([[0.5], [1]])
+impulse_location = np.array([[0.5], [0.5]])
 impulse = Unit(sim_params, impulse_location, 1, upper_frequency_limit)
 #impulse = WaveFile(sim_params, impulse_location, 'clap_8000.wav', 100)
 #impulse = Gaussian(sim_params, impulse_location, 10000)
 
 # Paritions of long room
-control_room = PARTD(np.array([2, 2]), sim_params, impulse)
+control_room = PARTD(np.array([2, 1]), sim_params, impulse)
 
 # Paritions of two concatenated small rooms
-test_room_left = PARTD(np.array([1, 2]), sim_params, impulse)
-test_room_right = PARTD(np.array([1, 2]), sim_params)
+test_room_left = PARTD(np.array([1, 1]), sim_params, impulse)
+test_room_right = PARTD(np.array([1, 1]), sim_params)
 
 # Compilation of all partitions into one part_data object. Add or remove rooms here. TODO change to obj.append()
 control_room = [control_room]
@@ -60,27 +60,27 @@ interfaces.append(InterfaceData2D(0, 1, Direction.Horizontal))
 long_room_mic1 = Mic(
     0, # Parition number
     # Position
-    [0.5, 1], 
+    [0.5, 0.5], 
     sim_params, 
     "before_control" # Name of resulting wave file
 )
 long_room_mic2 = Mic(
     0, # Parition number
     # Position
-    [1.5, 1], 
+    [1.5, 0.5], 
     sim_params, 
     "after_control" # Name of resulting wave file
 )
 
 short_room_mic1 = Mic(
     0, 
-    [0.5, 1], 
+    [0.5, 0.5], 
     sim_params, 
     "before_test"
 )
 short_room_mic2 = Mic(
     1,
-    [0.5, 1], 
+    [0.5, 0.5], 
     sim_params, 
     "after_test"
 )
@@ -106,14 +106,14 @@ def write_and_plot(room):
     plotter.plot_2D()
 
 # Instantiating and executing control simulation
-control_sim = ARDS(sim_params, control_room, mics=control_mics)
+control_sim = ARDS(sim_params, control_room, 1, mics=control_mics)
 control_sim.preprocessing()
 control_sim.simulation()
 
 # write_and_plot(control_room)
 
 # Instantiating and executing test simulation
-test_sim = ARDS(sim_params, test_room, interfaces, mics=test_mics)
+test_sim = ARDS(sim_params, test_room, 1, interfaces, mics=test_mics)
 test_sim.preprocessing()
 test_sim.simulation()
 
