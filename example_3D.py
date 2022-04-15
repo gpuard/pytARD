@@ -44,7 +44,7 @@ impulse_location = np.array([
 
 # Define impulse location that gets emitted into the room
 # impulse = Gaussian(sim_params, impulse_location, 1)
-impulse = Unit(sim_params, impulse_location, 1)
+impulse = Unit(sim_params, impulse_location, 1, Fs / 2)
 # impulse = WaveFile(sim_params, impulse_location, 'clap.wav', 100) # Uncomment for wave file injection
 
 partition_1 = PARTD(np.array([

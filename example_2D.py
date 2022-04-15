@@ -13,7 +13,7 @@ import numpy as np
 # Room parameters
 duration = 1  #  seconds
 Fs = 8000  # sample rate
-upper_frequency_limit = Fs  # Hz
+upper_frequency_limit = Fs/6  # Hz
 c = 342  # m/s
 spatial_samples_per_wave_length = 6
 
@@ -21,6 +21,7 @@ spatial_samples_per_wave_length = 6
 verbose = True
 visualize = False
 write_to_file = True
+compress_file = True
 
 # Compilation of room parameters into parameter class
 sim_params = SIMP(
@@ -82,7 +83,7 @@ mic3 = Mic(
 mics = [mic1, mic2, mic3]
 
 # Instantiation serializer for reading and writing simulation state data
-serializer = Serializer(compressed=True)
+serializer = Serializer(compress=compress_file)
 
 # Instantiating and executing simulation
 sim = ARDS(sim_params, part_data, interfaces, mics)

@@ -7,7 +7,7 @@ class PartitionData:
     def __init__(
         self,
         dimensions,
-        sim_parameters,
+        sim_param,
         do_impulse=True
     ):
         '''
@@ -24,7 +24,7 @@ class PartitionData:
             Determines if the impulse is generated on this partition.
         '''
         self.dimensions = dimensions
-        self.sim_param = sim_parameters
+        self.sim_param = sim_param
 
         # Longest room dimension length dividied by H (voxel grid spacing).
         self.space_divisions = int(
@@ -59,7 +59,7 @@ class PartitionData:
 
             # Amplitude of gaussian impulse
             A = 100000
-            self.impulses[:, int(self.space_divisions/2)] = A * PartitionData.create_gaussian_impulse(
+            self.impulses[:, 5] = A * PartitionData.create_gaussian_impulse(
                 time_sample_indices, 80 * 4, 80) - A * PartitionData.create_gaussian_impulse(time_sample_indices, 80 * 4 * 2, 80)
 
         # Uncomment to inject wave file. TODO: Consolidize into source class
@@ -69,7 +69,7 @@ class PartitionData:
             self.impulses[:, int(self.space_divisions * 0.9)] = 100 * wav[0:self.sim_param.number_of_samples]
         '''
 
-        if sim_parameters.verbose:
+        if sim_param.verbose:
             print(f"Created partition with dimensions {self.dimensions} m\n ℎ: {self.h} | Space divisions: {self.space_divisions} ({self.dimensions/self.space_divisions} m each)")
 
 
@@ -79,7 +79,7 @@ class PartitionData:
         '''
         # Preparing pressure field. Equates to function p(x) on the paper.
         self.pressure_field = np.zeros(
-            shape=[len(self.dimensions), self.space_divisions])
+            shape=[self.space_divisions])
 
         # Precomputation for the DCTs to be performed. Transforming impulse to spatial forces. Skipped partitions as of now.
         self.new_forces = self.impulses[0].copy()

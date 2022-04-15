@@ -10,7 +10,7 @@ class Plotter():
         self.verbose=verbose
 
     def set_data_from_file(self, file_name):
-        serializer = Serializer(compressed=True)
+        serializer = Serializer(compress=True)
         (sim_params, partitions) = serializer.read(file_name)
         self.sim_params = sim_params
         self.partitions = partitions
@@ -26,10 +26,10 @@ class Plotter():
 
 
     def plot_2D(self):
-        
+        print(len(self.partitions))
         partition_1 = self.partitions[0]
         partition_2 = self.partitions[1]
-        partition_3 = self.partitions[2]
+        #partition_3 = self.partitions[2]
         
 
         room_dims = np.linspace(0., partition_1.dimensions[0], len(partition_1.pressure_field_results[0]))
@@ -39,7 +39,7 @@ class Plotter():
         fig = plt.figure(figsize=plt.figaspect(0.5))
         ax_1 = fig.add_subplot(2, 2, 1)
         ax_2 = fig.add_subplot(2, 2, 2)
-        ax_3 = fig.add_subplot(2, 2, 4)
+        #ax_3 = fig.add_subplot(2, 2, 4)
 
         # TODO Make plots dynamic (just if we can make time at some point)
 
@@ -51,9 +51,9 @@ class Plotter():
         temp_Y_2 = np.linspace(0, partition_2.space_divisions_y, partition_2.space_divisions_y)
         X_2, Y_2 = np.meshgrid(temp_X_2, temp_Y_2)
 
-        temp_X_3 = np.linspace(0, partition_3.space_divisions_x, partition_3.space_divisions_x)
-        temp_Y_3 = np.linspace(0, partition_3.space_divisions_y, partition_3.space_divisions_y)
-        X_3, Y_3 = np.meshgrid(temp_X_3, temp_Y_3)
+        # temp_X_3 = np.linspace(0, partition_3.space_divisions_x, partition_3.space_divisions_x)
+        #temp_Y_3 = np.linspace(0, partition_3.space_divisions_y, partition_3.space_divisions_y)
+        #X_3, Y_3 = np.meshgrid(temp_X_3, temp_Y_3)
 
         plot_limit_min = np.min(partition_2.pressure_field_results[:])
         plot_limit_max = np.max(partition_2.pressure_field_results[:])
@@ -61,29 +61,28 @@ class Plotter():
         for i in range(0, len(partition_1.pressure_field_results), 50):
             Z_1 = partition_1.pressure_field_results[i]
             Z_2 = partition_2.pressure_field_results[i]
-            Z_3 = partition_3.pressure_field_results[i]
+            #   Z_3 = partition_3.pressure_field_results[i]
 
             ax_1.cla()
             ax_2.cla()
-            ax_3.cla()
+            #  ax_3.cla()
 
             plt.title(f"t = {(self.sim_params.T * (i / self.sim_params.number_of_samples)):.4f}s")
 
             ax_1.imshow(Z_1)
             ax_2.imshow(Z_2)
-            ax_3.imshow(Z_3)
+            # ax_3.imshow(Z_3)
 
-            plt.pause(0.005)
+            plt.pause(0.1)
 
-        plot_step = 100
+        plot_step = 50
 
     def plot_3D(self):
         # TODO Implement
         pass
 
 
-    def plot(self, mic_posi):
-        # TODO Check which dimension it is and call corresponding plot function
+    def plot(self):
         dimension = len(self.partitions[0].dimensions)
         if self.verbose: 
             print(f"Data is {dimension}-D.")

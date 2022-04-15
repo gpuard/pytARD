@@ -3,8 +3,8 @@ import lzma
 from datetime import date, datetime
 
 class Serializer():
-    def __init__(self, compressed=False):
-        self.compressed = compressed
+    def __init__(self, compress=False):
+        self.compress = compress
 
     def create_filename(self):
         # TODO: put reference to rooms, sizes etc.
@@ -12,7 +12,7 @@ class Serializer():
 
     def dump(self, sim_params, partitions):
         file_path = self.create_filename() + ".xz"
-        if self.compressed: 
+        if self.compress: 
             with lzma.open(file_path, 'wb') as fh:
                 pickle.dump((sim_params, partitions), fh)
                 fh.close()
@@ -23,7 +23,7 @@ class Serializer():
 
     def read(self, file_path):
         # TODO: Idea -> See which suffix the file has. If xz, use lzma
-        if self.compressed:
+        if self.compress:
             raw_bytes = lzma.open(file_path, 'rb')
         else:
             raw_bytes = pickle.open(file_path, 'rb')
