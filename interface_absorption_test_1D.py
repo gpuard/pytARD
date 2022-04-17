@@ -5,6 +5,8 @@ from pytARD_1D.ard import ARDSimulator as ARDS
 from pytARD_1D.partition_data import PartitionData as PARTD
 from pytARD_1D.interface import InterfaceData1D
 
+from wavdiff import wav_diff, visualize_diff 
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -47,12 +49,12 @@ interfaces.append(InterfaceData1D(0, 1))
 # Define and position mics
 
 # Initialize & position mics. 
-control_mic_before = Mic(0, int(c / 2), sim_param, "before_control")
-control_mic_after = Mic(0, int(3 * (c / 2)), sim_param, "after_control")
+control_mic_before = Mic(0, int(c / 2), sim_param, "roomA_mic1")
+control_mic_after = Mic(0, int(3 * (c / 2)), sim_param, "roomA_mic2")
 control_mics = [control_mic_before, control_mic_after]
 
-test_mic_before = Mic(0, int(c / 2), sim_param, "before_test")
-test_mic_after = Mic(1, int(c / 2), sim_param, "after_test")
+test_mic_before = Mic(0, int(c / 2), sim_param, "roomB_mic1")
+test_mic_after = Mic(1, int(c / 2), sim_param, "roomB_mic2")
 test_mics = [test_mic_before, test_mic_after]
 
 # Instantiating and executing simulation
@@ -82,73 +84,9 @@ def write_mic_files(mics, peak=1):
 
 write_mic_files(control_mics, best_peak)
 write_mic_files(test_mics, best_peak)
-
-# Comparing waveforms
-def diff(filename1, filename2, output_file_name):
-    from scipy.io.wavfile import read, write
-    fsl, left = read(filename1)
-    _, right = read(filename2)
-
-    left = np.array(left, dtype=np.float)
-    right = np.array(right, dtype=np.float)
-
-    diff = []
-
-    for i in range(0, len(left)):
-        diff.append(left[i] - right[i])
-
-    diff = np.array(diff)
-
-    write(output_file_name, fsl, diff.astype(np.float))
-
-diff("after_control.wav", "after_test.wav", "after_diff.wav")
-diff("before_control.wav", "before_test.wav", "before_diff.wav")
-
-# shows the sound waves
-def visualize_diff(paths, dB=False):
-    from scipy.io.wavfile import read, write
-    import matplotlib.pyplot as plt
-
-    signals = []
-    times = []
-
-    for path in paths:
-    # reading the audio file
-        f_rate, x = read(path)
-        
-        # reads all the frames
-        # -1 indicates all or max frames
-        signal = np.array(x, dtype=np.float)
-        signals.append(signal)
-
-        time = np.linspace(
-            0, # start
-            len(signal) / f_rate,
-            num = len(signal)
-        )
-
-        times.append(time)
-
-    # using matplotlib to plot
-    # creates a new figure
-    fig = plt.figure()
-    gs = fig.add_gridspec(len(paths), hspace=0)
-    axs = gs.subplots(sharex=True, sharey=True)
-
-    for i in range(len(paths)):
-        if dB:
-            signal_to_plot = 20 * np.log10(np.abs(signals[i]))
-        else:
-            signal_to_plot = signals[i]
-        axs[i].plot(times[i], signal_to_plot)
-        axs[i].set_ylabel(paths[i] + "          ", rotation=0, labelpad=20)
-        axs[i].grid()
-
-    plt.xlabel("Time")
-    plt.plot(time, signal)
-    plt.show()
-
-visualize_diff(["after_control.wav", "after_test.wav", "after_diff.wav","before_control.wav", "before_test.wav", "before_diff.wav"], dB=False)
+wav_diff("roomA_mic1.wav", "roomB_mic1.wav", "mic1_diff.wav")
+wav_diff("roomA_mic2.wav", "roomB_mic2.wav", "mic2_diff.wav")
+visualize_diff(["roomA_mic1.wav", "roomB_mic1.wav", "mic1_diff.wav", "roomA_mic2.wav", "roomB_mic2.wav", "mic2_diff.wav"], dB=False)
 
 '''
 # Plotting waveform
