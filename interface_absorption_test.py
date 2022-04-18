@@ -1,6 +1,6 @@
 from pytARD_2D.ard import ARDSimulator as ARDS
 from pytARD_2D.partition_data import PartitionData as PARTD
-from pytARD_2D.interface import InterfaceData2D, Direction
+from pytARD_2D.interface import InterfaceData2D, Direction2D
 
 from common.parameters import SimulationParameters as SIMP
 from common.impulse import Gaussian, Unit, WaveFile
@@ -54,7 +54,7 @@ test_room = [test_room_left, test_room_right]
 
 # Interfaces of the concatenated room.
 interfaces = []
-interfaces.append(InterfaceData2D(0, 1, Direction.Horizontal))
+interfaces.append(InterfaceData2D(0, 1, Direction2D.Horizontal))
 
 # Microphones
 long_room_mic1 = Mic(

@@ -33,7 +33,7 @@ sim_params = SIMP(
     visualize=visualize
 )
 
-SCALE = 150 # Scale of room. Gets calculated by speed of sound divided by SCALE
+SCALE = 300 # Scale of room. Gets calculated by speed of sound divided by SCALE
 
 # Define impulse location
 impulse_location = np.array([
