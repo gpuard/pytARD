@@ -5,8 +5,8 @@ class Direction2D(enum.Enum):
     '''
     Direction in which sound waves traverse the interface.
     '''
-    Horizontal = 0
-    Vertical = 1
+    X = ''
+    Y = ''
     
 class InterfaceData2D():
     def __init__(self, part1_index, part2_index, direction):
@@ -46,7 +46,7 @@ class Interface2D():
         '''
         TODO: Doc
         '''
-        if interface_data.direction == Direction2D.Horizontal:
+        if interface_data.direction == Direction2D.X:
             for y in range(self.part_data[interface_data.part1_index].space_divisions_y):
                 pressure_field_around_interface_y = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE])
                 pressure_field_around_interface_y[0 : self.FDTD_KERNEL_SIZE] = self.part_data[interface_data.part1_index].pressure_field[y, -self.FDTD_KERNEL_SIZE : ].copy()
@@ -63,7 +63,7 @@ class Interface2D():
                 self.part_data[interface_data.part2_index].new_forces[y, 1] += new_forces_from_interface_y[4]
                 self.part_data[interface_data.part2_index].new_forces[y, 2] += new_forces_from_interface_y[5]
     
-        elif interface_data.direction == Direction2D.Vertical:
+        elif interface_data.direction == Direction2D.Y:
             for x in range(self.part_data[interface_data.part1_index].space_divisions_x):
                 pressure_field_around_interface_x = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE])
                 pressure_field_around_interface_x[0 : self.FDTD_KERNEL_SIZE] = self.part_data[interface_data.part1_index].pressure_field[-self.FDTD_KERNEL_SIZE : , x].copy()

@@ -108,7 +108,8 @@ class Unit(Impulse):
         
         number_of_1s = int((sim_param.number_of_samples / sim_param.T) / target_frequency)
         self.impulse[0 : number_of_1s] = 1
-        print(f"# of ones: {number_of_1s}")
+        if sim_param.verbose:
+            print(f"Unit impulse: # of ones for target frequency of {target_frequency}: {number_of_1s}")
 
     def get(self):
         '''
