@@ -12,16 +12,16 @@ import numpy as np
 
 # Room parameters
 duration = 1  #  seconds
-Fs = 8000  # sample rate
-upper_frequency_limit = Fs/6  # Hz
+Fs = 10000  # sample rate
+upper_frequency_limit = Fs/20  # Hz
 c = 342  # m/s
-spatial_samples_per_wave_length = 6
+spatial_samples_per_wave_length = 4
 
 # Procedure parameters
 verbose = True
 auralize = True
 visualize = True
-write_to_file = True
+write_to_file = False
 compress_file = True
 
 # Compilation of room parameters into parameter class
@@ -39,9 +39,9 @@ SCALE = 60  # Scale of room. Gets calculated by speed of sound divided by SCALE
 
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want
 impulse_location = np.array([[int((c / SCALE) / 2)], [int((c / SCALE) / 2)]])
-# impulse = Gaussian(sim_params, impulse_location, 10000)
-# impulse = Unit(sim_params, impulse_location, 1)
-impulse = WaveFile(sim_param, impulse_location, 'clap_8000.wav', 100)
+# impulse = Gaussian(sim_param, impulse_location, 10000)
+impulse = Unit(sim_param, impulse_location, 1, upper_frequency_limit-1)
+#impulse = WaveFile(sim_param, impulse_location, 'clap_8000.wav', 100)
 
 # Paritions of the room. Can be 1..n. Add or remove rooms here.
 partition_1 = PARTD(np.array([[int(c / SCALE)], [int(c / SCALE)]]), sim_param, impulse)
@@ -87,10 +87,10 @@ if auralize:
     # Instantiation serializer for reading and writing simulation state data
     serializer = Serializer(compress=compress_file)
 
-    # Instantiating and executing simulation
-    sim = ARDS(sim_param, part_data, 1, interfaces, mics)
-    sim.preprocessing()
-    sim.simulation()
+# Instantiating and executing simulation
+sim = ARDS(sim_param, part_data, 1, interfaces, mics)
+sim.preprocessing()
+sim.simulation()
 
 # Write partitions and state data to disk
 if write_to_file:

@@ -33,6 +33,11 @@ class PartitionData:
         # Voxel grid spacing. Changes automatically according to frequency
         self.h = np.max(dimensions) / self.space_divisions
 
+        CFL = (sim_param.c * sim_param.delta_t) / self.h
+        CFL_target = np.sqrt(1 / 3)
+        assert(CFL <= CFL_target), f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than {CFL_target}. Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length."
+
+
         # Instantiate forces array, which corresponds to F in update rule (results of DCT computation). TODO: Elaborate more
         self.forces = None
 

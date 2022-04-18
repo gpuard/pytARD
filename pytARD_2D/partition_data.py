@@ -30,11 +30,12 @@ class PartitionData:
 
         # Voxel grid spacing. Changes automatically according to frequency
         self.h_y = SimulationParameters.calculate_voxelization_step(sim_param) 
-        self.h_x = SimulationParameters.calculate_voxelization_step(sim_param) # TODO: Remove h(y)?
+        self.h_x = SimulationParameters.calculate_voxelization_step(sim_param)
 
         # Check stability of wave equation
-        CFL = (sim_param.c * sim_param.delta_t) / self.h_x
-        assert(CFL <= 1), f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than 1. Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length."
+        CFL = sim_param.c * sim_param.delta_t * ((1 / self.h_x) + (1 / self.h_y))
+        CFL_target = np.sqrt(1/3)
+        assert(CFL <= CFL_target), f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than {CFL_target}. Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length."
         
         # Longest room dimension length dividied by H (voxel grid spacing).
         self.space_divisions_y = int(dimensions[1] / self.h_y)

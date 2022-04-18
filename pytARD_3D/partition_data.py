@@ -31,8 +31,9 @@ class PartitionData:
         self.h_x = SimulationParameters.calculate_voxelization_step(sim_param)
 
         # Check stability of wave equation
-        CFL = (sim_param.c * sim_param.delta_t) / self.h_x
-        assert(CFL <= 1), f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than 1. Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length."
+        CFL = sim_param.c * sim_param.delta_t * ((1 / self.h_x) + (1 / self.h_y) + (1 / self.h_z))
+        CFL_target = np.sqrt(1/3)
+        assert(CFL <= CFL_target), f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than {CFL_target}. Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length."
 
         # Longest room dimension length dividied by H (voxel grid spacing).
         self.space_divisions_z = int(dimensions[2] / self.h_z)
@@ -66,7 +67,7 @@ class PartitionData:
 
         if sim_param.verbose:
             print(
-                f"Created partition with dimensions {self.dimensions[0]}x{self.dimensions[1]}x{self.dimensions[2]} m\nℎ (z): {self.h_z}, ℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions: {self.space_divisions_y}")
+                f"Created partition with dimensions {self.dimensions[0]}x{self.dimensions[1]}x{self.dimensions[2]} m\nℎ (z): {self.h_z}, ℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions: {self.space_divisions_y} | CFL = {CFL}")
 
     def preprocessing(self):
         '''

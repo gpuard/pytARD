@@ -13,10 +13,10 @@ import numpy as np
 
 # Room parameters
 duration = 1 # seconds
-Fs = 8000 # sample rate
-upper_frequency_limit = Fs / 10 # Hz
+Fs = 10000 # sample rate
+upper_frequency_limit = Fs / 22 # Hz
 c = 342 # m/s
-spatial_samples_per_wave_length = 6
+spatial_samples_per_wave_length = 4
 
 # Procedure parameters
 verbose = True
@@ -49,9 +49,9 @@ impulse_location = np.array([
 ])
 
 # Define impulse location that gets emitted into the room
-# impulse = Gaussian(sim_params, impulse_location, 1)
+# impulse = Gaussian(sim_param, impulse_location, 1)
 impulse = Unit(sim_param, impulse_location, 1, upper_frequency_limit - 1)
-# impulse = WaveFile(sim_params, impulse_location, 'clap.wav', 100) # Uncomment for wave file injection
+# impulse = WaveFile(sim_param, impulse_location, 'clap.wav', 100) # Uncomment for wave file injection
 
 partition_1 = PARTD(np.array([
     [int(c / SCALE)], # X, width
