@@ -27,3 +27,4 @@ class Microphone():
 
         # Write to file
         write(self.name, self.sim_param.Fs, normalized_signal.astype(np.float))
+        

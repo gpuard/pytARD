@@ -9,7 +9,7 @@ class PartitionData:
     def __init__(
         self,
         dimensions,
-        sim_parameters,
+        sim_param,
         impulse=None
     ):
         '''
@@ -20,21 +20,22 @@ class PartitionData:
         ----------
         dimensions : ndarray
             Size of the partition (room) in meters.
-        sim_parameters : SimulationParameters
+        sim_param : SimulationParameters
             Instance of simulation parameter class.
         impulse : Impulse
             Determines if the impulse is generated on this partition, and which kind of impulse. 
         '''
         self.dimensions = dimensions
-        self.sim_param = sim_parameters
+        self.sim_param = sim_param
 
         # Voxel grid spacing. Changes automatically according to frequency
-        self.h_y = SimulationParameters.calculate_voxelization_step(sim_parameters) #dimensions[1] / self.space_divisions_y
-        self.h_x = SimulationParameters.calculate_voxelization_step(sim_parameters)  #dimensions[0] / self.space_divisions_x TODO: Remove h(y)?
+        self.h_y = SimulationParameters.calculate_voxelization_step(sim_param) 
+        self.h_x = SimulationParameters.calculate_voxelization_step(sim_param)
 
         # Check stability of wave equation
-        CFL = (sim_parameters.c * sim_parameters.delta_t) / self.h_x
-        assert(CFL <= 1), f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than 1. Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length."
+        CFL = sim_param.c * sim_param.delta_t * ((1 / self.h_x) + (1 / self.h_y))
+        CFL_target = np.sqrt(1/3)
+        assert(CFL <= CFL_target), f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than {CFL_target}. Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length."
         
         # Longest room dimension length dividied by H (voxel grid spacing).
         self.space_divisions_y = int(dimensions[1] / self.h_y)
@@ -63,15 +64,9 @@ class PartitionData:
             self.impulses[:, int(self.space_divisions_y * (impulse.location[1] / dimensions[1])), int(
                 self.space_divisions_x * (impulse.location[0] / dimensions[0]))] = impulse.get()
 
-            if self.sim_param.visualize:
-                import matplotlib.pyplot as plt
-                plt.plot(self.impulses[:, int(self.space_divisions_y * (impulse.location[1] / dimensions[1])), int(
-                    self.space_divisions_x * (impulse.location[0] / dimensions[0]))])
-                plt.show()
-
-        if sim_parameters.verbose:
+        if sim_param.verbose:
             print(
-                f"Created partition with dimensions {self.dimensions} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions (y): {self.space_divisions_y} (x): {self.space_divisions_x} | CFL = {CFL}\n")
+                f"Created partition with dimensions {self.dimensions[0]}x{self.dimensions[1]} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions (y): {self.space_divisions_y} (x): {self.space_divisions_x} | CFL = {CFL}\n")
 
     def preprocessing(self):
         '''
@@ -80,7 +75,6 @@ class PartitionData:
         # Preparing pressure field. Equates to function p(x) on the paper.
         self.pressure_field = np.zeros(
             shape=[self.space_divisions_y, self.space_divisions_x])
-        #print(f"presh field = {self.pressure_field}")
 
         # Precomputation for the DCTs to be performed. Transforming impulse to spatial forces.
         self.new_forces = self.impulses[0].copy()
@@ -93,35 +87,16 @@ class PartitionData:
         # Initialize omega_i
         for y in range(self.space_divisions_y):
             for x in range(self.space_divisions_x):
-                self.omega_i[y, x] = self.sim_param.c * ((np.pi ** 2) * (((x ** 2) / (
-                    self.dimensions[0] ** 2)) + ((y ** 2) / (self.dimensions[1] ** 2)))) ** 0.5
+                self.omega_i[y, x] = \
+                    self.sim_param.c * (
+                        (np.pi ** 2) * (
+                            ((x ** 2) / (self.dimensions[0] ** 2)) + 
+                            ((y ** 2) / (self.dimensions[1] ** 2))
+                        )
+                    ) ** 0.5
 
-        # Hack
-        self.omega_i[0, 0] = 1e-8
-        '''
-        print(self.omega_i[0])
-        print("\n")
-        print(self.omega_i[1])
-        print("\n")
-
-        for o in range(len(self.omega_i)):
-            print(np.where(self.omega_i[o] == 0))
-        '''    
-        '''
-        ly = self.space_divisions_y ** 2
-        lx = self.space_divisions_x ** 2
-
-        for i in range(1, self.space_divisions_y + 1):
-            for j in range(1, self.space_divisions_x + 1):
-                self.omega_i[i - 1, j - 1] = self.sim_param.c * np.pi * np.sqrt(i * i / ly + j * j / lx)
-         
-        x2 = self.space_divisions_x ** 2
-        y2 = self.space_divisions_y ** 2
-        for i in range(1, self.space_divisions_y + 1):
-            for j in range(1, self.space_divisions_x + 1):
-                #idx = (i - 1) * self.space_divisions_x + (j - 1)
-                self.omega_i[i - 1, j - 1] = self.sim_param.c * np.pi * np.sqrt(i * i / y2 + j * j / x2)
-        '''        
+        # TODO Semi disgusting hack. Without it, the calculation of update rule (equation 9) would crash due to division by zero
+        self.omega_i[0, 0] = 1e-8   
 
         # Update time stepping. Relates to M^(n+1) and M^n in equation 8.
         self.M_previous = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])

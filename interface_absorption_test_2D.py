@@ -56,7 +56,7 @@ test_room = [test_room_left, test_room_right]
 
 # Interfaces of the concatenated room.
 interfaces = []
-interfaces.append(InterfaceData2D(0, 1, Direction2D.Horizontal))
+interfaces.append(InterfaceData2D(0, 1, Direction2D.X))
 
 # Microphones
 long_room_mic1 = Mic(
