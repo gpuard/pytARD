@@ -34,6 +34,7 @@ class PMLPartition(Partition):
         #added
         self.dx = 1
         self.dy = 1
+        self.wave_speed = 1
         
     def simulate(self, t):
         print(t)
