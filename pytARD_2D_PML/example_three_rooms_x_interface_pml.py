@@ -7,10 +7,11 @@ from air_partition import AirPartition
 from interface import X_Interface
 
 import numpy as np
-
+      #     #
 ###################
 # AIR # PML # AIR #
 ###################
+      #     #
 
 # Procedure parameters
 verbose = True

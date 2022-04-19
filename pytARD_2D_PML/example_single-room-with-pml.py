@@ -7,7 +7,11 @@ from air_partition import AirPartition
 from interface import X_Interface
 
 import numpy as np
-
+      #
+#############
+# AIR # PML # 
+#############
+      #
 # Procedure parameters
 verbose = True
 animation = True
