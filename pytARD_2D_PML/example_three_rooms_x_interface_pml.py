@@ -49,6 +49,7 @@ pml_parititions = [pml_paritition1]
 # INTERFACES
 interface1 = X_Interface(air_partition_1,pml_paritition1, sim_params)
 interface2 = X_Interface(pml_paritition1,air_partition_2, sim_params)
+# To see diffrences check AIR-AIR
 # interface1 = X_Interface(air_partition_1,air_partition_2, sim_params)
 # interface2 = X_Interface(pml_paritition1,pml_paritition1, sim_params)
 interfaces = [interface1, interface2]
@@ -97,7 +98,7 @@ if animation:
                             update_plot,
                             frames=sim_params.time_steps,
                             init_func=init_func,
-                            interval=0, # Delay between frames in milliseconds
+                            interval=1, # Delay between frames in milliseconds
                             blit=False)       
     if video_output:
         
@@ -105,9 +106,10 @@ if animation:
         from datetime import datetime
 
         writervideo = FFMpegWriter(fps=60)
-        fileloc = "videos/"
-        filename  = "give_your_name_" + datetime.now().strftime("%d-%m-%Y_%H-%M-%S") + ".mp4"
-        anim.save(fileloc+filename,
+        # fileloc = "videos/"
+        filename  = "pml_in_the_middle" + datetime.now().strftime("%d-%m-%Y_%H-%M-%S") + ".mp4"
+        # anim.save(fileloc+filename,
+        anim.save(filename,
                   dpi=300,
                   # fps=60,
                   writer=writervideo) 

@@ -82,7 +82,7 @@ if animation:
                             update_plot,
                             frames=len(p_field_t),
                             init_func=init_func,
-                            interval=0, # Delay between frames in milliseconds
+                            interval=1, # Delay between frames in milliseconds
                             blit=False)       
     if video_output:
         
@@ -90,9 +90,10 @@ if animation:
         from datetime import datetime
 
         writervideo = FFMpegWriter(fps=60)
-        fileloc = "videos/"
-        filename  = "give_your_name_" + datetime.now().strftime("%d-%m-%Y_%H-%M-%S") + ".mp4"
-        anim.save(fileloc+filename,
+        # fileloc = "videos/"
+        filename  = "pml_shit" + datetime.now().strftime("%d-%m-%Y_%H-%M-%S") + ".mp4"
+        # anim.save(fileloc+filename,
+        anim.save(filename,
                   dpi=300,
                   # fps=60,
                   writer=writervideo) 
