@@ -12,7 +12,6 @@ import numpy as np
 # AIR # PML # AIR #
 ###################
       #     #
-
 # Procedure parameters
 verbose = True
 animation = True

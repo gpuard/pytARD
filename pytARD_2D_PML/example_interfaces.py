@@ -60,7 +60,6 @@ if animation:
     from matplotlib.animation import FuncAnimation
     
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5,5), sharex=True, sharey=True, gridspec_kw = {'wspace':0, 'hspace':0})
-    p = np.zeros_like(air_partitions[0].pressure_fields[0])
     
     fig.suptitle("Time: %.2f sec" % 0)
 
@@ -86,8 +85,7 @@ if animation:
 
     
     def init_func():
-        # im.set_data(np.zeros(air_partitions[0].grid_shape))
-        pass
+        im.set_data(np.zeros_like(p_field_t[0]))
         
     def update_plot(time_step):
         # fig.subplots_adjust(hspace=0.1)

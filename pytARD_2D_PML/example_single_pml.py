@@ -2,16 +2,15 @@
 from ard_simulator import ARDSimulator
 from simulation_parameters import SimulationParameters
 from signals import GaussianFirstDerivative
-from pml_partition import PMLPartition, PMLType
+from pml_partition_stand_alone import PMLPartition
 from air_partition import AirPartition
 from interface import X_Interface
 
 import numpy as np
-      #
-#############
-# AIR # PML # 
-#############
-      #
+
+#######
+# PML # 
+#######
 # Procedure parameters
 verbose = True
 animation = True
@@ -21,46 +20,38 @@ video_output = False
 sim_params = SimulationParameters(  wave_speed = 20, # in meter per second
                                     max_simulation_frequency = 30, # in herz
                                     samples_per_wave_length = 20, # samples per meter
-                                    simulation_time = 1, # in seconds
+                                    simulation_time = 0.4, # in seconds
                                     time_sampling_rate = 4000, # in samples per second
                                     verbose = True, 
                                     visualize = False)
 
-room_x = 4
-room_y = 5
-pml_thickness = 5
-
+sim_params.dt = 0.5
+sim_params.num_time_samples = 250
+sim_params.time_steps = range(sim_params.num_time_samples)
 # SOURCES
-signal = GaussianFirstDerivative(   sim_params, 
-                                    signal_location = (room_y/2, room_x*0.9), 
-                                    dominant_frequency = 28,
-                                    time_offset = 0)
-
-# AIR-Partitions
-air_partition_1 = AirPartition((room_y, room_x), sim_params, signal)
-air_partitions = [air_partition_1]
+# signal = GaussianFirstDerivative(   sim_params, 
+#                                     signal_location = (room_y/2, room_x*0.9), 
+#                                     dominant_frequency = 28,
+#                                     time_offset = 0)
 
 # PML-Paritions
-pml_paritition1 = PMLPartition((room_y, pml_thickness),sim_params,air_partition_1, pml_type = PMLType.RIGHT)
+pml_paritition1 = PMLPartition((5, 5),sim_params)
 pml_parititions = [pml_paritition1]
 
-# # INTERFACES
-# INTERFACES
-interface1 = X_Interface(air_partition_1,pml_paritition1, sim_params)
-interfaces = [interface1]
 
-sim = ARDSimulator(sim_params, air_partitions, interfaces, pml_parititions)
+sim = ARDSimulator(sim_params, [], [], pml_parititions)
 sim.preprocess()
 sim.simulate()
 
 
 if animation:
     
-    p_field_t = air_partitions[0].pressure_fields
+    p_field_t = pml_parititions[0].pressure_fields
     import matplotlib.pyplot as plt
     from matplotlib.animation import FuncAnimation
     
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5,5), sharex=True, sharey=True, gridspec_kw = {'wspace':0, 'hspace':0})
+    p = np.zeros_like(pml_parititions[0].pressure_fields[0])
     
     fig.suptitle("Time: %.2f sec" % 0)
 
@@ -76,19 +67,17 @@ if animation:
     
     def init_func():
         im.set_data(np.zeros_like(p_field_t[0]))
-
         
     def update_plot(time_step):
         time = sim_params.dt * time_step       
         fig.suptitle("Time: %.2f sec" % time)
-        
         im.set_data(p_field_t[time_step])
         return [im]
     
     # keep the reference
     anim = FuncAnimation(   fig,
                             update_plot,
-                            frames=sim_params.time_steps,
+                            frames=len(p_field_t),
                             init_func=init_func,
                             interval=0, # Delay between frames in milliseconds
                             blit=False)       

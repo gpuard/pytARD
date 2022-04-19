@@ -47,26 +47,9 @@ class Interface():
         self.partL = partL
         self.partR = partR
         self.K = FTDT().get_laplacian_matrix() 
-        # self.K = FTDT().get_laplacian_matrix() * np.power((1 / self.dx), 2) 
-        # self.K =  np.power((self.wave_speed), 2) * FTDT().get_laplacian_matrix() * np.power((1 / self.dx), 2) 
-
         
     def preprocess(self):
-        # self.K = np.power((self.wave_speed / self.dx), 2) * self.K
-        # self.K = np.array(
-        # [
-        #     [-0.,         -0.,         -0.01111111,  0.01111111,  0.,          0.        ],
-        #     [-0.,         -0.01111111,  0.15,       -0.15,        0.01111111,  0.        ],
-        #     [-0.01111111,  0.15,       -1.5,         1.5,        -0.15,        0.01111111],
-        #     [ 0.01111111, -0.15,        1.5,        -1.5,         0.15,       -0.01111111],
-        #     [ 0.,          0.01111111, -0.15,        0.15,       -0.01111111, -0.        ],
-        #     [ 0.,          0.,          0.01111111, -0.01111111, -0.,         -0.        ]
-        # ]
-        # )
-        # # self.K = (self.wave_speed / self.dx) ** 2 * self.K
-        # # self.K = self.wave_speed  ** 2 * self.K
         self.K =  np.power((self.wave_speed/self.dx), 2) * self.K
-        # self.K =  np.power((1/self.dx), 2) * self.K
     
 class X_Interface(Interface):
     # along y axis
@@ -133,10 +116,6 @@ if __name__=="__main__":
     k1 = coefs[0]
     k2 = coefs[1]
     k3 = coefs[2]
-    # K = np.array([0,0,-k1,k1,0,0,0,-k1,k2,-k2,k1,0,-k1,k2,-k3,k3,-k2,k1]).reshape(3,6)
-    # K = np.array([0,0,-k1,k1,0,0,0,-k1,k2,k2,k1,0,-k1,k2,-k3,k3,k2,k1]).reshape(3,6)
-    # K = np.array([0,0,-k1,k1,0,0,0,-k1,-k2,k2,k1,0,-k1,-k2,-k3,k3,k2,k1]).reshape(3,6)
-    # K = (np.vstack([K,-np.flipud(K)]))
     
     K = np.array([k1,0,0,k2,k1,0,k3,k2,k1]).reshape(3,3)
     K = (np.vstack([K,-np.flipud(K)]))

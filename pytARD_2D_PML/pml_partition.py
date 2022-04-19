@@ -47,7 +47,6 @@ class PMLPartition(Partition):
         self.phiY = np.zeros(self.grid_shape)
         self.phiYn = np.zeros(self.grid_shape)
         
-        
         # FORCING FIELD
         self.f = np.zeros(self.grid_shape) # current time step
         
@@ -157,7 +156,7 @@ class PMLPartition(Partition):
                 term2 = 2 * self.p[y,x] - (1 - term1)*self.po[y,x]
          
                 dp2dx2 = (self.p[y+1,x]-2*self.p[y,x]+self.p[y-1,x])/(self.dx**2)#
-                dp2dy2 = (self.p[y,x+1]-2*self.p[y,x]+self.p[y,x])/(self.dy**2)#
+                dp2dy2 = (self.p[y,x+1]-2*self.p[y,x]+self.p[y,x-1])/(self.dy**2)#
                 
                 D2p = dp2dx2 + dp2dy2
 
@@ -193,12 +192,10 @@ class PMLPartition(Partition):
         self.p = self.pn
         
         self.f = np.zeros(self.grid_shape)
+        
         # print(np.max(self.p))
         if self.debug:
             self.pressure_fields.append(self.p)
-        
-        # TODO zero out f m.b instead of doing this in ard
-
 
 if __name__ == "__main__":
     r = np.arange(5)
@@ -207,5 +204,6 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     plt.plot(kx(r,k=40))
     plt.plot(kx(r,k=1000))
-    
+
+# if we zero out kx and ky, then we should get the common accoustic wave destribution.
     
