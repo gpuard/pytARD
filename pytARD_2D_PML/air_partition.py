@@ -26,19 +26,19 @@ class AirPartition:
         self.pressure_fields = list()
         self.visualize = simulation_parameters.visualize
 
-    def preprocessing(self):
+    def preprocess(self):
         # Inital condition aka. @ time step n = 0
         p_o = np.zeros(self.grid_shape)
         p = np.zeros(self.grid_shape)
         
-        p_spec = np.zeros(self.grid_shape)
-        p_spec_n = np.zeros(self.grid_shape)
+        # p_spec = np.zeros(self.grid_shape)
+        # p_spec_n = np.zeros(self.grid_shape)
         
         self.pressure_fields.append(p_o)
         self.pressure_fields.append(p)
         
         # Precompute signal sources
-        if self.src is not None:
+        if self.signal is not None:
             self.precompute_signal()
            
         # self.pressure_field.append(np.zeros(self.grid_shape))
@@ -47,9 +47,9 @@ class AirPartition:
         
         for iy in self.gr_indx_y:
             for ix in self.gr_indx_x:
-                self.omegas[iy, ix] = self.wave_speed * np.pi * np.sqrt( (ix/ self.x) ** 2 + (iy / self.y) ** 2)
-        # To avoid devision by zero (omegas[0, 0] is 0)
-        self.omegas[0, 0] = np.finfo(np.float).eps
+                self.omegas[iy, ix] = self.wave_speed * np.pi * np.sqrt((ix/ self.x) ** 2 + (iy / self.y) ** 2)
+        # To avoid devision by zero in update rule (omegas[0, 0] is 0) the correction calculation should be done.
+        self.omegas[0, 0] = np.finfo(np.float64).eps
     
     def precompute_signal(self):
         self.src[:, self.signal.grid_loc_y, self.signal.grid_loc_x] = self.signal.generate()
@@ -64,22 +64,28 @@ class AirPartition:
         # f_spec is local
         
         # INJECT SINGNAL SOURCE
-        self.f += self.src[n].copy()
+        self.f += self.src[n]
         
         f_spec = dctn(self.f, type=self.DCT_TYPE)
+        # f_spec = dctn(self.f, type=self.DCT_TYPE, norm='ortho')
 
         tmp_term = 2 * f_spec / (self.omegas ** 2) * (1 - np.cos(self.omegas * self.dt))
         self.p_spec_n = 2 * self.p_spec * np.cos(self.omegas * self.dt) - self.p_spec_o + tmp_term
         
+        # correction for lim (update rule) for omega -> 0:
+        self.p_spec_n[0,0] = 2 * self.p_spec[0, 0] - self.p_spec_o[0, 0] + f_spec[0,0] * self.dt ** 2
+        
         self.p_n = idctn(self.p_spec_n, type=self.DCT_TYPE) 
+        # self.p_n = idctn(self.p_spec_n, type=self.DCT_TYPE, norm='ortho') 
         
         # RESET FORCING FIELD
+        # TODO: sure? here?
         self.f = np.zeros(self.grid_shape)
         
         self.p_spec_o = self.p_spec
         self.p_spec = self.p_spec_n
         self.p = self.p_n
-        
+        # print(np.max(self.p))
         self.pressure_fields.append(self.p.copy())
         
     def show_info(self):

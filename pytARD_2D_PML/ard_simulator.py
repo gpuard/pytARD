@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# from interface import Interface
+from interface import Interface, X_Interface
 
 class ARDSimulator:
     '''
@@ -17,32 +17,29 @@ class ARDSimulator:
         self.pml_parititions = pml_parititions
         # self.mics = mics
 
-    def preprocessing(self):
+    def preprocess(self):
         for p in self.air_partitions:
-            p.preprocessing()
+            p.preprocess()
             
         for p in self.interfaces:
-            p.preprocessing()
+            p.preprocess()
             
-        for p in self.pml_parititions:
-            p.preprocessing()
+        # for p in self.pml_parititions:
+        #     p.preprocess()
 
     def simulate(self):
-
-        for time_step in self.time_steps:
-            
-            # # HANDLE INTERFACES
-            # for infs in self.interfaces:
-            #     infs.simulate()
-                
-            # INJECT SIGNALS
-            # TODO
+        
+        for time_step in self.time_steps[1:-1]:
+            print(time_step)
+            # HANDLE INTERFACES
+            for infs in self.interfaces:
+                infs.simulate()
                 
             # HANDLE AIR-PARTITIONs
             for p in self.air_partitions:
                 p.simulate(time_step)
                 
                 
-            # # HANDLE PML-PARTITIONS
-            # for pml in self.pml_parititions:
-            #     pml.simulate(time_step)
+            # HANDLE PML-PARTITIONS
+            for pml in self.pml_parititions:
+                pml.simulate(time_step)

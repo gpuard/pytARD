@@ -1,112 +1,155 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-import enum
 
-class InfType(enum.Enum):
-    HORIZONTAL = 0
-    VERTICAL = 1
+class FTDT:
+    FTDT_COEFFICIENTS = {1 : {  2 : np.array([-1/2, 0, 1/2]),
+                                4 : np.array([1/12, -2/3, 0, 2/3, -1/12]),
+                                6 : np.array([-1/60, 3/20, -3/4, 0, 3/4, -3/20, 1/60]),
+                                8 : np.array([1/280, -4/105, 1/5, -4/5, 0, 4/5, -1/5, 4/105, -1/280 ])
+                                },
+                        2 : {   2 : np.array([1, -2, 1]),
+                                4 : np.array([-1/12, 4/3, -5/2, 4/3, -1/12]),
+                                6 : np.array([1/90, -3/20, 3/2, -49/18, 3/2, -3/20, 1/90]),
+                                8 : np.array([-1/560, 8/315, -1/5, 8/5, -205/72, 8/5, -1/5, 8/315, -1/560])
+                                }
+                        }
+    @staticmethod
+    def get_ftdt_coefficients(derivative, accuracy):
+        return FTDT.FTDT_COEFFICIENTS[derivative][accuracy]
+   
+    @staticmethod
+    def get_laplacian_matrix():
+        coefs = FTDT.get_ftdt_coefficients(2,6)
+        k1 = coefs[0]
+        k2 = coefs[1]
+        k3 = coefs[2]
+        # K = np.array([0,0,-k1,k1,0,0,0,-k1,k2,-k2,k1,0,-k1,k2,-k3,k3,-k2,k1]).reshape(3,6)
+        # K = (np.vstack([K,-np.flipud(K)]))
+        K = np.array([k1,0,0,k2,k1,0,k3,k2,k1]).reshape(3,3)
+        K = (np.vstack([K,-np.flipud(K)]))
+        K = (np.hstack([-np.fliplr(K),K]))
+        return K
+# -0	-0	-0.0111111	0.0111111	0	0
+# -0	-0.0111111	0.15	-0.15	0.0111111	0
+# -0.0111111	0.15	-1.5	1.5	-0.15	0.0111111
+# 0.0111111	-0.15	1.5	-1.5	0.15	-0.0111111
+# 0	0.0111111	-0.15	0.15	-0.0111111	-0
+# 0	0	0.0111111	-0.0111111	-0	-0
     
+    def number_of_points():
+        pass
+        
 class Interface():
       
-    def __init__(self, partL, partR, inf_type, simulation_parameters, width):
+    def __init__(self, partL, partR, simulation_parameters):
         self.wave_speed = simulation_parameters.wave_speed
+        self.dx = simulation_parameters.dx
         self.partL = partL
         self.partR = partR
-        self.inf_type = inf_type
-        self.width = width # number of points
-        self.p = None
+        self.K = FTDT().get_laplacian_matrix() 
+        # self.K = FTDT().get_laplacian_matrix() * np.power((1 / self.dx), 2) 
+        # self.K =  np.power((self.wave_speed), 2) * FTDT().get_laplacian_matrix() * np.power((1 / self.dx), 2) 
 
-        # todo extend
-        if self.inf_type == InfType.HORIZONTAL:
-            self.dy = width # number points
-            self.dx = min(partL.dx, partR.dx)
-
-        # 2D FDTD coefficents array. Normalize FDTD coefficents with space divisions and speed of sound. 
-        fdtd_coeffs_not_normalized = np.array(
-            [
-                [-0.,         -0.,         -0.01111111,  0.01111111,  0.,          0.        ],
-                [-0.,         -0.01111111,  0.15,       -0.15,        0.01111111,  0.        ],
-                [-0.01111111,  0.15,       -1.5,         1.5,        -0.15,        0.01111111],
-                [ 0.01111111, -0.15,        1.5,        -1.5,         0.15,       -0.01111111],
-                [ 0.,          0.01111111, -0.15,        0.15,       -0.01111111, -0.        ],
-                [ 0.,          0.,          0.01111111, -0.01111111, -0.,         -0.        ]
-            ]
-        )
-
-        # TODO: Unify h of partition data, atm it's hard coded to first partition
-        self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_params.c / sim_params.dx) ** 2)
-        self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_params.c / sim_params.dy) ** 2)
-
-        # FDTD kernel size.
-        self.FDTD_KERNEL_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
-
-    def simulate(self):
-        if self.inf_type == InfType.VERTICAL:
-            for y in range(self.partL.space_divisions_y):
-                pressure_field_around_interface_y = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE, 1])
-
-                # Left room
-                pressure_field_around_interface_y[0 : self.FDTD_KERNEL_SIZE] = self.partL.pressure_field[y, -self.FDTD_KERNEL_SIZE : ].copy().reshape([self.FDTD_KERNEL_SIZE, 1])
-
-                # Right room
-                pressure_field_around_interface_y[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.partR.pressure_field[y, 0 : self.FDTD_KERNEL_SIZE].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
-
-                # Calculate new forces transmitted into room
-               .f_from_interface_y = self.FDTD_COEFFS_Y.dot(pressure_field_around_interface_y)
-
-                # Add everything together
-                self.partL.f[y, -3] +=.f_from_interface_y[0]
-                self.partL.f[y, -2] +=.f_from_interface_y[1]
-                self.partL.f[y, -1] +=.f_from_interface_y[2]
-                self.partR.f[y, 0] +=.f_from_interface_y[3]
-                self.partR.f[y, 1] +=.f_from_interface_y[4]
-                self.partR.f[y, 2] +=.f_from_interface_y[5]
+        
+    def preprocess(self):
+        # self.K = np.power((self.wave_speed / self.dx), 2) * self.K
+        # self.K = np.array(
+        # [
+        #     [-0.,         -0.,         -0.01111111,  0.01111111,  0.,          0.        ],
+        #     [-0.,         -0.01111111,  0.15,       -0.15,        0.01111111,  0.        ],
+        #     [-0.01111111,  0.15,       -1.5,         1.5,        -0.15,        0.01111111],
+        #     [ 0.01111111, -0.15,        1.5,        -1.5,         0.15,       -0.01111111],
+        #     [ 0.,          0.01111111, -0.15,        0.15,       -0.01111111, -0.        ],
+        #     [ 0.,          0.,          0.01111111, -0.01111111, -0.,         -0.        ]
+        # ]
+        # )
+        # # self.K = (self.wave_speed / self.dx) ** 2 * self.K
+        # # self.K = self.wave_speed  ** 2 * self.K
+        self.K =  np.power((self.wave_speed/self.dx), 2) * self.K
+        # self.K =  np.power((1/self.dx), 2) * self.K
     
-        elif self.inf_type == InfType.HORIZONTAL:
-            for x in range(self.partL.space_divisions_x):
-                pressure_field_around_interface_x = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE, 1])
-
-                # Right top room
-                pressure_field_around_interface_x[0 : self.FDTD_KERNEL_SIZE] = self.partL.pressure_field[-self.FDTD_KERNEL_SIZE : , x].copy().reshape([self.FDTD_KERNEL_SIZE, 1])
-
-                # Right bottom room
-                pressure_field_around_interface_x[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.partR.pressure_field[0 : self.FDTD_KERNEL_SIZE, x].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
-
-                # Calculate new forces transmitted into room
-               .f_from_interface_x = self.FDTD_COEFFS_X.dot(pressure_field_around_interface_x)
-
-                # Add everything together
-                self.partL.f[-3, x] +=.f_from_interface_x[0]
-                self.partL.f[-2, x] +=.f_from_interface_x[1]
-                self.partL.f[-1, x] +=.f_from_interface_x[2]
-                self.partR.f[0, x] +=.f_from_interface_x[3]
-                self.partR.f[1, x] +=.f_from_interface_x[4]
-                self.partR.f[2, x] +=.f_from_interface_x[5]
-
-class XInterface(Interface):
-    # along x axis
-    def __init__(self, partL, partR, inf_type, simulation_parameters, width):
-        self.grid_shape  = None
-        self.p = np.concatenate((partL.p,partL.p))
-        self.f = np.zeros()
+class X_Interface(Interface):
+    # along y axis
+    def __init__(self, partL, partR, simulation_parameters):
+        Interface.__init__(self, partL, partR, simulation_parameters)
+        num_points = 6 # sim parameters
+        self.grid_shape_y = min(partL.grid_shape_y,partR.grid_shape_y)
+        self.grid_shape_x = num_points
+        self.grid_shape  = (self.grid_shape_y, self.grid_shape_x)
+     
     def simulate(self):
-            for y in range(self.partL.space_divisions_y):
-                self.p = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE, 1])
+        
+        # cannot reference because of update rule
+        p_left = self.partL.p[:,-3:]
+        p_right = self.partR.p[:,:3]
+        
+        p = np.hstack((p_left, p_right))
+        # Add everything together
+        f = np.matmul(p,self.K)
+            
+        self.partL.f[:,-3:] += f[:,:3]
+        self.partR.f[:,:3] += f[:,-3:]
 
-                # Left room
-                pressure_field_around_interface_y[0 : self.FDTD_KERNEL_SIZE] = self.partL.pressure_field[y, -self.FDTD_KERNEL_SIZE : ].copy().reshape([self.FDTD_KERNEL_SIZE, 1])
+    # def simulate(self):
+    #     for y in range(self.grid_shape_y):
+    #         p = np.zeros(shape=[6])
+        
+    #         # Left room
+    #         p[0 : 3] = self.partL.p[y, -3 : ].copy()
+        
+    #         # Right top room
+    #         p[3 : ] = self.partR.p[y, : 3].copy()
+        
+    #         # Calculate new forces transmitted into room
+    #         f = self.K.dot(p)
+    #         # f = np.matmul(p,self.K)
+    #         # Add everything together
+    #         self.partL.f[y, -3] += f[0]
+    #         self.partL.f[y, -2] += f[1]
+    #         self.partL.f[y, -1] += f[2]
+    #         self.partR.f[y, 0] += f[3]
+    #         self.partR.f[y, 1] += f[4]
+    #         self.partR.f[y, 2] += f[5]
 
-                # Right room
-                pressure_field_around_interface_y[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.partR.pressure_field[y, 0 : self.FDTD_KERNEL_SIZE].copy().reshape(self.FDTD_KERNEL_SIZE, 1)
+    # def simulate(self):
+    #     s = np.array([2, -27, 270, -490, 270, -27, 2]) / (180 * self.dx ** 2)
+    #     pi_left = self.partL.p[:,-3:]
+    #     pi_right = self.partR.p[:,:3]
+                 
+    #     pi = np.hstack((pi_left,pi_right))
+        
+    #     fi = np.zeros((self.grid_shape_y,3)) # forcing term produced" by interface
+    #     for il in range(self.grid_shape_y): # all y values (column)
+    #         for j in [0,1,2]:# layer                  
+    #             for i in range(j-3,-1+1):
+    #                 fi[il,j] += pi[il,i+3] * s[j-i+3]
+    #                 # fi += pi[j:3,j] * s[j-i+3]
+    #             for i in range(0,2-j+1):
+    #                 fi[il,j] -= pi[il,i+3] * s[i+j+1+3]     
+    #     self.partR.f[:,:3] += self.wave_speed**2 * fi       
 
-                # Calculate new forces transmitted into room
-               .f_from_interface_y = self.FDTD_COEFFS_Y.dot(pressure_field_around_interface_y)
-
-                # Add everything together
-                self.partL.f[y, -3] +=.f_from_interface_y[0]
-                self.partL.f[y, -2] +=.f_from_interface_y[1]
-                self.partL.f[y, -1] +=.f_from_interface_y[2]
-                self.partR.f[y, 0] +=.f_from_interface_y[3]
-                self.partR.f[y, 1] +=.f_from_interface_y[4]
-                self.partR.f[y, 2] +=.f_from_interface_y[5]
+if __name__=="__main__":
+    coefs = FTDT.get_ftdt_coefficients(2, 6)
+    k1 = coefs[0]
+    k2 = coefs[1]
+    k3 = coefs[2]
+    # K = np.array([0,0,-k1,k1,0,0,0,-k1,k2,-k2,k1,0,-k1,k2,-k3,k3,-k2,k1]).reshape(3,6)
+    # K = np.array([0,0,-k1,k1,0,0,0,-k1,k2,k2,k1,0,-k1,k2,-k3,k3,k2,k1]).reshape(3,6)
+    # K = np.array([0,0,-k1,k1,0,0,0,-k1,-k2,k2,k1,0,-k1,-k2,-k3,k3,k2,k1]).reshape(3,6)
+    # K = (np.vstack([K,-np.flipud(K)]))
     
+    K = np.array([k1,0,0,k2,k1,0,k3,k2,k1]).reshape(3,3)
+    K = (np.vstack([K,-np.flipud(K)]))
+    K = (np.hstack([-np.fliplr(K),K]))
+    
+    # K_test = np.array(
+    #     [
+    #         [-0.,         -0.,         -0.01111111,  0.01111111,  0.,          0.        ],
+    #         [-0.,         -0.01111111,  0.15,       -0.15,        0.01111111,  0.        ],
+    #         [-0.01111111,  0.15,       -1.5,         1.5,        -0.15,        0.01111111],
+    #         [ 0.01111111, -0.15,        1.5,        -1.5,         0.15,       -0.01111111],
+    #         [ 0.,          0.01111111, -0.15,        0.15,       -0.01111111, -0.        ],
+    #         [ 0.,          0.,          0.01111111, -0.01111111, -0.,         -0.        ]
+    #     ])
+    # print(K == K_test )
+        

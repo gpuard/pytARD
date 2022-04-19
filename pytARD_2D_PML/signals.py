@@ -50,17 +50,17 @@ class GaussianFirstDerivative(Signal):
 if __name__ == '__main__':
     
     sim_params = SimulationParameters(  wave_speed = 20, # in meter per second
-                                        max_simulation_frequency = 200, # in herz
+                                        max_simulation_frequency = 1000, # in herz
                                         samples_per_wave_length = 7, # samples per meter
-                                        simulation_time = 2, # in seconds
+                                        simulation_time = 20, # in seconds
                                         time_sampling_rate = 200, # in samples per second
                                         verbose = True, 
                                         visualize = True)
     
     sig = GaussianFirstDerivative(sim_params, 
                             signal_location = (4,4), 
-                            dominant_frequency = 25,
-                            time_offset = 1)
+                            dominant_frequency = 75,
+                            time_offset = 5)
     
     src = sig.generate()
     sig.plot()    

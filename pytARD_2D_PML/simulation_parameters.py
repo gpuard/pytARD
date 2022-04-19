@@ -45,12 +45,14 @@ class SimulationParameters:
         # (CFL) Check, if time stepping good enough
         dh = self.min_wave_length / self.samples_per_wave_length
         if not self.is_cfl_conform():
-            dh = np.floor(1/(self.wave_speed * self.dt * np.sqrt(3)))
+            # dh = 2 * self.wave_speed * self.dt * np.sqrt(3) # least value
+            # self.samples_per_wave_length = self.min_wave_length / dh
+            dh = 2 * self.wave_speed * self.dt * np.sqrt(3) 
             self.samples_per_wave_length = self.min_wave_length / dh
             print(f'FORCED (CFL): samples_per_wave_length = {self.samples_per_wave_length}')
         self.dx = dh
         self.dy = dh
-        
+        self.cfl = self.wave_speed*self.dt/self.dx
         self.verbose = verbose
         self.visualize = visualize
         self.debug = debug
@@ -62,10 +64,11 @@ class SimulationParameters:
     def show_info(self):
             print(f'Simulation time: {self.simulation_time}')
             print(f'Supported max-frequency: {self.max_simulation_frequency} Hz | min-wavelength: {self.min_wave_length}m')
-            print(f'Time sampling frequency: {self.time_sampling_rate}Hz ')
-            print(f'Number time samples: {self.num_time_samples}samples | dt: {self.dt}s')
+            print(f'Time sampling frequency: {self.time_sampling_rate} samples per second ')
+            print(f'Number time samples: {self.num_time_samples} samples | dt: {self.dt}s')
             print(f'Samples per wave length: {self.samples_per_wave_length}m')
             print(f'Grid spacing: {self.dx}m')
+            print(f'CFL:{self.cfl}')
             # TODO take grid creation responsibility
             # print(f'Grid resolution: {self.grid_shape}')
 
@@ -75,4 +78,5 @@ class SimulationParameters:
         return 2 * self.max_simulation_frequency < self.time_sampling_rate
     
     def is_cfl_conform(self):
-        return self.min_wave_length / self.samples_per_wave_length < 1/(self.wave_speed * self.dt * np.sqrt(3))
+        # we are in 2d -> 2 * on the right side
+        return self.min_wave_length / self.samples_per_wave_length >= 2 * self.wave_speed * self.dt * np.sqrt(3)

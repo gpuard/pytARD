@@ -49,4 +49,4 @@ class Partition():
          pass
 
     def show_info(self):
-            print(f"Partition dimensions y = {self.y}m x = {self.x}m | Grid Shape: {self.grid_shape}")
+            print(f"Partition dimensions y = {self.y} m, x = {self.x} m | Grid Shape: {self.grid_shape}")
