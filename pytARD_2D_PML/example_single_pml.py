@@ -20,7 +20,7 @@ video_output = False
 sim_params = SimulationParameters(  wave_speed = 20, # in meter per second
                                     max_simulation_frequency = 30, # in herz
                                     samples_per_wave_length = 20, # samples per meter
-                                    simulation_time = 0.4, # in seconds
+                                    simulation_time = 1, # in seconds
                                     time_sampling_rate = 4000, # in samples per second
                                     verbose = True, 
                                     visualize = False)
@@ -29,13 +29,13 @@ sim_params.dt = 0.5
 sim_params.num_time_samples = 250
 sim_params.time_steps = range(sim_params.num_time_samples)
 # SOURCES
-# signal = GaussianFirstDerivative(   sim_params, 
-#                                     signal_location = (room_y/2, room_x*0.9), 
-#                                     dominant_frequency = 28,
-#                                     time_offset = 0)
+signal = GaussianFirstDerivative(   sim_params, 
+                                    signal_location = (10, 10), 
+                                    dominant_frequency = 28,
+                                    time_offset = 0)
 
 # PML-Paritions
-pml_paritition1 = PMLPartition((5, 5),sim_params)
+pml_paritition1 = PMLPartition((5, 5),sim_params,signal)
 pml_parititions = [pml_paritition1]
 
 
@@ -60,7 +60,8 @@ if animation:
     ma = np.max([p_field_t])
     
 
-    im = ax.imshow(np.zeros_like(p_field_t[0]),vmin=mi, vmax=ma,cmap='jet')
+    # im = ax.imshow(np.zeros_like(p_field_t[0]),vmin=mi, vmax=ma,cmap='jet')
+    im = ax.imshow(np.zeros_like(p_field_t[0]),vmin=mi, vmax=ma)
     # im = ax.imshow(np.zeros_like(p_field_t[0]))
     # # attach color bar
     # fig.subplots_adjust(right=0.85)

@@ -21,7 +21,7 @@ video_output = False
 sim_params = SimulationParameters(  wave_speed = 20, # in meter per second
                                     max_simulation_frequency = 30, # in herz
                                     samples_per_wave_length = 20, # samples per meter
-                                    simulation_time = 0.09, # in seconds
+                                    simulation_time = 2.01, # in seconds
                                     time_sampling_rate = 4000, # in samples per second
                                     verbose = True, 
                                     visualize = False)
@@ -49,6 +49,8 @@ pml_parititions = [pml_paritition1]
 # INTERFACES
 interface1 = X_Interface(air_partition_1,pml_paritition1, sim_params)
 interface2 = X_Interface(pml_paritition1,air_partition_2, sim_params)
+# interface1 = X_Interface(air_partition_1,air_partition_2, sim_params)
+# interface2 = X_Interface(pml_paritition1,pml_paritition1, sim_params)
 interfaces = [interface1, interface2]
 
 sim = ARDSimulator(sim_params, air_partitions, interfaces, pml_parititions)

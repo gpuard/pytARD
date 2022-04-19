@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 from partition import Partition
+from signals import GaussianFirstDerivative
 import numpy as np
 
 class PMLPartition(Partition):
     
     def __init__(   self,
                     partition_dimensions,# in meter 
-                    simulation_parameters):
+                    simulation_parameters,
+                    signal = None):
         # 'LEFT' stand for the boundry on the left of AIR Partion
         
         Partition.__init__(self, simulation_parameters, partition_dimensions)
         
         # TODO i'm forcing the pml to have the width
-        self.grid_shape_y = 50
-        self.grid_shape_x = 50
+        self.grid_shape_y = 100
+        self.grid_shape_x = 100
         self.grid_shape = (self.grid_shape_y, self.grid_shape_x)
 
         # PRESSURE FIELD
@@ -31,20 +33,34 @@ class PMLPartition(Partition):
         # FORCING FIELD
         self.f = np.zeros(self.grid_shape) # current time step
         self.pressure_fields = list()
-        #added
+        #FORCED
         self.dx = 1
         self.dy = 1
         self.wave_speed = 1
-        
+        self.src = None
+        signal = None
+        if signal is not None:
+            signal.f0 = 0.001
+            signal.t0 = 0
+            signal.grid_loc_y = 50
+            signal.grid_loc_x = 50
+            
+            signal.dt = self.dt
+            signal.time_steps = np.arange(simulation_parameters.num_time_samples)
+            signal.time = signal.time_steps * self.dt
+            self.src = np.zeros((simulation_parameters.num_time_samples,self.grid_shape_y,self.grid_shape_x))
+            self.src[:, signal.grid_loc_y, signal.grid_loc_x] = signal.generate()
+            
     def simulate(self, t):
-        print(t)
+        # print(t)
         width = 3
         k_max = 0
-        kx = 0
-        ky = 0
-        f = 1/50 #Hz
-        self.f[25,25] = 100 * np.sin((t-1)*2*np.pi*f)
-
+        # kx = 0
+        # ky = 0
+        # f = 0.005 #Hz
+        # self.f[50,50] = 2 * np.sin((t-1)*2*np.pi*f)
+        self.f[50,50] = 2000 * np.sin((t-1)*np.pi/20)
+        # self.f += self.src[t]
         for x in range(self.grid_shape_x)[1:-1]:
             if x <= width:
                 kx = k_max*(width-x)**2/width**2
@@ -63,7 +79,7 @@ class PMLPartition(Partition):
                 kx = 0
                 ky = 0    
                 term1 = (kx + ky)*self.dt/2
-                term2 = 2 * self.p[y,x] - (1 - term1)*self.po[y,x]
+                term2 = 2 * self.p[y,x] - (1 - term1) * self.po[y,x]
          
                 dp2dx2 = (self.p[y+1,x]-2*self.p[y,x]+self.p[y-1,x])/(self.dx**2)#
                 dp2dy2 = (self.p[y,x+1]-2*self.p[y,x]+self.p[y,x-1])/(self.dy**2)#
@@ -101,7 +117,7 @@ class PMLPartition(Partition):
         self.po = self.p
         self.p = self.pn
         
-        # self.f = np.zeros(self.grid_shape)
+        self.f = np.zeros(self.grid_shape)
         
         # print(np.max(self.p))
         self.pressure_fields.append(self.p.copy())

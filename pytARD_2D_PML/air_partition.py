@@ -62,7 +62,7 @@ class AirPartition:
         # @ time step n+1               p_spec_n
         
         # f_spec is local
-        
+        # TODO check this part src is 1d array ->
         # INJECT SINGNAL SOURCE
         self.f += self.src[n]
         
