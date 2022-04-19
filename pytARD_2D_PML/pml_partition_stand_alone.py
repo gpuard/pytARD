@@ -38,11 +38,12 @@ class PMLPartition(Partition):
         
     def simulate(self, t):
         print(t)
-        width = 5
-        k_max = 1
+        width = 3
+        k_max = 0
         kx = 0
         ky = 0
-        self.f[25,25] = 2 * np.sin((t-1)*np.pi/20)
+        f = 1/50 #Hz
+        self.f[25,25] = 100 * np.sin((t-1)*2*np.pi*f)
 
         for x in range(self.grid_shape_x)[1:-1]:
             if x <= width:
@@ -59,7 +60,8 @@ class PMLPartition(Partition):
                     ky = k_max*(width-self.grid_shape_y+y)**2/width**2
                 else:
                     ky = 0
-                    
+                kx = 0
+                ky = 0    
                 term1 = (kx + ky)*self.dt/2
                 term2 = 2 * self.p[y,x] - (1 - term1)*self.po[y,x]
          
@@ -102,7 +104,7 @@ class PMLPartition(Partition):
         # self.f = np.zeros(self.grid_shape)
         
         # print(np.max(self.p))
-        self.pressure_fields.append(self.p)
+        self.pressure_fields.append(self.p.copy())
 
 if __name__ == "__main__":
     r = np.arange(5)

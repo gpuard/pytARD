@@ -50,27 +50,29 @@ if animation:
     import matplotlib.pyplot as plt
     from matplotlib.animation import FuncAnimation
     
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5,5), sharex=True, sharey=True, gridspec_kw = {'wspace':0, 'hspace':0})
-    p = np.zeros_like(pml_parititions[0].pressure_fields[0])
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5,5))
     
-    fig.suptitle("Time: %.2f sec" % 0)
+    fig.suptitle("Time-step: %d" % 0)
 
-    mi = np.min(-np.abs([p_field_t]))
-    ma = np.max(np.abs([p_field_t]))
+    # mi = np.min(-np.abs([p_field_t]))
+    # ma = np.max(np.abs([p_field_t]))
+    mi = np.min([p_field_t])
+    ma = np.max([p_field_t])
     
 
-    im = ax.imshow(np.zeros_like(p_field_t[0]),vmin=mi, vmax=ma)
-    # attach color bar
-    fig.subplots_adjust(right=0.85)
-    cbar_ax = fig.add_axes([0.88, 0.15, 0.04, 0.7])
-    fig.colorbar(im, cax=cbar_ax)
+    im = ax.imshow(np.zeros_like(p_field_t[0]),vmin=mi, vmax=ma,cmap='jet')
+    # im = ax.imshow(np.zeros_like(p_field_t[0]))
+    # # attach color bar
+    # fig.subplots_adjust(right=0.85)
+    # cbar_ax = fig.add_axes([0.88, 0.15, 0.04, 0.7])
+    # fig.colorbar(im, cax=cbar_ax)
     
     def init_func():
         im.set_data(np.zeros_like(p_field_t[0]))
         
     def update_plot(time_step):
-        time = sim_params.dt * time_step       
-        fig.suptitle("Time: %.2f sec" % time)
+        time = time_step       
+        fig.suptitle("Time-step: %d" % time)
         im.set_data(p_field_t[time_step])
         return [im]
     
