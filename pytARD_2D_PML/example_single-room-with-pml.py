@@ -17,8 +17,7 @@ verbose = True
 animation = True
 write_to_file = True
 video_output = False
-# two_d = False
-two_d = True
+plot2d = False
 sim_params = SimulationParameters(  wave_speed = 20, # in meter per second
                                     max_simulation_frequency = 30, # in herz
                                     samples_per_wave_length = 20, # samples per meter
@@ -57,86 +56,13 @@ sim.simulate()
 
 
 if animation:
+    from plotter import Plotter
     p_field_t = air_partitions[0].pressure_fields
-    if two_d:
-        import matplotlib.pyplot as plt
-        from matplotlib.animation import FuncAnimation
-        
-        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5,5))
-        
-        fig.suptitle("Time: %.2f sec" % 0)
     
-        mi = np.min(-np.abs([p_field_t]))
-        ma = np.max(np.abs([p_field_t]))
-        
-    
-        im = ax.imshow(np.zeros_like(p_field_t[0]),vmin=mi, vmax=ma)
-        # attach color bar
-        fig.subplots_adjust(right=0.85)
-        cbar_ax = fig.add_axes([0.88, 0.15, 0.04, 0.7])
-        fig.colorbar(im, cax=cbar_ax)
-        
-        def init_func():
-            im.set_data(np.zeros_like(p_field_t[0]))
-    
-            
-        def update_plot(time_step):
-            time = sim_params.dt * time_step       
-            fig.suptitle("Time: %.2f sec" % time)
-            
-            im.set_data(p_field_t[time_step])
-            return [im]
-        
-        # keep the reference
-        anim = FuncAnimation(   fig,
-                                update_plot,
-                                frames=sim_params.time_steps,
-                                init_func=init_func,
-                                interval=0, # Delay between frames in milliseconds
-                                blit=False)
+    if plot2d:
+        anim = Plotter.plot2d(p_field_t, sim_params, frames = sim_params.time_steps, interval=0, video_output=False, file_name='')
     else:
-        # need p_field_t 1d array
-        #
-        import matplotlib.pyplot as plt
-        from matplotlib.animation import FuncAnimation
         from extractor import Extractor
-        
         p_field_t = Extractor.extract_x(p_field_t,signal.grid_loc)
-        mi = np.min(-np.abs([p_field_t]))
-        ma = np.max(np.abs([p_field_t]))
         
-        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5,5))
-        ax.set_ylim(mi,ma)
-        ax.set_xlim(0,len(p_field_t[0]))
-        fig.suptitle("Time: %.2f sec" % 0)
-        ln, = ax.plot(0,0)
-        def init_func():
-            ln.set_xdata(np.arange(len(p_field_t[0])))
-            
-        def update_plot(time_step):
-            time = sim_params.dt * time_step       
-            fig.suptitle("Time: %.2f sec" % time)
-            ln.set_xdata(np.arange(len(p_field_t[time_step])))
-            ln.set_ydata(p_field_t[time_step])
-            return [ln]
-        
-        # keep the reference
-        anim = FuncAnimation(   fig,
-                                update_plot,
-                                frames=sim_params.time_steps,
-                                init_func=init_func,
-                                interval=0, # Delay between frames in milliseconds
-                                blit=False)
-    if video_output:
-        
-        from matplotlib.animation import FuncAnimation, FFMpegWriter
-        from datetime import datetime
-
-        writervideo = FFMpegWriter(fps=60)
-        fileloc = "videos/"
-        filename  = "give_your_name_" + datetime.now().strftime("%d-%m-%Y_%H-%M-%S") + ".mp4"
-        anim.save(fileloc+filename,
-                  dpi=300,
-                  # fps=60,
-
-                  writer=writervideo) 
+        anim = Plotter.plot1d(p_field_t, sim_params, frames = sim_params.time_steps, interval=0, video_output=False, file_name='')

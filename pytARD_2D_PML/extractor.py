@@ -9,4 +9,11 @@ class Extractor():
         for frame in p_fields:
             p.append(frame[src_y,:])
         return p
+    
+    def extract_y(p_fields,source_location):
+        (src_y, src_x) = source_location
+        p = list()
+        for frame in p_fields:
+            p.append(frame[:,src_x])
+        return p
         

@@ -65,11 +65,10 @@ if animation:
     [p_field_t.append(np.hstack([air_partitions[0].pressure_fields[i],air_partitions[1].pressure_fields[i]])) for i in sim_params.time_steps]
     # [p_field_t.append(np.hstack([np.zeros_like(air_partitions[1].pressure_fields[i]),air_partitions[1].pressure_fields[i]])) for i in sim_params.time_steps]
     
-
     import matplotlib.pyplot as plt
     from matplotlib.animation import FuncAnimation
     
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5,5), sharex=True, sharey=True, gridspec_kw = {'wspace':0, 'hspace':0})
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5,5))
     p = np.zeros_like(p_field_t[0])
     
     fig.suptitle("Time: %.2f sec" % 0)
