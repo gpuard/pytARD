@@ -8,7 +8,7 @@ class Signal():
         (self.y, self.x) = signal_location
         self.grid_loc_y = int(self.y/simulation_parameters.dy)
         self.grid_loc_x = int(self.x/simulation_parameters.dx)
-        
+        self.grid_loc = (self.grid_loc_y, self.grid_loc_x)
         self.dt = simulation_parameters.dt
         self.time_steps = np.array(simulation_parameters.time_steps)
         self.time = self.time_steps * simulation_parameters.dt
