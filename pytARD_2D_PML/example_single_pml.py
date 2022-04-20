@@ -38,62 +38,11 @@ signal = GaussianFirstDerivative(   sim_params,
 pml_paritition1 = PMLPartition((5, 5),sim_params,signal)
 pml_parititions = [pml_paritition1]
 
-
 sim = ARDSimulator(sim_params, [], [], pml_parititions)
 sim.preprocess()
 sim.simulate()
 
-
 if animation:
-    
+    from plotter import Plotter
     p_field_t = pml_parititions[0].pressure_fields
-    import matplotlib.pyplot as plt
-    from matplotlib.animation import FuncAnimation
-    
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5,5))
-    
-    fig.suptitle("Time-step: %d" % 0)
-
-    # mi = np.min(-np.abs([p_field_t]))
-    # ma = np.max(np.abs([p_field_t]))
-    mi = np.min([p_field_t])
-    ma = np.max([p_field_t])
-    
-
-    # im = ax.imshow(np.zeros_like(p_field_t[0]),vmin=mi, vmax=ma,cmap='jet')
-    im = ax.imshow(np.zeros_like(p_field_t[0]),vmin=mi, vmax=ma)
-    # im = ax.imshow(np.zeros_like(p_field_t[0]))
-    # # attach color bar
-    # fig.subplots_adjust(right=0.85)
-    # cbar_ax = fig.add_axes([0.88, 0.15, 0.04, 0.7])
-    # fig.colorbar(im, cax=cbar_ax)
-    
-    def init_func():
-        im.set_data(np.zeros_like(p_field_t[0]))
-        
-    def update_plot(time_step):
-        time = time_step       
-        fig.suptitle("Time-step: %d" % time)
-        im.set_data(p_field_t[time_step])
-        return [im]
-    
-    # keep the reference
-    anim = FuncAnimation(   fig,
-                            update_plot,
-                            frames=len(p_field_t),
-                            init_func=init_func,
-                            interval=1, # Delay between frames in milliseconds
-                            blit=False)       
-    if video_output:
-        
-        from matplotlib.animation import FuncAnimation, FFMpegWriter
-        from datetime import datetime
-
-        writervideo = FFMpegWriter(fps=60)
-        # fileloc = "videos/"
-        filename  = "pml_shit" + datetime.now().strftime("%d-%m-%Y_%H-%M-%S") + ".mp4"
-        # anim.save(fileloc+filename,
-        anim.save(filename,
-                  dpi=300,
-                  # fps=60,
-                  writer=writervideo) 
+    anim = Plotter.plot2d(p_field_t, sim_params, frames = sim_params.time_steps, interval=0, video_output=False, file_name='')
