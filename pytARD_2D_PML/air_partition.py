@@ -16,8 +16,11 @@ class AirPartition:
         self.DCT_TYPE = simulation_parameters.DCT_TYPE
         
         self.signal = signal
-        self.src = np.zeros((simulation_parameters.num_time_samples, self.grid_shape_y, self.grid_shape_x))
-
+        if len(self.grid_shape) == 2:
+            self.src = np.zeros((simulation_parameters.num_time_samples, self.grid_shape_y, self.grid_shape_x))
+        else:
+            self.src = np.zeros((simulation_parameters.num_time_samples, self.grid_shape_x))
+            
         # PRESSURE FIELDS
         self.p_spec_o = np.zeros(self.grid_shape)      # in previous time step
         self.p_spec = np.zeros(self.grid_shape)        # in current time step
@@ -45,14 +48,23 @@ class AirPartition:
         # #precompute omega - field
         self.omegas = np.zeros(self.grid_shape)
         
-        for iy in self.gr_indx_y:
+        if len(self.grid_shape) == 2:
+            for iy in self.gr_indx_y:
+                for ix in self.gr_indx_x:
+                    self.omegas[iy, ix] = self.wave_speed * np.pi * np.sqrt((ix/ self.x) ** 2 + (iy / self.y) ** 2)
+        else:
             for ix in self.gr_indx_x:
-                self.omegas[iy, ix] = self.wave_speed * np.pi * np.sqrt((ix/ self.x) ** 2 + (iy / self.y) ** 2)
+                self.omegas[ix] = self.wave_speed * np.pi * (ix/ self.x)
+                
         # To avoid devision by zero in update rule (omegas[0, 0] is 0) the correction calculation should be done.
-        self.omegas[0, 0] = np.finfo(np.float64).eps
+        # self.omegas[0, 0] = np.finfo(np.float64).eps
     
     def precompute_signal(self):
-        self.src[:, self.signal.grid_loc_y, self.signal.grid_loc_x] = self.signal.generate()
+        if len(self.grid_shape) == 2:
+            self.src[:, self.signal.grid_loc_y, self.signal.grid_loc_x] = self.signal.generate()
+        else:
+            self.src[:, self.signal.grid_loc_x] = self.signal.generate()
+            
         if self.visualize:
             self.signal.plot()
     
@@ -73,7 +85,10 @@ class AirPartition:
         self.p_spec_n = 2 * self.p_spec * np.cos(self.omegas * self.dt) - self.p_spec_o + tmp_term
         
         # correction for lim (update rule) for omega -> 0:
-        self.p_spec_n[0,0] = 2 * self.p_spec[0, 0] - self.p_spec_o[0, 0] + f_spec[0,0] * self.dt ** 2
+        if len(self.grid_shape) == 2:
+            self.p_spec_n[0,0] = 2 * self.p_spec[0, 0] - self.p_spec_o[0, 0] + f_spec[0,0] * self.dt ** 2
+        else:
+            self.p_spec_n[0] = 2 * self.p_spec[0] - self.p_spec_o[0] + f_spec[0] * self.dt ** 2
         
         self.p_n = idctn(self.p_spec_n, type=self.DCT_TYPE) 
         # self.p_n = idctn(self.p_spec_n, type=self.DCT_TYPE, norm='ortho') 

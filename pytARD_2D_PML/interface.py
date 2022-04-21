@@ -56,10 +56,16 @@ class X_Interface(Interface):
     def __init__(self, partL, partR, simulation_parameters):
         Interface.__init__(self, partL, partR, simulation_parameters)
         num_points = 6 # sim parameters
-        self.grid_shape_y = min(partL.grid_shape_y,partR.grid_shape_y)
+        
+        if partL.grid_shape == 2:
+            self.grid_shape_y = min(partL.grid_shape_y,partR.grid_shape_y)
+            
         self.grid_shape_x = num_points
-        self.grid_shape  = (self.grid_shape_y, self.grid_shape_x)
-     
+        if partL.grid_shape == 2:
+            self.grid_shape  = (self.grid_shape_y, self.grid_shape_x)
+        else:
+            self.grid_shape  = (self.grid_shape_x,)  
+            
     def simulate(self):
         
         # cannot reference because of update rule
@@ -72,6 +78,34 @@ class X_Interface(Interface):
             
         self.partL.f[:,-3:] += f[:,:3]
         self.partR.f[:,:3] += f[:,-3:]
+        
+class X_Interface_1D (Interface):
+    # along y axis
+    def __init__(self, partL, partR, simulation_parameters):
+        Interface.__init__(self, partL, partR, simulation_parameters)
+        num_points = 6 # sim parameters
+        
+        if partL.grid_shape == 2:
+            self.grid_shape_y = min(partL.grid_shape_y,partR.grid_shape_y)
+            
+        self.grid_shape_x = num_points
+        if partL.grid_shape == 2:
+            self.grid_shape  = (self.grid_shape_y, self.grid_shape_x)
+        else:
+            self.grid_shape  = (self.grid_shape_x,)  
+            
+    def simulate(self):
+        
+        # cannot reference because of update rule
+        p_left = self.partL.p[-3:]
+        p_right = self.partR.p[:3]
+        
+        p = np.hstack((p_left, p_right))
+        # Add everything together
+        f = np.matmul(p,self.K)
+            
+        self.partL.f[-3:] += f[:3]
+        self.partR.f[:3] += f[-3:]
 
     # def simulate(self):
     #     for y in range(self.grid_shape_y):

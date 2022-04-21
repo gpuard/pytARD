@@ -5,10 +5,19 @@ import numpy as np
 class Signal():
     def __init__(self, simulation_parameters, signal_location):
         self.signal_loc = signal_location
-        (self.y, self.x) = signal_location
-        self.grid_loc_y = int(self.y/simulation_parameters.dy)
+        if len(signal_location) == 2:
+            (self.y, self.x) = signal_location
+            self.grid_loc_y = int(self.y/simulation_parameters.dy)
+        else:
+            self.x, = signal_location
+        
         self.grid_loc_x = int(self.x/simulation_parameters.dx)
-        self.grid_loc = (self.grid_loc_y, self.grid_loc_x)
+        
+        if len(signal_location) == 2:
+            self.grid_loc = (self.grid_loc_y, self.grid_loc_x)
+        else:
+            self.grid_loc = tuple([self.grid_loc_x])
+
         self.dt = simulation_parameters.dt
         self.time_steps = np.array(simulation_parameters.time_steps)
         self.time = self.time_steps * simulation_parameters.dt
