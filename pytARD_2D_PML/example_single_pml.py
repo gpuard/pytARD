@@ -6,8 +6,6 @@ from pml_partition_stand_alone import PMLPartition
 from air_partition import AirPartition
 from interface import X_Interface
 
-import numpy as np
-
 #######
 # PML # 
 #######

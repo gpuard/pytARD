@@ -17,7 +17,8 @@ verbose = True
 animation = True
 write_to_file = True
 video_output = False
-plot2d = False
+# plot2d = False
+plot2d = True
 sim_params = SimulationParameters(  wave_speed = 20, # in meter per second
                                     max_simulation_frequency = 30, # in herz
                                     samples_per_wave_length = 20, # samples per meter

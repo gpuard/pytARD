@@ -116,8 +116,8 @@ class PMLPartition(Partition):
     
             # kx = (i < 20) ? (20 - i) * kxMin/10.0
             # ky = (i < 20) ? 0.05
-            kx = 0.0
-            ky = 0.0
+            kx = 40 * (width - x)**2 / width**2
+            ky = 0
             for y in range(self.grid_shape_y)[3:-3]:
           
             	coefs = np.array([ 2.0, -27.0, 270.0, -490.0, 270.0, -27.0, 2.0 ])
