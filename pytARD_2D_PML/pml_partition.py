@@ -188,7 +188,7 @@ class PMLPartition_1D(Partition):
         # TODO i'm forcing the pml to have the width
         self.x, = partition_dimensions
         self.gridgrid_shape_x = parent_part.grid_shape_x
-        self.grid_shape_x = 5
+        self.grid_shape_x = 20
         self.grid_shape = (self.grid_shape_x,)
         # self.coefs_central_d2_6 = np.array([2.0, -27.0, 270.0, -490.0, 270.0, -27.0, 2.0])/180.0
         # self.coefs_central_d1_4 = np.array([1.0, -8.0, 0.0, 8.0, -1.0])/12.0
@@ -261,8 +261,7 @@ class PMLPartition_1D(Partition):
             # TODO may be init value should be considered precisely.
             # kx = (i < 20) ? (20 - i) * kxMin/10.0
             # ky = (i < 20) ? 0.05
-            width = 5
-            # kx = 40 * np.power((width - x) / width, 2)
+            # kx = 40 * np.power((self.grid_shape_x - x) / self.grid_shape_x, 2)
             kx = 0
             # kx = 1
             
@@ -299,7 +298,7 @@ class PMLPartition_1D(Partition):
         # print(np.max(self.p))
         # if self.debug:
         #     self.pressure_fields.append(self.p)
-        self.pressure_fields.append(self.p)
+        self.pressure_fields.append(self.p.copy())
 
 if __name__ == "__main__":
     r = np.arange(5)

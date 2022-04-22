@@ -12,11 +12,17 @@ import numpy as np
 # AIR # PML # AIR #
 ###################
       #     #
+      #     #
+###################
+# AIR # AIR # PML #
+###################
+      #     #
 # Procedure parameters
 verbose = True
 animation = True
 write_to_file = True
 video_output = False
+file_name='air-pml-air'
 CASE_AIR_PML_AIR = True
 sim_params = SimulationParameters(  wave_speed = 20, # in meter per second
                                     max_simulation_frequency = 30, # in herz
@@ -66,4 +72,4 @@ if animation:
         [p_field_t.append(np.hstack([air_partitions[0].pressure_fields[i],pml_parititions[0].pressure_fields[i],air_partitions[1].pressure_fields[i]])) for i in sim_params.time_steps]
     else:
         [p_field_t.append(np.hstack([air_partitions[0].pressure_fields[i],air_partitions[1].pressure_fields[i],pml_parititions[0].pressure_fields[i]])) for i in sim_params.time_steps]
-    anim = Plotter.plot1d(p_field_t, sim_params, frames = sim_params.time_steps, interval=0, video_output=False, file_name='')
+    anim = Plotter.plot1d(p_field_t, sim_params, frames = sim_params.time_steps, interval=1, video_output=video_output, file_name=file_name)
