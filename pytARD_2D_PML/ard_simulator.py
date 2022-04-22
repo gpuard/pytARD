@@ -29,7 +29,7 @@ class ARDSimulator:
 
     def simulate(self):
         
-        for time_step in self.time_steps[1:]:
+        for time_step in self.time_steps[1:-1]:
             # print(time_step)
             # HANDLE INTERFACES
             for infs in self.interfaces:

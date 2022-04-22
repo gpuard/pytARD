@@ -52,12 +52,13 @@ class AirPartition:
             for iy in self.gr_indx_y:
                 for ix in self.gr_indx_x:
                     self.omegas[iy, ix] = self.wave_speed * np.pi * np.sqrt((ix/ self.x) ** 2 + (iy / self.y) ** 2)
+            self.omegas[0, 0] = np.finfo(np.float64).eps # to get rid of erroe msg
         else:
             for ix in self.gr_indx_x:
                 self.omegas[ix] = self.wave_speed * np.pi * (ix/ self.x)
+            self.omegas[0] = np.finfo(np.float64).eps # to get rid of erroe msg
                 
         # To avoid devision by zero in update rule (omegas[0, 0] is 0) the correction calculation should be done.
-        # self.omegas[0, 0] = np.finfo(np.float64).eps
     
     def precompute_signal(self):
         if len(self.grid_shape) == 2:

@@ -2,6 +2,7 @@
 from partition import Partition
 import numpy as np
 from enum import Enum
+from fd_coefficients import FD
 
 class PMLType(Enum):
     LEFT = 1
@@ -171,6 +172,135 @@ class PMLPartition(Partition):
         # print(np.max(self.p))
         if self.debug:
             self.pressure_fields.append(self.p)
+            
+class PMLPartition_1D(Partition):
+    
+    def __init__(   self,
+                    partition_dimensions,# in meter 
+                    simulation_parameters,
+                    parent_part,
+                    pml_type = PMLType.RIGHT):
+        # 'LEFT' stand for the boundry on the left of AIR Partion
+        
+        Partition.__init__(self, simulation_parameters, partition_dimensions)
+        self.PMLType = pml_type
+        
+        # TODO i'm forcing the pml to have the width
+        self.x, = partition_dimensions
+        self.gridgrid_shape_x = parent_part.grid_shape_x
+        self.grid_shape_x = 7
+        self.grid_shape = (self.grid_shape_x,)
+        # self.coefs_central_d2_6 = np.array([2.0, -27.0, 270.0, -490.0, 270.0, -27.0, 2.0])/180.0
+        # self.coefs_central_d1_4 = np.array([1.0, -8.0, 0.0, 8.0, -1.0])/12.0
+        
+        # PRESSURE FIELD
+        self.po = np.zeros(self.grid_shape) # pressure field in previous time step
+        self.p = np.zeros(self.grid_shape) # pressure field in current time step
+        self.pn = np.zeros(self.grid_shape) # pressure field in next time step
+        
+        # AUXILARY FUNCTIONS
+        self.phiX = np.zeros(self.grid_shape)
+        self.phiXn = np.zeros(self.grid_shape)
+        
+        
+        # FORCING FIELD
+        self.f = np.zeros(self.grid_shape) # current time step
+        self.pressure_fields = [np.zeros(self.grid_shape),np.zeros(self.grid_shape)]
+               
+    # def simulate(self, t):
+    #     for x in range(self.grid_shape_x)[3:-3]:
+    
+    #         # kx = (i < 20) ? (20 - i) * kxMin/10.0
+    #         # ky = (i < 20) ? 0.05
+    #         width = 7
+    #         kx = 40 * np.power((width - x) / width, 2)
+         
+    #         coefs = np.array([ 2.0, -27.0, 270.0, -490.0, 270.0, -27.0, 2.0 ])
+    #         KPx = 0.0
+    #         for k in range(7):
+    #          	KPx += coefs[k] * self.p[x+k-3]
+               
+    #         KPx /= 180.0
+               
+    #         term1 = 2 * self.p[x]
+    #         term2 = -self.po[x]
+    #         term3 = self.wave_speed**2 * (KPx + self.f[x])
+    #         term4 = -kx * (self.p[x] - self.po[x]) / self.dt
+    #         dphiXdx = 0.0
+    #         fourthCoefs = np.array([ 1.0, -8.0, 0.0, 8.0, -1.0 ])
+    #         for k in range(5):
+    #          	dphiXdx += fourthCoefs[k] * self.phiX[x + k - 2]
+               
+    #         dphiXdx /= 12.0
+               
+    #         term5 = dphiXdx
+    #         self.pn[x] = term1 + term2 + self.dt**2 * (term3 + term4 + term5)
+               
+    #         dpdx = 0.0
+    #         for k in range(5):
+    #          	dpdx += fourthCoefs[k] * self.pn[x + k - 2]
+               
+    #         dpdx /= 12.0
+               
+    #         self.phiXn[x] = self.phiX[x] - self.dt * kx * self.phiX[x] + self.dt * self.wave_speed**2 * (kx) * dpdx
+    
+    #     self.phiX = self.phiXn
+
+    #     self.po = self.p
+    #     self.p = self.pn
+   
+    #     self.f = np.zeros(self.grid_shape)
+        
+    #     # print(np.max(self.p))
+    #     # if self.debug:
+    #     #     self.pressure_fields.append(self.p)
+    #     self.pressure_fields.append(self.p)
+            
+    def simulate(self, t):
+        for x in range(self.grid_shape_x)[1:-1]:
+            # TODO may be init value should be considered precisely.
+            # kx = (i < 20) ? (20 - i) * kxMin/10.0
+            # ky = (i < 20) ? 0.05
+            width = 7
+            kx = 40 * np.power((width - x) / width, 2)
+            # kx = 1
+         
+            term1 = kx * self.dt/2
+            term2 = 2 * self.p[x] - (1 - term1) * self.po[x]
+     
+            # another stenicil may be used
+            dpdx2 = (self.p[x+1]-2*self.p[x]+self.p[x-1])/(self.dx**2)
+            
+            # todo not sure about the phiX 
+            # dphidx = (self.phiX[x]+self.phiX[x-1]-self.phiX[x-1]-self.phiX[x-1])/(2*self.dx)
+            dphidx = (self.phiX[x+1]-self.phiX[x-1])/(2*self.dx)
+                     
+            term3 = self.wave_speed**2 * dpdx2 + dphidx
+            self.pn[x] = (term2 + self.dt**2 * term3)/(1+term1) + self.f[x]  
+            
+            # UPDATE RULE (phi)
+            term4 = 1/self.dt + kx/2;
+            term5 = 1/self.dt - kx/2;
+            dpdy = (self.p[x+1]-self.p[x-1])/(2*self.dx);
+            # fourthCoefs = np.array([ 1.0, -8.0, 0.0, 8.0, -1.0 ]) # coefs = FD.get_fd_coefficients(1, 4)
+            # dpdx = 0.0 # more accurate stencil may be used
+            # for k in range(5):
+            #  	dpdx += fourthCoefs[k] * self.pn[x + k - 2]
+            # dpdx /= 12.0
+            term6 = term5 * self.phiX[x] + self.wave_speed**2 * kx * dpdy;
+            self.phiXn[x] = term6/term4
+            
+        self.phiX = self.phiXn
+
+        self.po = self.p
+        self.p = self.pn
+   
+        self.f = np.zeros(self.grid_shape)
+        
+        # print(np.max(self.p))
+        # if self.debug:
+        #     self.pressure_fields.append(self.p)
+        self.pressure_fields.append(self.p)
 
 if __name__ == "__main__":
     r = np.arange(5)
