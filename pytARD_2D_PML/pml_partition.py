@@ -188,7 +188,7 @@ class PMLPartition_1D(Partition):
         # TODO i'm forcing the pml to have the width
         self.x, = partition_dimensions
         self.gridgrid_shape_x = parent_part.grid_shape_x
-        self.grid_shape_x = 7
+        self.grid_shape_x = 5
         self.grid_shape = (self.grid_shape_x,)
         # self.coefs_central_d2_6 = np.array([2.0, -27.0, 270.0, -490.0, 270.0, -27.0, 2.0])/180.0
         # self.coefs_central_d1_4 = np.array([1.0, -8.0, 0.0, 8.0, -1.0])/12.0
@@ -261,32 +261,31 @@ class PMLPartition_1D(Partition):
             # TODO may be init value should be considered precisely.
             # kx = (i < 20) ? (20 - i) * kxMin/10.0
             # ky = (i < 20) ? 0.05
-            width = 7
+            width = 5
             kx = 40 * np.power((width - x) / width, 2)
+            # kx = 0
             # kx = 1
-         
+            
+            # UPDATE RULE (p field @time n+1)
             term1 = kx * self.dt/2
             term2 = 2 * self.p[x] - (1 - term1) * self.po[x]
      
-            # another stenicil may be used
+            # More accurate stencil may be used
             dpdx2 = (self.p[x+1]-2*self.p[x]+self.p[x-1])/(self.dx**2)
             
-            # todo not sure about the phiX 
+            # TODO not sure about the phiX 
             # dphidx = (self.phiX[x]+self.phiX[x-1]-self.phiX[x-1]-self.phiX[x-1])/(2*self.dx)
             dphidx = (self.phiX[x+1]-self.phiX[x-1])/(2*self.dx)
                      
             term3 = self.wave_speed**2 * dpdx2 + dphidx
-            self.pn[x] = (term2 + self.dt**2 * term3)/(1+term1) + self.f[x]  
+            # self.pn[x] = (term2 + self.dt**2 * term3)/(1+term1) + self.f[x]  
+            self.pn[x] = (term2 + self.dt**2 * term3)/(1+term1) + self.dt**2 * self.f[x]/(1+term1) # TODO check if the fix is correct
             
             # UPDATE RULE (phi)
             term4 = 1/self.dt + kx/2;
             term5 = 1/self.dt - kx/2;
+            # More accurate stencil may be used
             dpdy = (self.p[x+1]-self.p[x-1])/(2*self.dx);
-            # fourthCoefs = np.array([ 1.0, -8.0, 0.0, 8.0, -1.0 ]) # coefs = FD.get_fd_coefficients(1, 4)
-            # dpdx = 0.0 # more accurate stencil may be used
-            # for k in range(5):
-            #  	dpdx += fourthCoefs[k] * self.pn[x + k - 2]
-            # dpdx /= 12.0
             term6 = term5 * self.phiX[x] + self.wave_speed**2 * kx * dpdy;
             self.phiXn[x] = term6/term4
             
