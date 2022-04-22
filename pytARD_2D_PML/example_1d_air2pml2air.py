@@ -33,7 +33,7 @@ pml_thickness = 5
 signal = GaussianFirstDerivative(   sim_params, 
                                     signal_location = (room_x/2,), 
                                     dominant_frequency = 20,
-                                    time_offset = 0.09)
+                                    time_offset = 0.03)
 
 # AIR-Partitions
 air_partition_1 = AirPartition((room_x,), sim_params, signal)

@@ -262,8 +262,8 @@ class PMLPartition_1D(Partition):
             # kx = (i < 20) ? (20 - i) * kxMin/10.0
             # ky = (i < 20) ? 0.05
             width = 5
-            kx = 40 * np.power((width - x) / width, 2)
-            # kx = 0
+            # kx = 40 * np.power((width - x) / width, 2)
+            kx = 0
             # kx = 1
             
             # UPDATE RULE (p field @time n+1)
@@ -289,10 +289,10 @@ class PMLPartition_1D(Partition):
             term6 = term5 * self.phiX[x] + self.wave_speed**2 * kx * dpdy;
             self.phiXn[x] = term6/term4
             
-        self.phiX = self.phiXn
+        self.phiX = self.phiXn.copy()
 
-        self.po = self.p
-        self.p = self.pn
+        self.po = self.p.copy()
+        self.p = self.pn.copy()
    
         self.f = np.zeros(self.grid_shape)
         
