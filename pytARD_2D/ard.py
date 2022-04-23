@@ -1,7 +1,6 @@
 from pytARD_2D.interface import Interface2D
 
 import numpy as np
-from scipy.fft import idctn, dctn
 from tqdm import tqdm
 
 
@@ -10,7 +9,7 @@ class ARDSimulator:
     ARD Simulation class. Creates and runs ARD simulator instance.
     '''
 
-    def __init__(self, sim_param, part_data, normalization_factor, interface_data=[], mics=[]):
+    def __init__(self, sim_param, part_data, normalization_factor=1, interface_data=[], mics=[]):
         '''
         Create and run ARD simulator instance.
 
@@ -59,48 +58,8 @@ class ARDSimulator:
 
             # Reverberation generation sensation
             for i in range(len(self.part_data)):
-
-                # Execute DCT for next sample
-                self.part_data[i].forces = dctn(self.part_data[i].new_forces, 
-                    type=2, 
-                    s=[ # TODO This parameter may be unnecessary
-                        self.part_data[i].space_divisions_y, 
-                        self.part_data[i].space_divisions_x
-                    ])
-
-                # Updating mode for spectral coefficients p.
-                # Relates to (2 * F^n) / (ω_i ^ 2) * (1 - cos(ω_i * Δ_t)) in equation 8.
-                self.part_data[i].force_field = (
-                    (2 * self.part_data[i].forces) / ((self.part_data[i].omega_i) ** 2)) * (
-                        1 - np.cos(self.part_data[i].omega_i * self.sim_param.delta_t))
-
-                # Edge case for first iteration according to Nikunj Raghuvanshi. p[n+1] = 2*p[n] – p[n-1] + (\delta t)^2 f[n], while f is impulse and p is pressure field.
-                self.part_data[i].force_field[0, 0] = 2 * self.part_data[i].M_current[0, 0] - self.part_data[i].M_previous[0, 0] + \
-                    self.sim_param.delta_t ** 2 * \
-                        self.part_data[i].impulses[t_s][0, 0]
-
-                # Relates to M^(n+1) in equation 8.
-                self.part_data[i].M_next = (2 * self.part_data[i].M_current * np.cos(
-                    self.part_data[i].omega_i * self.sim_param.delta_t) - self.part_data[i].M_previous + self.part_data[i].force_field)
-
-                # Convert modes to pressure values using inverse DCT.
-                self.part_data[i].pressure_field = idctn(self.part_data[i].M_next.reshape(
-                    self.part_data[i].space_divisions_y, 
-                    self.part_data[i].space_divisions_x), 
-                    type=2, 
-                    s=[ # TODO This parameter may be unnecessary
-                        self.part_data[i].space_divisions_y, 
-                        self.part_data[i].space_divisions_x
-                    ])
-
-                # Normalize pressure p by using normalization constant.
-                self.part_data[i].pressure_field *= np.sqrt(self.normalization_factor)
-
-                # Add results of IDCT to pressure field
-                self.part_data[i].pressure_field_results.append(
-                    self.part_data[i].pressure_field.copy())
-
-                # Loop through microphones and record pressure field at given position
+                self.part_data[i].simulate(t_s, self.normalization_factor)
+                
                 for m_i in range(len(self.mics)):
                     p_num = self.mics[m_i].partition_number
                     pressure_field_y = int(self.part_data[p_num].space_divisions_y * (
@@ -113,13 +72,6 @@ class ARDSimulator:
                             self.part_data[p_num].space_divisions_y, 
                             self.part_data[p_num].space_divisions_x, 1]
                         )[pressure_field_y][pressure_field_x], t_s)
-
-                # Update time stepping to prepare for next time step / loop iteration.
-                self.part_data[i].M_previous = self.part_data[i].M_current.copy()
-                self.part_data[i].M_current = self.part_data[i].M_next.copy()
-
-                # Update impulses
-                self.part_data[i].new_forces = self.part_data[i].impulses[t_s].copy()
 
         if self.sim_param.verbose:
             print(f"Simulation completed successfully.\n")
