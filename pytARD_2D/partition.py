@@ -1,7 +1,7 @@
 from common.parameters import SimulationParameters
 
 import numpy as np
-import enum
+from enum import Enum
 from scipy.fft import idctn, dctn
 from scipy.io.wavfile import read
 from scipy.fftpack import idct, dct
@@ -30,34 +30,29 @@ class Partition(): # TODO Implement
         h_y = SimulationParameters.calculate_voxelization_step(sim_param) 
         h_x = SimulationParameters.calculate_voxelization_step(sim_param)     
         return h_y, h_x 
-'''
-class PMLType(enum):
-    LEFT = {
-        # kx
+
+
+class PMLType(Enum):
+    LEFT = { # for kx
         "Min": 0.2, "Max": 0.0
     }
-
-    RIGHT = {
-        # kx
+    RIGHT = { # for kx
+        "Min": 0.0, "Max": 0.2
+    }
+    TOP = { # for ky
+        "Min": 0.2, "Max": 0.0
+    }
+    BOTTOM = { # for ky
         "Min": 0.0, "Max": 0.2
     }
 
-    TOP = {
-        # ky
-        "Min": 0.2, "Max": 0.0
-    }
 
-    LEFT = {
-        # ky
-        "Min": 0.0, "Max": 0.2
-    }
-'''
-
-class PMLPartition:
+class PMLPartition(Partition):
     def __init__(
         self,
-        dimensions,
-        sim_param,
+        dimensions: np.ndarray,
+        sim_param: SimulationParameters, 
+        type: PMLType
     ):
         self.dimensions = dimensions
         self.sim_param = sim_param
@@ -71,15 +66,22 @@ class PMLPartition:
         # Longest room dimension length dividied by H (voxel grid spacing).
         self.space_divisions_y = int(dimensions[1] / self.h_y)
         self.space_divisions_x = int(dimensions[0] / self.h_x)
+    
+        if type == PMLType.LEFT or type == PMLType.RIGHT:
+            #self.space_divisions_x += 1
+            print("horizontal")
+        else:
+            #self.space_divisions_y += 1
+            print("vertical")
 
         # Instantiate force f to spectral domain array, which corresponds to 𝑓~. (results of DCT computation). TODO: Elaborate more
-        self.force = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
+        self.new_forces = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
 
         # Array, which stores air pressure at each given point in time in the voxelized grid
         self.p_old = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
 
         # TODO: Who dis? -> Document
-        self.p = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
+        self.pressure_field = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
 
         # Array for pressure field results (auralisation and visualisation)
         self.p_new = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
@@ -92,14 +94,119 @@ class PMLPartition:
 
         self.include_self_terms = False
         self.render = False
+        self.type = type
 
-    def preprocessing():
+        self.FDTD_coeffs = [2.0, -27.0, 270.0, -490.0, 270.0, -27.0, 2.0]
+        self.fourth_coeffs = [1.0, -8.0, 0.0, 8.0, -1.0]
+
+        if sim_param.verbose:
+            print(
+                f"Created PML partition with dimensions {self.dimensions[0]}x{self.dimensions[1]} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions (y): {self.space_divisions_y} (x): {self.space_divisions_x}")
+
+
+    def preprocessing(self):
         pass
 
-    def simulate():
-        pass
+    def simulate(self, t_s, normalization_factor=1):
+        dx = 1.0 
+        dy = 1.0
 
-class AirPartition:
+        for i in range(self.space_divisions_x):
+            kx = 0.0
+            ky = 0.0
+
+            # TODO put both ifs together into one -> optimize
+            if self.type == PMLType.LEFT:
+                if i < 20:
+                    kx = (20 - i) * self.type.value['Min'] / 10.0
+                    ky = 0.05
+                else:
+                    kx = 0.0
+                    ky = 0.0
+            
+            if self.type == PMLType.RIGHT:
+                if i < 20:
+                    kx = (20 - i) * self.type.value['Max'] / 10.0
+                    ky = 0.05
+                else:
+                    kx = 0.0
+                    ky = 0.0
+            
+            for j in range(self.space_divisions_y):
+                if self.type == PMLType.TOP:
+                    if j < 20:
+                        ky = (20 - j) * self.type.value['Min'] / 10.0
+                        kx = 0.05
+                    else:
+                        kx = 0.0
+                        ky = 0.0
+                
+                if self.type == PMLType.RIGHT:
+                    if j < 20:
+                        ky = (20 - j) * self.type.value['Max'] / 10.0
+                        kx = 0.05
+                    else:
+                        kx = 0.0
+                        ky = 0.0
+                
+                KPx = 0.0
+                KPy = 0.0
+
+                for k in range(len(self.FDTD_coeffs)):
+                    KPx += self.FDTD_coeffs[k] * self.pressure_field[j, i * k - 3]
+                    KPy += self.FDTD_coeffs[k] * self.pressure_field[j + k - 3, i]
+                    
+                KPx /= 180.0
+                KPy /= 180.0
+
+                term1 = 2 * self.pressure_field[j, i]
+                term2 = -self.p_old[j, i]
+                term3 = (self.sim_param.c ** 2) * (KPx + KPy + self.new_forces[j, i])
+                term4 = -(kx + ky) * (self.pressure_field[j, i] - self.p_old[j, i]) / self.sim_param.delta_t
+                term5 = -kx * ky * self.pressure_field[j, i]
+
+                dphidx = 0.0
+                dphidy = 0.0
+
+                for k in range(len(self.fourth_coeffs)):
+                    dphidx += self.fourth_coeffs[k] * self.phi_x [j, i * k - 2]
+                    dphidy += self.fourth_coeffs[k] * self.phi_y[j + k - 2, i]
+
+                dphidx /= 12.0
+                dphidy /= 12.0
+
+                term6 = dphidx + dphidy
+
+                # Calculation of next wave
+                self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6))
+
+                dudx = 0.0
+                dudy = 0.0
+
+                for k in range(len(self.fourth_coeffs)):
+                    dudx += self.fourth_coeffs[k] * self.p_new[j, i + k - 2]
+                    dudy += self.fourth_coeffs[k] * self.p_new[j + k - 2, i]
+
+                dudx /= 12.0
+                dudy /= 12.0
+
+                self.phi_x_new[j, i] = self.phi_x[j, i] - self.sim_param.delta_t * kx * self.phi_x[j, i] + self.sim_param.delta_t * (self.sim_param.c ** 2) * (ky - kx) * dudx
+                self.phi_y_new[j, i] = self.phi_y[j, i] - self.sim_param.delta_t * ky * self.phi_y[j, i] + self.sim_param.delta_t * (self.sim_param.c ** 2) * (kx - ky) * dudy
+
+        # Swap old with new phis with the new switcheroo
+        self.phi_x, self.phi_x_new = self.phi_x_new, self.phi_x
+        self.phi_y, self.phi_y_new = self.phi_y_new, self.phi_y
+        
+        # Do the ol' switcheroo
+        temp = self.p_old
+        self.p_old = self.pressure_field
+        self.pressure_field = self.p_new
+        self.p_new = temp
+
+        # Reset force
+        self.new_forces = np.zeros(shape=self.new_forces.shape)
+
+class AirPartition(Partition):
     def __init__(
         self,
         dimensions,
@@ -157,7 +264,7 @@ class AirPartition:
 
         if sim_param.verbose:
             print(
-                f"Created partition with dimensions {self.dimensions[0]}x{self.dimensions[1]} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions (y): {self.space_divisions_y} (x): {self.space_divisions_x}")
+                f"Created air partition with dimensions {self.dimensions[0]}x{self.dimensions[1]} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions (y): {self.space_divisions_y} (x): {self.space_divisions_x}")
 
     def preprocessing(self):
         '''

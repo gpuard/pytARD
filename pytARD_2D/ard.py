@@ -59,7 +59,8 @@ class ARDSimulator:
             # Reverberation generation sensation
             for i in range(len(self.part_data)):
                 self.part_data[i].simulate(t_s, self.normalization_factor)
-                
+
+                # Microphone handling
                 for m_i in range(len(self.mics)):
                     p_num = self.mics[m_i].partition_number
                     pressure_field_y = int(self.part_data[p_num].space_divisions_y * (
@@ -67,11 +68,10 @@ class ARDSimulator:
                     pressure_field_x = int(self.part_data[p_num].space_divisions_x * (
                         self.mics[m_i].location[0] / self.part_data[p_num].dimensions[0]))
 
-                    self.mics[m_i].record(self.part_data[p_num].pressure_field.copy().reshape(
-                        [
-                            self.part_data[p_num].space_divisions_y, 
-                            self.part_data[p_num].space_divisions_x, 1]
-                        )[pressure_field_y][pressure_field_x], t_s)
+                    self.mics[m_i].record(self.part_data[p_num].pressure_field.copy().reshape([
+                        self.part_data[p_num].space_divisions_y, 
+                        self.part_data[p_num].space_divisions_x, 1]
+                    )[pressure_field_y][pressure_field_x], t_s)
 
         if self.sim_param.verbose:
             print(f"Simulation completed successfully.\n")

@@ -1,5 +1,5 @@
 from pytARD_2D.ard import ARDSimulator as ARDS
-from pytARD_2D.partition import AirPartition as PARTD
+from pytARD_2D.partition import AirPartition, PMLPartition, PMLType
 from pytARD_2D.interface import InterfaceData2D, Direction2D
 
 from common.parameters import SimulationParameters as SIMP
@@ -44,17 +44,15 @@ impulse = Unit(sim_param, impulse_location, 1, upper_frequency_limit-1)
 #impulse = WaveFile(sim_param, impulse_location, 'clap_8000.wav', 100)
 
 # Paritions of the room. Can be 1..n. Add or remove rooms here.
-partition_1 = PARTD(np.array([[int(c / SCALE)], [int(c / SCALE)]]), sim_param, impulse)
-partition_2 = PARTD(np.array([[int(c / SCALE)], [int(c / SCALE)]]), sim_param)
-partition_3 = PARTD(np.array([[int(c / SCALE)], [int(c / SCALE)]]), sim_param)
+air_partition = AirPartition(np.array([[int(c / SCALE)], [int(c / SCALE)]]), sim_param, impulse)
+pml_partition = PMLPartition(np.array([[1.5], [int(c / SCALE)]]), sim_param, PMLType.LEFT)
 
 # Compilation of all partitions into one part_data object. Add or remove rooms here. TODO change to obj.append()
-part_data = [partition_1, partition_2, partition_3]
+part_data = [air_partition, pml_partition]
 
 # Interfaces of the room. Interfaces connect the room together
 interfaces = []
 interfaces.append(InterfaceData2D(0, 1, Direction2D.X))
-interfaces.append(InterfaceData2D(1, 2, Direction2D.Y))
 
 # Microphones (are optional)
 mic1 = Mic(
@@ -65,24 +63,10 @@ mic1 = Mic(
     sim_param, 
     "left" # Name of resulting wave file
 )
-mic2 = Mic(
-    1, 
-    [int(part_data[1].dimensions[0] / 2), 
-    int(part_data[1].dimensions[1] / 2)], 
-    sim_param, 
-    "right"
-)
-mic3 = Mic(
-    2, 
-    [int(part_data[2].dimensions[0] / 2), 
-    int(part_data[2].dimensions[1] / 2)], 
-    sim_param, 
-    "bottom"
-)
 
 if auralize:
     # Compilation of all microphones into one mics object. Add or remove mics here. TODO change to obj.append()
-    mics = [mic1, mic2, mic3]
+    mics = [mic1]
 
     # Instantiation serializer for reading and writing simulation state data
     serializer = Serializer(compress=compress_file)
