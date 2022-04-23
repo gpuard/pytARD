@@ -1,5 +1,5 @@
 from pytARD_3D.ard import ARDSimulator as ARDS
-from pytARD_3D.partition_data import PartitionData as PARTD
+from pytARD_3D.partition import PartitionData as PARTD
 from pytARD_3D.interface import InterfaceData3D, Direction3D
 
 from common.parameters import SimulationParameters as SIMP

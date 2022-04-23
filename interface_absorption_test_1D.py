@@ -2,7 +2,7 @@ from common.parameters import SimulationParameters as SIMP
 from common.microphone import Microphone as Mic
 
 from pytARD_1D.ard import ARDSimulator as ARDS
-from pytARD_1D.partition_data import PartitionData as PARTD
+from pytARD_1D.partition import PartitionData as PARTD
 from pytARD_1D.interface import InterfaceData1D
 
 from wavdiff import wav_diff, visualize_diff 

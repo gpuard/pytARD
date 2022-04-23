@@ -76,6 +76,10 @@ class ARDSimulator:
                 # Normalize pressure p by using normalization constant.
                 self.part_data[i].pressure_field *= self.normalization_factor
 
+                # Add results of IDCT to pressure field
+                self.part_data[i].pressure_field_results.append(
+                    self.part_data[i].pressure_field.copy())
+
                 # Record signal with mics
                 for m_i in range(len(self.mics)):
                     p_num = self.mics[m_i].partition_number                    

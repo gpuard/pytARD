@@ -1,7 +1,8 @@
 from common.parameters import SimulationParameters as SIMP
 
 from pytARD_1D.ard import ARDSimulator as ARDS
-from pytARD_1D.partition_data import PartitionData as PARTD
+from pytARD_1D.partition import PartitionData as PARTD
+from pytARD_1D.interface import InterfaceData1D
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,13 +31,15 @@ sim_params = SIMP(
     visualize=visualize
 )
 
-partition_1 = PARTD(np.array([c * 2]), sim_params)
-partition_2 = PARTD(np.array([c * 2]), sim_params,do_impulse=False)
-
+partition_1 = PARTD(np.array([c / 2]), sim_params)
+partition_2 = PARTD(np.array([c / 2]), sim_params, do_impulse=False)
 part_data = [partition_1, partition_2]
 
+interfaces = []
+interfaces.append(InterfaceData1D(0, 1))
+
 # Instantiating and executing simulation
-sim = ARDS(sim_params, part_data)
+sim = ARDS(sim_params, part_data, 1, interfaces)
 sim.preprocessing()
 sim.simulation()
 
