@@ -10,6 +10,9 @@ from common.microphone import Microphone as Mic
 
 import numpy as np
 
+# For Debug
+np.seterr(all='raise')
+
 # Room parameters
 duration = 1  #  seconds
 Fs = 10000  # sample rate
@@ -52,7 +55,7 @@ part_data = [air_partition, pml_partition]
 
 # Interfaces of the room. Interfaces connect the room together
 interfaces = []
-interfaces.append(InterfaceData2D(0, 1, Direction2D.X))
+#interfaces.append(InterfaceData2D(0, 1, Direction2D.X))
 
 # Microphones (are optional)
 mic1 = Mic(

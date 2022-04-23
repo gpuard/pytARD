@@ -75,22 +75,22 @@ class PMLPartition(Partition):
             print("vertical")
 
         # Instantiate force f to spectral domain array, which corresponds to 𝑓~. (results of DCT computation). TODO: Elaborate more
-        self.new_forces = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
+        self.new_forces = np.zeros(shape=[self.space_divisions_y + 1, self.space_divisions_x + 1])
 
         # Array, which stores air pressure at each given point in time in the voxelized grid
-        self.p_old = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
+        self.p_old = np.zeros(shape=[self.space_divisions_y + 1, self.space_divisions_x + 1])
 
         # TODO: Who dis? -> Document
-        self.pressure_field = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
+        self.pressure_field = np.zeros(shape=[self.space_divisions_y + 1, self.space_divisions_x + 1])
 
         # Array for pressure field results (auralisation and visualisation)
-        self.p_new = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
+        self.p_new = np.zeros(shape=[self.space_divisions_y + 1, self.space_divisions_x + 1])
 
         # See paper TODO: Make better documentation
-        self.phi_x = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
-        self.phi_x_new = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
-        self.phi_y = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
-        self.phi_y_new = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
+        self.phi_x = np.zeros(shape=[self.space_divisions_y + 1, self.space_divisions_x + 1])
+        self.phi_x_new = np.zeros(shape=[self.space_divisions_y + 1, self.space_divisions_x + 1])
+        self.phi_y = np.zeros(shape=[self.space_divisions_y + 1, self.space_divisions_x + 1])
+        self.phi_y_new = np.zeros(shape=[self.space_divisions_y + 1, self.space_divisions_x + 1])
 
         self.include_self_terms = False
         self.render = False
@@ -99,6 +99,9 @@ class PMLPartition(Partition):
         self.FDTD_coeffs = [2.0, -27.0, 270.0, -490.0, 270.0, -27.0, 2.0]
         self.fourth_coeffs = [1.0, -8.0, 0.0, 8.0, -1.0]
 
+        # Array for pressure field results (auralisation and visualisation)
+        self.pressure_field_results = []
+
         if sim_param.verbose:
             print(
                 f"Created PML partition with dimensions {self.dimensions[0]}x{self.dimensions[1]} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions (y): {self.space_divisions_y} (x): {self.space_divisions_x}")
@@ -106,6 +109,12 @@ class PMLPartition(Partition):
 
     def preprocessing(self):
         pass
+
+    def get_safe(self, source, y, x):
+        if x < 0 or x >= self.space_divisions_x or y < 0 or y >= self.space_divisions_y:
+            return source[-1, -1]
+        return source[y, x]    
+        
 
     def simulate(self, t_s, normalization_factor=1):
         dx = 1.0 
@@ -153,8 +162,8 @@ class PMLPartition(Partition):
                 KPy = 0.0
 
                 for k in range(len(self.FDTD_coeffs)):
-                    KPx += self.FDTD_coeffs[k] * self.pressure_field[j, i * k - 3]
-                    KPy += self.FDTD_coeffs[k] * self.pressure_field[j + k - 3, i]
+                    KPx += self.FDTD_coeffs[k] * self.get_safe(self.pressure_field, j, i * k - 3)
+                    KPy += self.FDTD_coeffs[k] * self.get_safe(self.pressure_field, j + k - 3, i)
                     
                 KPx /= 180.0
                 KPy /= 180.0
@@ -169,8 +178,8 @@ class PMLPartition(Partition):
                 dphidy = 0.0
 
                 for k in range(len(self.fourth_coeffs)):
-                    dphidx += self.fourth_coeffs[k] * self.phi_x [j, i * k - 2]
-                    dphidy += self.fourth_coeffs[k] * self.phi_y[j + k - 2, i]
+                    dphidx += self.fourth_coeffs[k] * self.get_safe(self.phi_x, j, i * k - 2)
+                    dphidy += self.fourth_coeffs[k] * self.get_safe(self.phi_y, j + k - 2, i)
 
                 dphidx /= 12.0
                 dphidy /= 12.0
@@ -184,14 +193,16 @@ class PMLPartition(Partition):
                 dudy = 0.0
 
                 for k in range(len(self.fourth_coeffs)):
-                    dudx += self.fourth_coeffs[k] * self.p_new[j, i + k - 2]
-                    dudy += self.fourth_coeffs[k] * self.p_new[j + k - 2, i]
+                    dudx += self.fourth_coeffs[k] * self.get_safe(self.p_new, j, i + k - 2)
+                    dudy += self.fourth_coeffs[k] * self.get_safe(self.p_new, j + k - 2, i)
 
                 dudx /= 12.0
                 dudy /= 12.0
 
                 self.phi_x_new[j, i] = self.phi_x[j, i] - self.sim_param.delta_t * kx * self.phi_x[j, i] + self.sim_param.delta_t * (self.sim_param.c ** 2) * (ky - kx) * dudx
                 self.phi_y_new[j, i] = self.phi_y[j, i] - self.sim_param.delta_t * ky * self.phi_y[j, i] + self.sim_param.delta_t * (self.sim_param.c ** 2) * (kx - ky) * dudy
+
+        self.pressure_field_results.append(self.p_new.copy())
 
         # Swap old with new phis with the new switcheroo
         self.phi_x, self.phi_x_new = self.phi_x_new, self.phi_x
