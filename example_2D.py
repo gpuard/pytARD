@@ -24,7 +24,7 @@ spatial_samples_per_wave_length = 4
 verbose = True
 auralize = True
 visualize = True
-write_to_file = False
+write_to_file = True
 compress_file = True
 
 # Compilation of room parameters into parameter class
@@ -38,7 +38,7 @@ sim_param = SIMP(
     visualize=visualize
 )
 
-SCALE = 60  # Scale of room. Gets calculated by speed of sound divided by SCALE
+SCALE = 100  # Scale of room. Gets calculated by speed of sound divided by SCALE
 
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want
 impulse_location = np.array([[int((c / SCALE) / 2)], [int((c / SCALE) / 2)]])
@@ -55,7 +55,7 @@ part_data = [air_partition, pml_partition]
 
 # Interfaces of the room. Interfaces connect the room together
 interfaces = []
-#interfaces.append(InterfaceData2D(0, 1, Direction2D.X))
+interfaces.append(InterfaceData2D(0, 1, Direction2D.X))
 
 # Microphones (are optional)
 mic1 = Mic(
@@ -81,8 +81,6 @@ sim.simulation()
 
 # Write partitions and state data to disk
 if write_to_file:
-    if verbose:
-        print("Writing state data to disk. Please wait...")
     serializer.dump(sim_param, part_data)
 
 # Plotting waveform

@@ -135,7 +135,7 @@ class PMLPartition(Partition):
             
             if self.type == PMLType.RIGHT:
                 if i < 20:
-                    kx = (20 - i) * self.type.value['Max'] / 10.0
+                    kx = (i - 20) * self.type.value['Max'] / 10.0
                     ky = 0.05
                 else:
                     kx = 0.0
@@ -150,9 +150,9 @@ class PMLPartition(Partition):
                         kx = 0.0
                         ky = 0.0
                 
-                if self.type == PMLType.RIGHT:
+                if self.type == PMLType.BOTTOM:
                     if j < 20:
-                        ky = (20 - j) * self.type.value['Max'] / 10.0
+                        ky = (j - 20) * self.type.value['Max'] / 10.0
                         kx = 0.05
                     else:
                         kx = 0.0
@@ -170,7 +170,12 @@ class PMLPartition(Partition):
 
                 term1 = 2 * self.pressure_field[j, i]
                 term2 = -self.p_old[j, i]
-                term3 = (self.sim_param.c ** 2) * (KPx + KPy + self.new_forces[j, i])
+                #if t_s < 10:
+                #term3 = (self.sim_param.c ** 2) * (KPx + KPy + self.new_forces[j, i])
+                term3 = (self.sim_param.c ** 2) * (KPx + KPy)
+                #else:
+                #    term3 = (self.sim_param.c ** 2) * (KPx + KPy)
+                #print(f"{term3}", end="\t")
                 term4 = -(kx + ky) * (self.pressure_field[j, i] - self.p_old[j, i]) / self.sim_param.delta_t
                 term5 = -kx * ky * self.pressure_field[j, i]
 
@@ -187,7 +192,8 @@ class PMLPartition(Partition):
                 term6 = dphidx + dphidy
 
                 # Calculation of next wave
-                self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6))
+                #self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6))
+                self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6)) + self.sim_param.delta_t**2 * self.new_forces[j, i] / (1 + ((KPx+KPy)/2) * self.sim_param.delta_t)
 
                 dudx = 0.0
                 dudy = 0.0
@@ -209,9 +215,9 @@ class PMLPartition(Partition):
         self.phi_y, self.phi_y_new = self.phi_y_new, self.phi_y
         
         # Do the ol' switcheroo
-        temp = self.p_old
-        self.p_old = self.pressure_field
-        self.pressure_field = self.p_new
+        temp = self.p_old.copy()
+        self.p_old = self.pressure_field.copy()
+        self.pressure_field = self.p_new.copy()
         self.p_new = temp
 
         # Reset force

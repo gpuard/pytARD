@@ -68,13 +68,14 @@ class Plotter():
 
             plt.title(f"t = {(self.sim_param.T * (i / self.sim_param.number_of_samples)):.4f}s")
 
-            ax_1.imshow(Z_1)
+            cock = ax_1.imshow(Z_1)
             ax_2.imshow(Z_2)
             # ax_3.imshow(Z_3)
-
+            cbar_ax = fig.add_axes([0.88, 0.15, 0.04, 0.7])
+            fig.colorbar(cock, cax=cbar_ax)
             plt.pause(0.1)
 
-        plot_step = 50
+        plot_step = 10
 
     def plot_3D(self):
         partition_1 = self.partitions[0]

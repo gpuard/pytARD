@@ -12,6 +12,8 @@ class Serializer():
 
     def dump(self, sim_params, partitions):
         file_path = self.create_filename() + ".xz"
+        if sim_params.verbose:
+            print(f"Writing state data to disk ({file_path}). Please wait...", end="")
         if self.compress: 
             with lzma.open(file_path, 'wb') as fh:
                 pickle.dump((sim_params, partitions), fh)
@@ -20,6 +22,8 @@ class Serializer():
             with pickle.open(file_path, 'wb') as fh:
                 pickle.dump((sim_params, partitions), fh)
                 fh.close()
+        if sim_params.verbose:
+            print("Done.")
 
     def read(self, file_path):
         # TODO: Idea -> See which suffix the file has. If xz, use lzma
