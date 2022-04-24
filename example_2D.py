@@ -1,5 +1,5 @@
 from pytARD_2D.ard import ARDSimulator as ARDS
-from pytARD_2D.partition import AirPartition, PMLPartition, PMLType
+from pytARD_2D.partition import AirPartition, PMLPartition, PMLType, DampingProfile
 from pytARD_2D.interface import InterfaceData2D, Direction2D
 
 from common.parameters import SimulationParameters as SIMP
@@ -43,26 +43,28 @@ SCALE = 100  # Scale of room. Gets calculated by speed of sound divided by SCALE
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want
 impulse_location = np.array([[int((c / SCALE) / 2)], [int((c / SCALE) / 2)]])
 # impulse = Gaussian(sim_param, impulse_location, 10000)
-#impulse = Unit(sim_param, impulse_location, 1, upper_frequency_limit-1)
-impulse = WaveFile(sim_param, impulse_location, 'clap_8000.wav', 100)
+impulse = Unit(sim_param, impulse_location, 1, upper_frequency_limit-1)
+#impulse = WaveFile(sim_param, impulse_location, 'clap_8000.wav', 100)
 
 # Compilation of all partitions into one part_data object. Add or remove rooms here.
 part_data = []
 
+damping_profile = DampingProfile(40)
+
 # Paritions of the room. Can be 1..n. Add or remove rooms here.
 part_data.append(AirPartition(np.array([[int(c / SCALE)], [int(c / SCALE)]]), sim_param, impulse))
-part_data.append(PMLPartition(np.array([[1.2], [int(c / SCALE)]]), sim_param, PMLType.LEFT))
-part_data.append(PMLPartition(np.array([[1.2], [int(c / SCALE)]]), sim_param, PMLType.RIGHT))
-part_data.append(PMLPartition(np.array([[int(c / SCALE)], [1.2]]), sim_param, PMLType.TOP))
-part_data.append(PMLPartition(np.array([[int(c / SCALE)], [1.2]]), sim_param, PMLType.BOTTOM))
+part_data.append(PMLPartition(np.array([[1.2], [int(c / SCALE)]]), sim_param, PMLType.LEFT, damping_profile))
+#part_data.append(PMLPartition(np.array([[1.2], [int(c / SCALE)]]), sim_param, PMLType.RIGHT, damping_profile))
+#part_data.append(PMLPartition(np.array([[int(c / SCALE)], [1.2]]), sim_param, PMLType.TOP, damping_profile))
+#part_data.append(PMLPartition(np.array([[int(c / SCALE)], [1.2]]), sim_param, PMLType.BOTTOM, damping_profile))
 
 
 # Interfaces of the room. Interfaces connect the room together
 interfaces = []
 interfaces.append(InterfaceData2D(0, 1, Direction2D.X))
-interfaces.append(InterfaceData2D(0, 2, Direction2D.X))
-interfaces.append(InterfaceData2D(3, 0, Direction2D.Y))
-interfaces.append(InterfaceData2D(4, 0, Direction2D.Y))
+#interfaces.append(InterfaceData2D(0, 2, Direction2D.X))
+#interfaces.append(InterfaceData2D(3, 0, Direction2D.Y))
+#interfaces.append(InterfaceData2D(4, 0, Direction2D.Y))
 
 # Microphones (are optional)
 mic1 = Mic(

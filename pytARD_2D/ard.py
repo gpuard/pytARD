@@ -1,3 +1,6 @@
+from common.microphone import Microphone
+from common.parameters import SimulationParameters
+from pytARD_2D.partition import Partition
 from pytARD_2D.interface import Interface2D
 
 import numpy as np
@@ -9,7 +12,14 @@ class ARDSimulator:
     ARD Simulation class. Creates and runs ARD simulator instance.
     '''
 
-    def __init__(self, sim_param, part_data, normalization_factor=1, interface_data=[], mics=[]):
+    def __init__(
+        self, 
+        sim_param: SimulationParameters, 
+        part_data: Partition, 
+        normalization_factor: float=1, 
+        interface_data: Interface2D=[], 
+        mics: Microphone=[]
+        ):
         '''
         Create and run ARD simulator instance.
 

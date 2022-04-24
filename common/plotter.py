@@ -1,15 +1,16 @@
+import string
 from common.serializer import Serializer
 import matplotlib.pyplot as plt
 import numpy as np
 
 class Plotter():
 
-    def __init__(self, verbose=False):
+    def __init__(self, verbose: bool=False):
         self.sim_param = None
         self.partitions = None
         self.verbose=verbose
 
-    def set_data_from_file(self, file_name):
+    def set_data_from_file(self, file_name: string):
         serializer = Serializer(compress=True)
         (sim_params, partitions) = serializer.read(file_name)
         self.sim_param = sim_params

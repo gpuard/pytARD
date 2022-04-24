@@ -1,6 +1,9 @@
 import numpy as np
 import enum
 
+from common.parameters import SimulationParameters
+from pytARD_2D.partition import Partition
+
 class Direction2D(enum.Enum):
     '''
     Direction in which sound waves traverse the interface.
@@ -10,13 +13,13 @@ class Direction2D(enum.Enum):
     
 class InterfaceData2D():
     def __init__(self, part1_index, part2_index, direction):
-        self.part1_index = part1_index
-        self.part2_index = part2_index
-        self.direction = direction
+        self.part1_index: int = part1_index
+        self.part2_index: int = part2_index
+        self.direction: np.ndarray = direction
 
 class Interface2D():
 
-    def __init__(self, sim_params, part_data):
+    def __init__(self, sim_params: SimulationParameters, part_data: Partition):
         '''
         TODO: Doc
         '''

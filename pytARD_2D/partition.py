@@ -1,3 +1,4 @@
+from common.impulse import Impulse
 from common.parameters import SimulationParameters
 
 import numpy as np
@@ -46,13 +47,20 @@ class PMLType(Enum):
         "Min": 0.0, "Max": 0.2
     }
 
+class DampingProfile:
+    def __init__(self, zetta_i: float):
+        self.zetta_i = zetta_i
+
+    def damping_profile(self, x, width):
+        return self.zetta_i * (x / width - np.sin(2 * np.pi * x / width) / (2 * np.pi))
 
 class PMLPartition(Partition):
     def __init__(
         self,
         dimensions: np.ndarray,
         sim_param: SimulationParameters, 
-        type: PMLType
+        type: PMLType,
+        damping_profile: DampingProfile
     ):
         self.dimensions = dimensions
         self.sim_param = sim_param
@@ -97,6 +105,8 @@ class PMLPartition(Partition):
         # Array for pressure field results (auralisation and visualisation)
         self.pressure_field_results = []
 
+        self.damping_profile = damping_profile
+
         if sim_param.verbose:
             print(
                 f"Created PML partition with dimensions {self.dimensions[0]}x{self.dimensions[1]} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions (y): {self.space_divisions_y} (x): {self.space_divisions_x}")
@@ -116,9 +126,10 @@ class PMLPartition(Partition):
         dy = 1.0
 
         for i in range(self.space_divisions_x):
-            kx = 0.0
-            ky = 0.0
-
+            #kx = 0.0
+            #ky = 0.0
+            kx = self.damping_profile.damping_profile(i, self.space_divisions_x)
+            '''
             # TODO put both ifs together into one -> optimize
             if self.type == PMLType.LEFT:
                 if i < 20:
@@ -135,12 +146,15 @@ class PMLPartition(Partition):
                 else:
                     kx = 0.0
                     ky = 0.0
-            
+            '''
             for j in range(self.space_divisions_y):
+                ky = self.damping_profile.damping_profile(j, self.space_divisions_y)
+                '''
                 if self.type == PMLType.TOP:
                     if j < 20:
                         ky = (20 - j) * self.type.value['Min'] / 10.0
                         kx = 0.05
+                
                     else:
                         kx = 0.0
                         ky = 0.0
@@ -152,9 +166,7 @@ class PMLPartition(Partition):
                     else:
                         kx = 0.0
                         ky = 0.0
-                
-                kx = 1000
-                ky = 1000
+                '''
 
                 KPx = 0.0
                 KPy = 0.0
@@ -224,9 +236,9 @@ class PMLPartition(Partition):
 class AirPartition(Partition):
     def __init__(
         self,
-        dimensions,
-        sim_param,
-        impulse=None
+        dimensions: np.ndarray,
+        sim_param: SimulationParameters,
+        impulse:Impulse=None
     ):
         '''
         Parameter container class for ARD simulator. Contains all relevant data to instantiate
