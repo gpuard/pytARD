@@ -66,31 +66,26 @@ class PMLPartition(Partition):
         # Longest room dimension length dividied by H (voxel grid spacing).
         self.space_divisions_y = int(dimensions[1] / self.h_y)
         self.space_divisions_x = int(dimensions[0] / self.h_x)
-    
-        if type == PMLType.LEFT or type == PMLType.RIGHT:
-            #self.space_divisions_x += 1
-            print("horizontal")
-        else:
-            #self.space_divisions_y += 1
-            print("vertical")
 
-        # Instantiate force f to spectral domain array, which corresponds to 𝑓~. (results of DCT computation). TODO: Elaborate more
-        self.new_forces = np.zeros(shape=[self.space_divisions_y + 1, self.space_divisions_x + 1])
+        shape_template = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
+
+        # Instantiate force f to spectral domain array, which corresponds to 𝑓~. TODO: Elaborate more
+        self.new_forces = shape_template.copy()
 
         # Array, which stores air pressure at each given point in time in the voxelized grid
-        self.p_old = np.zeros(shape=[self.space_divisions_y + 1, self.space_divisions_x + 1])
+        self.p_old = shape_template.copy()
 
         # TODO: Who dis? -> Document
-        self.pressure_field = np.zeros(shape=[self.space_divisions_y + 1, self.space_divisions_x + 1])
+        self.pressure_field = shape_template.copy()
 
         # Array for pressure field results (auralisation and visualisation)
-        self.p_new = np.zeros(shape=[self.space_divisions_y + 1, self.space_divisions_x + 1])
+        self.p_new = shape_template.copy()
 
         # See paper TODO: Make better documentation
-        self.phi_x = np.zeros(shape=[self.space_divisions_y + 1, self.space_divisions_x + 1])
-        self.phi_x_new = np.zeros(shape=[self.space_divisions_y + 1, self.space_divisions_x + 1])
-        self.phi_y = np.zeros(shape=[self.space_divisions_y + 1, self.space_divisions_x + 1])
-        self.phi_y_new = np.zeros(shape=[self.space_divisions_y + 1, self.space_divisions_x + 1])
+        self.phi_x = shape_template.copy()
+        self.phi_x_new = shape_template.copy()
+        self.phi_y = shape_template.copy()
+        self.phi_y_new = shape_template.copy()
 
         self.include_self_terms = False
         self.render = False
@@ -158,8 +153,8 @@ class PMLPartition(Partition):
                         kx = 0.0
                         ky = 0.0
                 
-                #kx = 1000
-                #ky = 1000
+                kx = 1000
+                ky = 1000
 
                 KPx = 0.0
                 KPy = 0.0
@@ -174,8 +169,8 @@ class PMLPartition(Partition):
                 term1 = 2 * self.pressure_field[j, i]
                 term2 = -self.p_old[j, i]
                 #if t_s < 10:
-                term3 = (self.sim_param.c ** 2) * (KPx + KPy + self.new_forces[j, i])
-                #term3 = (self.sim_param.c ** 2) * (KPx + KPy)
+                #term3 = (self.sim_param.c ** 2) * (KPx + KPy + self.new_forces[j, i])
+                term3 = (self.sim_param.c ** 2) * (KPx + KPy)
                 #else:
                 #    term3 = (self.sim_param.c ** 2) * (KPx + KPy)
                 #print(f"{term3}", end="\t")
@@ -195,8 +190,8 @@ class PMLPartition(Partition):
                 term6 = dphidx + dphidy
 
                 # Calculation of next wave
-                self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6))
-                #self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6)) + self.sim_param.delta_t**2 * self.new_forces[j, i] / (1 + ((KPx+KPy)/2) * self.sim_param.delta_t)
+                #self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6))
+                self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6)) + self.sim_param.delta_t**2 * self.new_forces[j, i] / (1 + ((KPx+KPy)/2) * self.sim_param.delta_t)
 
                 dudx = 0.0
                 dudy = 0.0

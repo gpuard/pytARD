@@ -24,7 +24,7 @@ spatial_samples_per_wave_length = 6
 verbose = True
 auralize = True
 visualize = True
-write_to_file = False
+write_to_file = True
 compress_file = True
 
 # Compilation of room parameters into parameter class
@@ -46,16 +46,23 @@ impulse_location = np.array([[int((c / SCALE) / 2)], [int((c / SCALE) / 2)]])
 #impulse = Unit(sim_param, impulse_location, 1, upper_frequency_limit-1)
 impulse = WaveFile(sim_param, impulse_location, 'clap_8000.wav', 100)
 
-# Paritions of the room. Can be 1..n. Add or remove rooms here.
-air_partition = AirPartition(np.array([[int(c / SCALE)], [int(c / SCALE)]]), sim_param, impulse)
-pml_partition = PMLPartition(np.array([[1.5], [int(c / SCALE)]]), sim_param, PMLType.LEFT)
+# Compilation of all partitions into one part_data object. Add or remove rooms here.
+part_data = []
 
-# Compilation of all partitions into one part_data object. Add or remove rooms here. TODO change to obj.append()
-part_data = [air_partition, pml_partition]
+# Paritions of the room. Can be 1..n. Add or remove rooms here.
+part_data.append(AirPartition(np.array([[int(c / SCALE)], [int(c / SCALE)]]), sim_param, impulse))
+part_data.append(PMLPartition(np.array([[1.2], [int(c / SCALE)]]), sim_param, PMLType.LEFT))
+part_data.append(PMLPartition(np.array([[1.2], [int(c / SCALE)]]), sim_param, PMLType.RIGHT))
+part_data.append(PMLPartition(np.array([[int(c / SCALE)], [1.2]]), sim_param, PMLType.TOP))
+part_data.append(PMLPartition(np.array([[int(c / SCALE)], [1.2]]), sim_param, PMLType.BOTTOM))
+
 
 # Interfaces of the room. Interfaces connect the room together
 interfaces = []
 interfaces.append(InterfaceData2D(0, 1, Direction2D.X))
+interfaces.append(InterfaceData2D(0, 2, Direction2D.X))
+interfaces.append(InterfaceData2D(3, 0, Direction2D.Y))
+interfaces.append(InterfaceData2D(4, 0, Direction2D.Y))
 
 # Microphones (are optional)
 mic1 = Mic(

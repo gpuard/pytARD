@@ -76,7 +76,7 @@ class Plotter():
             plt.pause(0.1)
             bar.remove()
 
-        plot_step = 10
+        plot_step = 1
 
     def plot_3D(self):
         partition_1 = self.partitions[0]
