@@ -73,6 +73,8 @@ class ARDSimulator:
                         self.part_data[p_num].space_divisions_x, 1]
                     )[pressure_field_y][pressure_field_x], t_s)
 
+        
+
         if self.sim_param.verbose:
             print(f"Simulation completed successfully.\n")
 
