@@ -1,5 +1,6 @@
 from common.microphone import Microphone
 from common.parameters import SimulationParameters
+from common.notification import Notification
 from pytARD_2D.partition import Partition
 from pytARD_2D.interface import Interface2D
 
@@ -60,6 +61,8 @@ class ARDSimulator:
         '''
         if self.sim_param.verbose:
             print(f"Simulation started.")
+        
+        Notification.notify("The ARD Simulation has started. Check terminal for progress end ETA.", "pytARD: Simulation started")
 
         for t_s in tqdm(range(self.sim_param.number_of_samples)):
             # Interface Handling
@@ -87,6 +90,8 @@ class ARDSimulator:
 
         if self.sim_param.verbose:
             print(f"Simulation completed successfully.\n")
+        
+        Notification.notify("The ARD Simulation has completed successfully.", "pytARD: Simulation completed")
 
 
 '''

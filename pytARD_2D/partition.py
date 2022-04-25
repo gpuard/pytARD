@@ -48,11 +48,29 @@ class PMLType(Enum):
     }
 
 class DampingProfile:
-    def __init__(self, zetta_i: float):
-        self.zetta_i = zetta_i
+    def __init__(self, room_length: float, c : float, reflection_coefficient: float):
+        self.zetta_i = DampingProfile.calculate_zetta(room_length, c, reflection_coefficient)
 
     def damping_profile(self, x, width):
         return self.zetta_i * (x / width - np.sin(2 * np.pi * x / width) / (2 * np.pi))
+
+    @staticmethod
+    def calculate_zetta(L: float, c: float, R: float):
+        '''
+        Calculating zetta_i value from given reflection coefficient.
+
+        Parameters
+        ----------
+        L : float
+            Length of PML given by room dimensions
+        c : float
+            Speed of sound
+        R : float
+            Reflection coefficient, ranging from 0 to 1.
+        '''
+        assert(R < 1), "Reflection coefficient should be smaller than 1."
+        assert(R > 0), "Reflection coefficient should be bigger than 0."
+        return (c / L) * np.log(1 / R)
 
 class PMLPartition(Partition):
     def __init__(
@@ -109,7 +127,7 @@ class PMLPartition(Partition):
 
         if sim_param.verbose:
             print(
-                f"Created PML partition with dimensions {self.dimensions[0]}x{self.dimensions[1]} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions (y): {self.space_divisions_y} (x): {self.space_divisions_x}")
+                f"Created PML partition with dimensions {self.dimensions[0]}x{self.dimensions[1]} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions (y): {self.space_divisions_y} (x): {self.space_divisions_x} | Zetta_i: {self.damping_profile.zetta_i}")
 
 
     def preprocessing(self):
