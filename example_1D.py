@@ -10,8 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import date, datetime
 
-# Room parameters
-src_pos = [0] # m
+# Simulation parameters
 duration = 2 # seconds
 Fs = 8000 # sample rate
 upper_frequency_limit = 500 # Hz

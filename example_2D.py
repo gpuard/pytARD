@@ -14,7 +14,7 @@ from datetime import date, datetime
 # For Debug
 #np.seterr(all='raise')
 
-# Room parameters
+# Simulation parameters
 duration = 1  #  seconds
 Fs = 8000  # sample rate
 upper_frequency_limit = Fs / 21  # Hz
