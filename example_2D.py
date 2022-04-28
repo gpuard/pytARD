@@ -9,6 +9,7 @@ from common.plotter import Plotter
 from common.microphone import Microphone as Mic
 
 import numpy as np
+from datetime import date, datetime
 
 # For Debug
 #np.seterr(all='raise')
@@ -45,9 +46,9 @@ SCALE = 60
 impulse_location = np.array([[int((c / SCALE) / 2)], [int((c / SCALE) / 2)]])
 
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want
-# impulse = Gaussian(sim_param, impulse_location, 10000)
-impulse = Unit(sim_param, impulse_location, 1, upper_frequency_limit-1)
-#impulse = WaveFile(sim_param, impulse_location, 'clap_8000.wav', 100)
+#impulse = Gaussian(sim_param, impulse_location, 10000)
+impulse = Unit(sim_param, impulse_location, 1, 100)
+#impulse = WaveFile(sim_param, impulse_location, 'clap_8000.wav', 1000)
 
 # Compilation of all partitions into one part_data object. Add or remove rooms here.
 partitions = []
@@ -83,7 +84,7 @@ if auralize:
         [int(partitions[0].dimensions[0] / 2), 
         int(partitions[0].dimensions[1] / 2)], 
         sim_param, 
-        "PML_full_test" # Name of resulting wave file
+        f"pytARD_2D_{date.today()}_{datetime.now().time()}" # Name of resulting wave file
     ))
 
 # Instantiation serializer for reading and writing simulation state data
