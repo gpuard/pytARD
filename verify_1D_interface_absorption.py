@@ -1,4 +1,4 @@
-from common.impulse import ExperimentalUnit
+from common.impulse import ExperimentalUnit, Gaussian
 from common.parameters import SimulationParameters as SIMP
 from common.microphone import Microphone as Mic
 
@@ -6,7 +6,7 @@ from pytARD_1D.ard import ARDSimulator as ARDS
 from pytARD_1D.partition import PartitionData as PARTD
 from pytARD_1D.interface import InterfaceData1D
 
-from wavdiff import wav_diff, visualize_diff 
+from wavdiff import wav_diff, visualize_multiple_waveforms 
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -36,7 +36,7 @@ sim_param = SIMP(
     visualize=visualize
 )
 
-impulse = ExperimentalUnit(sim_param, [0], 10000, upper_frequency_limit)
+impulse = Gaussian(sim_param, [0], 10000)
 
 # Define test and control rooms
 control_partition = PARTD(np.array([c * 2]), sim_param, impulse)
@@ -90,7 +90,7 @@ write_mic_files(control_mics, best_peak)
 write_mic_files(test_mics, best_peak)
 wav_diff(filename + "_" +"roomA_mic1.wav", filename + "_" +"roomB_mic1.wav", filename + "_" +"mic1_diff.wav")
 wav_diff(filename + "_" +"roomA_mic2.wav", filename + "_" +"roomB_mic2.wav", filename + "_" +"mic2_diff.wav")
-visualize_diff([filename + "_" +"roomA_mic1.wav", filename + "_" +"roomB_mic1.wav", filename + "_" +"mic1_diff.wav", filename + "_" +"roomA_mic2.wav", filename + "_" +"roomB_mic2.wav", filename + "_" +"mic2_diff.wav"], dB=False)
+visualize_multiple_waveforms([filename + "_" +"roomA_mic1.wav", filename + "_" +"roomB_mic1.wav", filename + "_" +"mic1_diff.wav", filename + "_" +"roomA_mic2.wav", filename + "_" +"roomB_mic2.wav", filename + "_" +"mic2_diff.wav"], dB=True)
 
 '''
 # Plotting waveform

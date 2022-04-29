@@ -3,21 +3,21 @@ from pytARD_2D.partition import AirPartition as PARTD
 from pytARD_2D.interface import InterfaceData2D, Direction2D
 
 from common.parameters import SimulationParameters as SIMP
-from common.impulse import Gaussian, Unit, WaveFile
+from common.impulse import ExperimentalUnit, Gaussian, Unit, WaveFile
 from common.serializer import Serializer
 from common.plotter import Plotter
 from common.microphone import Microphone as Mic
 
-from wavdiff import wav_diff, visualize_diff 
+from wavdiff import wav_diff, visualize_multiple_waveforms 
 
 import numpy as np
 
 # Room parameters
-Fs = 16000  # sample rate
+Fs = 8000  # sample rate
 upper_frequency_limit = 300 # Hz
 c = 342  # m/s
 duration = 0.2 #  seconds
-spatial_samples_per_wave_length = 12
+spatial_samples_per_wave_length = 6
 
 # Procedure parameters
 verbose = True
@@ -40,8 +40,8 @@ sim_params = SIMP(
 
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want
 impulse_location = np.array([[0.5], [0.5]])
-impulse = Unit(sim_params, impulse_location, 1, upper_frequency_limit)
-#impulse = WaveFile(sim_params, impulse_location, 'clap_8000.wav', 100)
+#impulse = ExperimentalUnit(sim_params, impulse_location, 1, upper_frequency_limit)
+impulse = WaveFile(sim_params, impulse_location, 'clap_8000.wav', 1000)
 #impulse = Gaussian(sim_params, impulse_location, 10000)
 
 # Paritions of long room
@@ -57,7 +57,7 @@ test_room = [test_room_left, test_room_right]
 
 # Interfaces of the concatenated room.
 interfaces = []
-interfaces.append(InterfaceData2D(0, 1, Direction2D.X))
+interfaces.append(InterfaceData2D(1, 0, Direction2D.X))
 
 # Microphonesfilename + "_" + 
 long_room_mic1 = Mic(
@@ -65,27 +65,27 @@ long_room_mic1 = Mic(
     # Position
     [0.5, 0.5], 
     sim_params, 
-    filename + "_" + "before_control" # Name of resulting wave file
+    filename + "_" + "roomA_mic1" # Name of resulting wave file
 )
 long_room_mic2 = Mic(
     0, # Parition number
     # Position
     [1.5, 0.5], 
     sim_params, 
-    filename + "_" + "after_control" # Name of resulting wave file
+    filename + "_" + "roomA_mic2" # Name of resulting wave file
 )
 
 short_room_mic1 = Mic(
     0, 
     [0.5, 0.5], 
     sim_params, 
-    filename + "_" + "before_test"
+    filename + "_" + "roomB_mic1"
 )
 short_room_mic2 = Mic(
     1,
     [0.5, 0.5], 
     sim_params, 
-    filename + "_" + "after_test"
+    filename + "_" + "roomB_mic2"
 )
 
 # Compilation of all microphones into one mics object. Add or remove mics here. TODO change to obj.append()
@@ -105,11 +105,11 @@ def write_and_plot(room):
         serializer.dump(sim_params, room, filename=filename)
 
     # Plotting waveform
-    plotter.set_data_from_simulation(sim_params, room)
-    plotter.plot_2D()
+    #plotter.set_data_from_simulation(sim_params, room)
+    #plotter.plot_2D()
 
 # Instantiating and executing control simulation
-control_sim = ARDS(sim_params, control_room, .5, mics=control_mics)
+control_sim = ARDS(sim_params, control_room, .25, mics=control_mics)
 control_sim.preprocessing()
 control_sim.simulation()
 
@@ -144,20 +144,20 @@ write_mic_files(test_mics, best_peak)
 write_and_plot(test_room)
 
 wav_diff(
-    filename + "_" + "after_control.wav", 
-    filename + "_" + "after_test.wav", 
-    filename + "_" + "after_diff.wav"
+    filename + "_" + "roomA_mic1.wav", 
+    filename + "_" + "roomB_mic1.wav", 
+    filename + "_" + "mic1_diff.wav"
 )
 wav_diff(
-    filename + "_" + "before_control.wav", 
-    filename + "_" + "before_test.wav", 
-    filename + "_" + "before_diff.wav"
+    filename + "_" + "roomA_mic2.wav", 
+    filename + "_" + "roomB_mic2.wav", 
+    filename + "_" + "mic2_diff.wav"
 )
-visualize_diff([
-    filename + "_" + "after_control.wav", 
-    filename + "_" + "after_test.wav", 
-    filename + "_" + "after_diff.wav",
-    filename + "_" + "before_control.wav", 
-    filename + "_" + "before_test.wav", 
-    filename + "_" + "before_diff.wav"
+visualize_multiple_waveforms([
+    filename + "_" + "roomA_mic1.wav", 
+    filename + "_" + "roomB_mic1.wav", 
+    filename + "_" + "mic1_diff.wav",
+    filename + "_" + "roomA_mic2.wav", 
+    filename + "_" + "roomB_mic2.wav", 
+    filename + "_" + "mic2_diff.wav"
 ], dB=False)
