@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Coefficients taken from "Finite Difference Coefficients Calculator", Taylor,
+# Cameron R. (2016). URL: https://web.media.mit.edu/~crtaylor/calculator.html
 FD_COEFFICIENTS = {
     1 : {  2 : np.array([-1/2, 0, 1/2]),
         4 : np.array([1/12, -2/3, 0, 2/3, -1/12]),
@@ -20,6 +22,8 @@ def get_fd_coefficients(derivative, accuracy):
     return FD_COEFFICIENTS[derivative][accuracy]
 
 def get_laplacian_matrix(derivative, accuracy):
+    # We build the laplacian matrix according to the 2009 ARD Paper by Raghuvanshi and Mehra
+    # This is the 'K' Matrix appearing in the update rule of the FDTD wave equation
     coefs = get_fd_coefficients(derivative, accuracy)
     nr_pts = int(accuracy / 2)
     k = np.zeros(shape=nr_pts)
