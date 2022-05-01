@@ -4,15 +4,15 @@
 class SimulationParameters:
     def __init__(
         self,
-        max_simulation_frequency,
-        T,
-        spatial_samples_per_wave_length=6,
-        c=343,
-        Fs=8000,
-        normalization_constant=1,
-        auralize=None,
-        verbose=False,
-        visualize=False
+        max_simulation_frequency: float,
+        T: int,
+        spatial_samples_per_wave_length: int=6,
+        c: int=343,
+        Fs: int=8000,
+        normalization_constant: float=1,
+        auralize: bool=None,
+        verbose: bool=False,
+        visualize: bool=False
     ):
         '''
         Parameter container class for ARD simulation. Contains all relevant data to instantiate

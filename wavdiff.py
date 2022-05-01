@@ -19,7 +19,7 @@ def wav_diff(filename1, filename2, output_file_name):
 
     write(output_file_name, fsl, diff.astype(np.float))
 
-def visualize_diff(paths, dB=False):    
+def visualize_multiple_waveforms(paths, dB=False):    
     signals = []
     times = []
 
@@ -41,8 +41,14 @@ def visualize_diff(paths, dB=False):
     axs = gs.subplots(sharex=True, sharey=True)
 
     for i in range(len(paths)):
+        
         if dB:
-            signal_to_plot = 20 * np.log10(np.abs(signals[i]))
+            signal_to_plot = []
+            for signal in signals[i]:
+                if signal != 0:
+                    signal_to_plot.append(20 * np.log10(np.abs(signal)))
+                else:
+                    signal_to_plot.append(0)
         else:
             signal_to_plot = signals[i]
         axs[i].plot(times[i], signal_to_plot, 'r-')
@@ -65,4 +71,4 @@ if __name__ == "__main__":
     output_file = sys.argv[3]
     
     wav_diff(file1, file2, output_file)
-    visualize_diff([file1, file2, output_file])
+    visualize_multiple_waveforms([file1, file2, output_file])

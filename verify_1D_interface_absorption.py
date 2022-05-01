@@ -1,3 +1,4 @@
+from common.impulse import ExperimentalUnit, Gaussian
 from common.parameters import SimulationParameters as SIMP
 from common.microphone import Microphone as Mic
 
@@ -5,7 +6,7 @@ from pytARD_1D.ard import ARDSimulator as ARDS
 from pytARD_1D.partition import PartitionData as PARTD
 from pytARD_1D.interface import InterfaceData1D
 
-from wavdiff import wav_diff, visualize_diff 
+from wavdiff import wav_diff, visualize_multiple_waveforms 
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,7 +15,7 @@ import numpy as np
 src_pos = [0] # m
 duration = 2 # seconds
 Fs = 8000 # sample rate
-upper_frequency_limit = (Fs / 2) - 1 # Hz
+upper_frequency_limit = 300 # Hz
 c = 342 # m/s
 spatial_samples_per_wave_length = 6
 
@@ -22,6 +23,7 @@ spatial_samples_per_wave_length = 6
 auralize = False
 verbose = True
 visualize = True
+filename = "verify_1D_interface_absorption"
 
 # Compilation of room parameters into parameter class
 sim_param = SIMP(
@@ -34,12 +36,14 @@ sim_param = SIMP(
     visualize=visualize
 )
 
+impulse = Gaussian(sim_param, [0], 10000)
+
 # Define test and control rooms
-control_partition = PARTD(np.array([c * 2]), sim_param)
+control_partition = PARTD(np.array([c * 2]), sim_param, impulse)
 control_room = [control_partition]
 
-test_partition_1 = PARTD(np.array([c]), sim_param)
-test_partition_2 = PARTD(np.array([c]), sim_param,do_impulse=False)
+test_partition_1 = PARTD(np.array([c]), sim_param, impulse)
+test_partition_2 = PARTD(np.array([c]), sim_param)
 test_room = [test_partition_1, test_partition_2]
 
 # Define Interfaces
@@ -49,12 +53,12 @@ interfaces.append(InterfaceData1D(0, 1))
 # Define and position mics
 
 # Initialize & position mics. 
-control_mic_before = Mic(0, int(c / 2), sim_param, "roomA_mic1")
-control_mic_after = Mic(0, int(3 * (c / 2)), sim_param, "roomA_mic2")
+control_mic_before = Mic(0, int(c / 2), sim_param, filename + "_" + "roomA_mic1")
+control_mic_after = Mic(0, int(3 * (c / 2)), sim_param, filename + "_" +"roomA_mic2")
 control_mics = [control_mic_before, control_mic_after]
 
-test_mic_before = Mic(0, int(c / 2), sim_param, "roomB_mic1")
-test_mic_after = Mic(1, int(c / 2), sim_param, "roomB_mic2")
+test_mic_before = Mic(0, int(c / 2), sim_param, filename + "_" +"roomB_mic1")
+test_mic_after = Mic(1, int(c / 2), sim_param, filename + "_" +"roomB_mic2")
 test_mics = [test_mic_before, test_mic_after]
 
 # Instantiating and executing simulation
@@ -84,9 +88,9 @@ def write_mic_files(mics, peak=1):
 
 write_mic_files(control_mics, best_peak)
 write_mic_files(test_mics, best_peak)
-wav_diff("roomA_mic1.wav", "roomB_mic1.wav", "mic1_diff.wav")
-wav_diff("roomA_mic2.wav", "roomB_mic2.wav", "mic2_diff.wav")
-visualize_diff(["roomA_mic1.wav", "roomB_mic1.wav", "mic1_diff.wav", "roomA_mic2.wav", "roomB_mic2.wav", "mic2_diff.wav"], dB=False)
+wav_diff(filename + "_" +"roomA_mic1.wav", filename + "_" +"roomB_mic1.wav", filename + "_" +"mic1_diff.wav")
+wav_diff(filename + "_" +"roomA_mic2.wav", filename + "_" +"roomB_mic2.wav", filename + "_" +"mic2_diff.wav")
+visualize_multiple_waveforms([filename + "_" +"roomA_mic1.wav", filename + "_" +"roomB_mic1.wav", filename + "_" +"mic1_diff.wav", filename + "_" +"roomA_mic2.wav", filename + "_" +"roomB_mic2.wav", filename + "_" +"mic2_diff.wav"], dB=True)
 
 '''
 # Plotting waveform

@@ -1,15 +1,19 @@
+from common.impulse import Impulse
+
 import numpy as np
 from scipy.io.wavfile import read
 from scipy.fftpack import idct, dct
+
+from common.parameters import SimulationParameters
 
 
 class PartitionData:
     def __init__(
         self,
-        dimensions,
-        sim_param,
-        do_impulse=True
-    ):
+        dimensions: np.ndarray,
+        sim_param: SimulationParameters,
+        impulse: Impulse=None    
+        ):
         '''
         Parameter container class for ARD simulator. Contains all relevant data to instantiate
         and run ARD simulator.
@@ -26,18 +30,13 @@ class PartitionData:
         self.dimensions = dimensions
         self.sim_param = sim_param
 
-        # Longest room dimension length dividied by H (voxel grid spacing).
-        self.space_divisions = int(
-            np.max(dimensions) * self.sim_param.spatial_samples_per_wave_length)
-
         # Voxel grid spacing. Changes automatically according to frequency
-        self.h = np.max(dimensions) / self.space_divisions
+        self.h = PartitionData.calculate_h(self.sim_param)
+        PartitionData.check_CFL(self.sim_param, self.h)
 
-        CFL = (sim_param.c * sim_param.delta_t) / self.h
-        CFL_target = np.sqrt(1 / 3)
-        assert(CFL <= CFL_target), f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than {CFL_target}. Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length."
-
-
+        # Longest room dimension length dividied by H (voxel grid spacing).
+        self.space_divisions = int(dimensions[0] / self.h)
+        
         # Instantiate forces array, which corresponds to F in update rule (results of DCT computation). TODO: Elaborate more
         self.forces = None
 
@@ -57,22 +56,11 @@ class PartitionData:
 
         # Fill impulse array with impulses.
         # TODO: Switch between different source signals via bool or enum? Also create source signal container
-        if do_impulse:
-            # Create indices for time samples. x = [1 2 3 4 5] -> sin(x_i * pi) -> sin(pi), sin(2pi) sin(3pi)
-            time_sample_indices = np.arange(
-                0, self.sim_param.number_of_samples, 1)
 
-            # Amplitude of gaussian impulse
-            A = 100000
-            self.impulses[:, 5] = A * PartitionData.create_gaussian_impulse(
-                time_sample_indices, 80 * 4, 80) - A * PartitionData.create_gaussian_impulse(time_sample_indices, 80 * 4 * 2, 80)
-
-        # Uncomment to inject wave file. TODO: Consolidize into source class
-        '''
-        if do_impulse:
-            (fs, wav) = read('track.wav')
-            self.impulses[:, int(self.space_divisions * 0.9)] = 100 * wav[0:self.sim_param.number_of_samples]
-        '''
+        # Fill impulse array with impulses.
+        if impulse:
+            # Emit impulse into room
+            self.impulses[:, int(self.space_divisions * (impulse.location[0] / dimensions[0]))] = impulse.get()
 
         if sim_param.verbose:
             print(f"Created partition with dimensions {self.dimensions} m\n ℎ: {self.h} | Space divisions: {self.space_divisions} ({self.dimensions/self.space_divisions} m each)")
@@ -80,7 +68,7 @@ class PartitionData:
 
     def preprocessing(self):
         '''
-        Preprocessing stage. Refers to Step 1 in the paper.
+        Preprocessing stage. Refers to Step 1 in the paper. Precomputation of DCTs, instantiation of omega_i, and instantiation of time stepping.
         '''
         # Preparing pressure field. Equates to function p(x) on the paper.
         self.pressure_field = np.zeros(
@@ -111,12 +99,14 @@ class PartitionData:
             print(f"Shape of pressure field: {self.pressure_field.shape}")
 
     @staticmethod
-    def create_gaussian_impulse(x, mu, sigma):
-        '''
-        Generate gaussian impulse
-        Parameters
-        ----------
-        Returns
-        -------
-        '''
-        return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sigma, 2.)))
+    def check_CFL(sim_param, h):
+        CFL = sim_param.c * sim_param.delta_t * ((1 / h))
+        CFL_target = np.sqrt(1/3)
+        assert(CFL <= CFL_target), f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than {CFL_target}. Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length."
+        if sim_param.verbose:
+            print(f"CFL = {CFL}")
+
+    @staticmethod
+    def calculate_h(sim_param):
+        # Voxel grid spacing. Changes automatically according to frequency
+        return SimulationParameters.calculate_voxelization_step(sim_param) 

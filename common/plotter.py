@@ -1,15 +1,16 @@
+import string
 from common.serializer import Serializer
 import matplotlib.pyplot as plt
 import numpy as np
 
 class Plotter():
 
-    def __init__(self, verbose=False):
+    def __init__(self, verbose: bool=False):
         self.sim_param = None
         self.partitions = None
         self.verbose=verbose
 
-    def set_data_from_file(self, file_name):
+    def set_data_from_file(self, file_name: string):
         serializer = Serializer(compress=True)
         (sim_params, partitions) = serializer.read(file_name)
         self.sim_param = sim_params
@@ -68,13 +69,15 @@ class Plotter():
 
             plt.title(f"t = {(self.sim_param.T * (i / self.sim_param.number_of_samples)):.4f}s")
 
-            ax_1.imshow(Z_1)
+            image1 = ax_1.imshow(Z_1)
             ax_2.imshow(Z_2)
             # ax_3.imshow(Z_3)
-
+            cbar_ax = fig.add_axes([0.88, 0.15, 0.04, 0.7])
+            bar = fig.colorbar(image1, cax=cbar_ax)
             plt.pause(0.1)
+            bar.remove()
 
-        plot_step = 50
+        plot_step = 1
 
     def plot_3D(self):
         partition_1 = self.partitions[0]
