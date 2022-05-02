@@ -99,6 +99,7 @@ for accuracy in [4, 6, 10]:
         plt.ylabel('Amplitude dBA')
         plt.ylim(top=-45, bottom=-47.5)
         plt.xlim(left=1.53, right=1.6)
+        print(f"Peak bei FDTD-Genauigkeit = {accuracy}: {np.max(y[int(1.53*Fs) : int(1.6*Fs)])}")
         plt.grid()
 
     visualize_ripple(filename + "_" +"mic.wav")
