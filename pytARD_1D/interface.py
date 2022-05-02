@@ -2,9 +2,10 @@ import numpy as np
 from common.finite_differences import get_laplacian_matrix
     
 class InterfaceData1D():
-    def __init__(self, part1_index, part2_index):
+    def __init__(self, part1_index, part2_index, fdtd_acc=6):
         self.part1_index = part1_index
         self.part2_index = part2_index
+        self.fdtd_acc = fdtd_acc
 
 class Interface1D():
 

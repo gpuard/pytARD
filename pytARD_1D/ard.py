@@ -2,9 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fftpack import idct, dct
 from common.microphone import Microphone as Mic
+from common.parameters import SimulationParameters
+from pytARD_1D.partition import PartitionData
 from tqdm import tqdm
 
-from pytARD_1D.interface import Interface1D
+from pytARD_1D.interface import Interface1D, InterfaceData1D
 
 
 class ARDSimulator:
@@ -12,7 +14,7 @@ class ARDSimulator:
     ARD Simulation class. Creates and runs ARD simulator instance.
     '''
 
-    def __init__(self, sim_param, part_data, normalization_factor, interface_data=[], mics=[]):
+    def __init__(self, sim_param: SimulationParameters, part_data: PartitionData, normalization_factor: float, interface_data: list=[], mics: list=[]):
         '''
         Create and run ARD simulator instance.
 
@@ -31,7 +33,7 @@ class ARDSimulator:
         self.part_data = part_data
 
         self.interface_data = interface_data
-        self.interfaces = Interface1D(sim_param, part_data)
+        self.interfaces = Interface1D(sim_param, part_data, fdtd_acc=interface_data[0].fdtd_acc) # TODO: Just first fdtd accuracy is used. Needs to be dynamic
 
         self.normalization_factor = normalization_factor
 
