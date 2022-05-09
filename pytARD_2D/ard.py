@@ -1,7 +1,7 @@
 from common.microphone import Microphone
 from common.parameters import SimulationParameters
 from common.notification import Notification
-from pytARD_2D.partition import Partition
+from pytARD_2D.partition import Partition2D
 from pytARD_2D.interface import Interface2D
 
 import numpy as np
@@ -16,7 +16,7 @@ class ARDSimulator:
     def __init__(
         self, 
         sim_param: SimulationParameters, 
-        part_data: Partition, 
+        part_data: Partition2D, 
         normalization_factor: float=1, 
         interface_data: Interface2D=[], 
         mics: Microphone=[]

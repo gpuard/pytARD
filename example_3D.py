@@ -1,8 +1,8 @@
-from pytARD_3D.ard import ARDSimulator as ARDS
-from pytARD_3D.partition import PartitionData as PARTD
+from pytARD_3D.ard import ARDSimulator
+from pytARD_3D.partition import AirPartition3D, PMLPartition3D, DampingProfile, PMLType
 from pytARD_3D.interface import InterfaceData3D, Direction3D
 
-from common.parameters import SimulationParameters as SIMP
+from common.parameters import SimulationParameters
 from common.impulse import Gaussian, Unit, WaveFile
 from common.serializer import Serializer
 from common.plotter import Plotter
@@ -14,9 +14,9 @@ import numpy as np
 # Room parameters
 duration = 1 # seconds
 Fs = 10000 # sample rate
-upper_frequency_limit = Fs / 22 # Hz
+upper_frequency_limit = 300 # Hz
 c = 342 # m/s
-spatial_samples_per_wave_length = 4
+spatial_samples_per_wave_length = 6
 
 # Procedure parameters
 verbose = True
@@ -29,7 +29,7 @@ compress_file = True
 # np.seterr(all='raise')
 
 # Compilation of room parameters into parameter class (don't change this)
-sim_param = SIMP(
+sim_param = SimulationParameters(
     upper_frequency_limit, 
     duration, 
     c=c, 
@@ -39,7 +39,7 @@ sim_param = SIMP(
     visualize=visualize
 )
 
-SCALE = 100 # Scale of room. Gets calculated by speed of sound divided by SCALE
+SCALE = 150 # Scale of room. Gets calculated by speed of sound divided by SCALE
 
 # Define impulse location
 impulse_location = np.array([
@@ -53,61 +53,82 @@ impulse_location = np.array([
 impulse = Unit(sim_param, impulse_location, 1, upper_frequency_limit - 1)
 # impulse = WaveFile(sim_param, impulse_location, 'clap.wav', 100) # Uncomment for wave file injection
 
-partition_1 = PARTD(np.array([
-    [int(c / SCALE)], # X, width
-    [int(c / SCALE)], # Y, depth
-    [int(c / SCALE)]  # Z, height
-]), sim_param, impulse)
+room_width = int(c / SCALE)
 
-partition_2 = PARTD(np.array([
-    [int(c / SCALE)], # X, width
-    [int(c / SCALE)], # Y, depth
-    [int(c / SCALE)]  # Z, height
-]), sim_param)
+# Damping profile with according Zetta value (how much is absorbed)
+dp = DampingProfile(room_width, c, 1e-3)
 
-partition_3 = PARTD(np.array([
-    [int(c / SCALE)], # X, width
-    [int(c / SCALE)], # Y, depth
-    [int(c / SCALE)]  # Z, height
-]), sim_param)
+partitions = []
 
-# Compilation of all partitions into complete partition data (don't change this line)
-part_data = [partition_1, partition_2, partition_3]
+partitions.append(AirPartition3D(np.array([
+    [room_width], # X, width
+    [room_width], # Y, depth
+    [room_width]  # Z, height
+]), sim_param, impulse))
+
+partitions.append(PMLPartition3D(np.array([
+    [1.5], # X, width
+    [room_width], # Y, depth
+    [room_width]  # Z, height
+]), sim_param, PMLType.LEFT, dp))
+'''
+
+partitions.append(PMLPartition3D(np.array([
+    [1.5], # X, width
+    [room_width], # Y, depth
+    [room_width]  # Z, height
+]), sim_param, PMLType.LEFT, dp))
+
+partitions.append(PMLPartition3D(np.array([
+    [room_width], # X, width
+    [1.5], # Y, depth
+    [room_width]  # Z, height
+]), sim_param, PMLType.LEFT, dp))
+
+partitions.append(PMLPartition3D(np.array([
+    [room_width], # X, width
+    [1.5], # Y, depth
+    [room_width]  # Z, height
+]), sim_param, PMLType.LEFT, dp))
+'''
+
 
 # Interfaces of the room. Interfaces connect the room together
 
 interfaces = []
-interfaces.append(InterfaceData3D(0, 1, Direction3D.Y))
-interfaces.append(InterfaceData3D(1, 2, Direction3D.X))
+interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
+#interfaces.append(InterfaceData3D(0, 2, Direction3D.X))
+#interfaces.append(InterfaceData3D(3, 0, Direction3D.Y))
+#interfaces.append(InterfaceData3D(4, 0, Direction3D.Y))
 
 # Initialize & position mics.
 mics = []
 mics.append(Mic(
     0, [
-        int(part_data[0].dimensions[0] / 2), 
-        int(part_data[0].dimensions[1] / 2), 
-        int(part_data[0].dimensions[2] / 2)
+        int(partitions[0].dimensions[0] / 2), 
+        int(partitions[0].dimensions[1] / 2), 
+        int(partitions[0].dimensions[2] / 2)
     ], sim_param, "left"))
+'''
 
 mics.append(Mic(
     1, [
-        int(part_data[1].dimensions[0] / 2), 
-        int(part_data[1].dimensions[1] / 2), 
-        int(part_data[1].dimensions[2] / 2)
+        int(partitions[1].dimensions[0] / 2), 
+        int(partitions[1].dimensions[1] / 2), 
+        int(partitions[1].dimensions[2] / 2)
     ], sim_param, "right"))
-
 mics.append(Mic(
     2, [
-        int(part_data[2].dimensions[0] / 2), 
-        int(part_data[2].dimensions[1] / 2), 
-        int(part_data[2].dimensions[2] / 2)
+        int(partitions[2].dimensions[0] / 2), 
+        int(partitions[2].dimensions[1] / 2), 
+        int(partitions[2].dimensions[2] / 2)
     ], sim_param, "bottom"))
-
+'''
 # Instantiation serializer for reading and writing simulation state data
 serializer = Serializer(compress=compress_file)
 
 # Instantiating and executing simulation (don't change this)
-sim = ARDS(sim_param, part_data, 1, interfaces, mics)
+sim = ARDSimulator(sim_param, partitions, 1, interfaces, mics)
 sim.preprocessing()
 sim.simulation()
 
@@ -133,11 +154,11 @@ if auralize:
 if write_to_file:
     if verbose:
         print("Writing state data to disk. Please wait...")
-    serializer.dump(sim_param, part_data)
+    serializer.dump(sim_param, partitions)
 
 # Plotting waveform
 if visualize:
     plotter = Plotter()
-    plotter.set_data_from_simulation(sim_param, part_data)
+    plotter.set_data_from_simulation(sim_param, partitions)
     plotter.plot_3D()
 

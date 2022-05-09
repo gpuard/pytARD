@@ -3,7 +3,7 @@ import enum
 
 from common.parameters import SimulationParameters
 from common.finite_differences import get_laplacian_matrix
-from pytARD_2D.partition import Partition
+from pytARD_2D.partition import Partition2D
 
 class Direction2D(enum.Enum):
     '''
@@ -20,7 +20,7 @@ class InterfaceData2D():
 
 class Interface2D():
 
-    def __init__(self, sim_params: SimulationParameters, part_data: Partition, fdtd_order=2, fdtd_acc=6):
+    def __init__(self, sim_params: SimulationParameters, part_data: Partition2D, fdtd_order=2, fdtd_acc=6):
         '''
         TODO: Doc
         '''
@@ -71,7 +71,7 @@ class Interface2DLooped():
     Version of interfaces with for loops instead of matrix mult
     '''
 
-    def __init__(self, sim_params: SimulationParameters, part_data: Partition, fdtd_order=2, fdtd_acc=6):
+    def __init__(self, sim_params: SimulationParameters, part_data: Partition2D, fdtd_order=2, fdtd_acc=6):
         '''
         TODO: Doc
         '''
