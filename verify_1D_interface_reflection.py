@@ -1,3 +1,4 @@
+from matplotlib import ft2font
 from common.impulse import ExperimentalUnit, Gaussian
 from common.parameters import SimulationParameters as SIMP
 from common.microphone import Microphone as Mic
@@ -33,73 +34,76 @@ sim_param = SIMP(
     Fs=Fs,
     spatial_samples_per_wave_length=spatial_samples_per_wave_length, 
     verbose=verbose,
-    visualize=visualize
+    visualize=False
 )
 
 impulse = Gaussian(sim_param, [0], 10000)
 
-# Define test  rooms
-test_partition_1 = PARTD(np.array([c]), sim_param, impulse)
-test_partition_2 = PARTD(np.array([c]), sim_param)
-test_room = [test_partition_1, test_partition_2]
+for accuracy in [4, 6, 10]:
+    # Define test  rooms
+    test_partition_1 = PARTD(np.array([c]), sim_param, impulse)
+    test_partition_2 = PARTD(np.array([c]), sim_param)
+    test_room = [test_partition_1, test_partition_2]
 
-# Define Interfaces
-interfaces = []
-interfaces.append(InterfaceData1D(0, 1))
+    # Define Interfaces
+    interfaces = []
+    interfaces.append(InterfaceData1D(0, 1, fdtd_acc=accuracy))
 
-# Define and position mics
+    # Define and position mics
 
-# Initialize & position mics. 
-mic = Mic(0, int(c / 2), sim_param, filename + "_" +"mic")
-test_mics = [mic]
+    # Initialize & position mics. 
+    mic = Mic(0, int(c / 2), sim_param, filename + "_" +"mic")
+    test_mics = [mic]
 
-# Instantiating and executing simulation
-test_sim = ARDS(sim_param, test_room, 1, interface_data=interfaces, mics=test_mics)
-test_sim.preprocessing()
-test_sim.simulation()
+    # Instantiating and executing simulation
+    test_sim = ARDS(sim_param, test_room, 1, interface_data=interfaces, mics=test_mics)
+    test_sim.preprocessing()
+    test_sim.simulation()
 
-# Normalizing + writing recorded mic tracks
-def find_best_peak(mics):
-    peaks = []
-    for i in range(len(mics)):
-        peaks.append(np.max(mics[i].signal))
-    return np.max(peaks)
+    # Normalizing + writing recorded mic tracks
+    def find_best_peak(mics):
+        peaks = []
+        for i in range(len(mics)):
+            peaks.append(np.max(mics[i].signal))
+        return np.max(peaks)
 
-both_mic_peaks = []
-both_mic_peaks.append(find_best_peak(test_mics))
-best_peak = np.max(both_mic_peaks)
+    both_mic_peaks = []
+    both_mic_peaks.append(find_best_peak(test_mics))
+    best_peak = np.max(both_mic_peaks)
 
-def write_mic_files(mics, peak=1):
-    for i in range(len(mics)):
-        mics[i].write_to_file(peak, upper_frequency_limit)
+    def write_mic_files(mics, peak=1):
+        for i in range(len(mics)):
+            mics[i].write_to_file(peak, upper_frequency_limit)
 
-write_mic_files(test_mics, best_peak)
+    write_mic_files(test_mics, best_peak)
 
-def visualize_ripple(path):
-    fs, w = read(path)
+    def visualize_ripple(path):
+        fs, w = read(path)
 
-    y = np.zeros(shape=len(w))
-    t = np.linspace(0, len(w) / fs, len(w))
+        y = np.zeros(shape=len(w))
+        t = np.linspace(0, len(w) / fs, len(w))
 
-    for j in range(len(y)):
-        if w[j] != 0:
-            y[j] = 20 * np.log10(abs(w[j]))
+        for j in range(len(y)):
+            if w[j] != 0:
+                y[j] = 20 * np.log10(abs(w[j]))
 
-    sizerino = 18
-    plt.rc('font', size=sizerino) #controls default text size
-    plt.rc('axes', titlesize=sizerino) #fontsize of the title
-    plt.rc('axes', labelsize=sizerino) #fontsize of the x and y labels
-    plt.rc('xtick', labelsize=sizerino) #fontsize of the x tick labels
-    plt.rc('ytick', labelsize=sizerino) #fontsize of the y tick labels
-    plt.rc('legend', fontsize=sizerino) #fontsize of the legend
-    plt.plot(t, y)
-    plt.xlabel('Zeit s')
-    plt.ylabel('Amplitude dBA')
-    plt.ylim(top=-30, bottom=-130)
-    plt.xlim(left=1.4, right=1.7)
-    plt.grid()
-    plt.show()
+        sizerino = 18
+        plt.rc('font', size=sizerino) #controls default text size
+        plt.rc('axes', titlesize=sizerino) #fontsize of the title
+        plt.rc('axes', labelsize=sizerino) #fontsize of the x and y labels
+        plt.rc('xtick', labelsize=sizerino) #fontsize of the x tick labels
+        plt.rc('ytick', labelsize=sizerino) #fontsize of the y tick labels
+        plt.rc('legend', fontsize=sizerino) #fontsize of the legend
+        plt.plot(t, y, label=f"FDTD-Genauigkeit = {accuracy}")
+        plt.xlabel('Zeit s')
+        plt.ylabel('Amplitude dBA')
+        plt.ylim(top=-45, bottom=-47.5)
+        plt.xlim(left=1.53, right=1.6)
+        print(f"Peak bei FDTD-Genauigkeit = {accuracy}: {np.max(y[int(1.53*Fs) : int(1.6*Fs)])}")
+        plt.grid()
 
-visualize_ripple(filename + "_" +"mic.wav")
+    visualize_ripple(filename + "_" +"mic.wav")
 
+plt.legend()
+plt.show()
 

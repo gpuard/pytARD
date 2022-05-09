@@ -40,7 +40,7 @@ sim_param = SimulationParameters(
 )
 
 # Scale of room. Gets calculated by speed of sound divided by SCALE
-SCALE = 60  
+SCALE = 80  
 
 # Location of impulse that gets emitted into the room.
 impulse_location = np.array([[int((c / SCALE) / 2)], [int((c / SCALE) / 2)]])
@@ -61,11 +61,11 @@ dp = DampingProfile(room_width, c, 1e-3)
 
 # Paritions of the room. Can be 1..n. Add or remove partitions here. 
 # Also, provide impulse in the partition(s) of your choosing.
-partitions.append(AirPartition(np.array([[room_width], [room_width]]), sim_param, impulse))
-partitions.append(PMLPartition(np.array([[1.2], [room_width]]), sim_param, PMLType.LEFT, dp))
-partitions.append(PMLPartition(np.array([[1.2], [room_width]]), sim_param, PMLType.RIGHT, dp))
-partitions.append(PMLPartition(np.array([[room_width], [1.2]]), sim_param, PMLType.TOP, dp))
-partitions.append(PMLPartition(np.array([[room_width], [1.2]]), sim_param, PMLType.BOTTOM, dp))
+partitions.append(AirPartition(np.array([[room_width], [room_width]]), sim_param, impulse)) # id=0
+partitions.append(PMLPartition(np.array([[1.0], [room_width]]), sim_param, PMLType.LEFT, dp)) # id=1
+partitions.append(PMLPartition(np.array([[1.0], [room_width]]), sim_param, PMLType.RIGHT, dp)) # id=2
+partitions.append(PMLPartition(np.array([[room_width], [1.0]]), sim_param, PMLType.TOP, dp)) # id=3
+partitions.append(PMLPartition(np.array([[room_width], [1.0]]), sim_param, PMLType.BOTTOM, dp)) # id=4
 
 # Interfaces of the room. Interfaces connect the partitions together
 interfaces = []
