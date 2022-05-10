@@ -11,7 +11,7 @@ from common.microphone import Microphone as Mic
 
 import numpy as np
 
-if False:# SUPER FAST
+if True:# SUPER FAST
     # Room parameters
     # duration = 1.5 # seconds
     duration = 0.5 # seconds
@@ -96,8 +96,35 @@ elif TEST_KIND == 'Z':
     axis=0
     interfaces.append(InterfaceData3D(0, 1, Direction3D.Z))
 elif TEST_KIND == 'all':
-    pass
-#interfaces.append(InterfaceData3D(4, 0, Direction3D.Y))
+    partitions.append(AirPartition3D(np.array([
+        [room_width], # X, width
+        [room_width], # Y, depth
+        [room_width]  # Z, height
+    ]), sim_param, impulse))
+    
+    partitions.append(AirPartition3D(np.array([
+        [room_width], # X, width
+        [room_width], # Y, depth
+        [room_width]  # Z, height
+    ]), sim_param))
+    
+    partitions.append(AirPartition3D(np.array([
+        [room_width], # X, width
+        [room_width], # Y, depth
+        [room_width]  # Z, height
+    ]), sim_param, impulse))
+   
+    partitions.append(AirPartition3D(np.array([
+        [room_width], # X, width
+        [room_width], # Y, depth
+        [room_width]  # Z, height
+    ]), sim_param))
+    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
+    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
+    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
+    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
+    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
+    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
 
 # Initialize & position mics.
 mics = []

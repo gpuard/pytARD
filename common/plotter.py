@@ -154,10 +154,10 @@ class AnimationPlotter():
             
             # for each time step we slice existing p field
             # X-slice=> YZ-Plane
-            pX = [p_field_t[i][x,:,:] for i in range(len(p_field_t))]
+            pX = [p_field_t[i][:,:,x] for i in range(len(p_field_t))]
             # Y-slice=> ZX-Plane
             pY = [p_field_t[i][:,y,:] for i in range(len(p_field_t))]
-            pZ = [p_field_t[i][:,:,z] for i in range(len(p_field_t))]
+            pZ = [p_field_t[i][z,:,:] for i in range(len(p_field_t))]
             
             fig.suptitle("Time: %.2f sec" % 0)
         
