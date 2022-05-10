@@ -12,7 +12,8 @@ class SimulationParameters:
         normalization_constant: float=1,
         auralize: bool=None,
         verbose: bool=False,
-        visualize: bool=False
+        visualize: bool=False,
+        visualize_source = True,
     ):
         '''
         Parameter container class for ARD simulation. Contains all relevant data to instantiate
@@ -67,6 +68,7 @@ class SimulationParameters:
         self.auralize = auralize
         self.verbose = verbose
         self.visualize = visualize
+        self.visualize_source = visualize_source
 
         if verbose:
             print(f"Insantiated simulation.\nNumber of samples: {self.number_of_samples} | Δ_t: {self.delta_t}")

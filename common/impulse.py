@@ -176,7 +176,7 @@ class Unit(Impulse):
         self.impulse[0 : len(self.filter_coeffs)] = self.filter_coeffs
         self.impulse[len(self.filter_coeffs) : 2 * len(self.filter_coeffs)] = -self.filter_coeffs
 
-        if self.sim_param.visualize:
+        if self.sim_param.visualize_source:
             [f, H] = freqz(self.filter_coeffs, [1], fs=sim_param.Fs)
             plt.plot(f, np.abs(H))
             plt.show()
@@ -190,7 +190,7 @@ class Unit(Impulse):
         ndarray
             Impulse over time.
         '''
-        if self.sim_param.visualize:
+        if self.sim_param.visualize_source:
             plt.plot(self.impulse)
             plt.show()
 

@@ -145,7 +145,7 @@ class Plotter():
 class AnimationPlotter():
     
     @staticmethod
-    def plot_3D(p_field_t, simulation_parameters, interval=0, video_output=False, file_name='', zyx=None):
+    def plot_3D(p_field_t, simulation_parameters,title='', interval=0, video_output=False, file_name='', zyx=None):
         # xyz is e.g, source location
         if zyx is not None:
             (z,y,x) = zyx
@@ -159,11 +159,18 @@ class AnimationPlotter():
             pY = [p_field_t[i][:,y,:] for i in range(len(p_field_t))]
             pZ = [p_field_t[i][z,:,:] for i in range(len(p_field_t))]
             
-            fig.suptitle("Time: %.2f sec" % 0)
-        
+            fig.suptitle(title, fontsize=14, fontweight='bold')
             # mi = np.min([p_field_t])
             # ma = np.max([p_field_t])
-
+            
+            # text = fig.text(0.95, 0.01, '',
+            #         verticalalignment='top', horizontalalignment='right',
+            #         transform=fig.transAxes,
+            #         color='green', fontsize=15)
+            text = fig.text(0.1, 0.9, '', # X, Y; 1-top or right
+                    verticalalignment='center', horizontalalignment='center',
+                    color='green', fontsize=15)
+            
             k = np.max([np.min(np.abs([p_field_t])),np.max(np.abs([p_field_t]))])
             k= 0.5*k
             ma = k
@@ -178,16 +185,18 @@ class AnimationPlotter():
             fig.subplots_adjust(right=0.85)
             cbar_ax = fig.add_axes([0.88, 0.15, 0.04, 0.7])
             fig.colorbar(imX, cax=cbar_ax)
-            
+                        
             def init_func():
                 X.set_title('YZ-Plane')
                 Y.set_title('ZX-Plane')
                 Z.set_title('XY-Plane')
+                
                 pass
             
             def update_plot(time_step):
                 time = simulation_parameters.delta_t * time_step       
-                fig.suptitle("Time: %.2f sec" % time)
+                # fig.suptitle("Time: %.2f sec" % time)
+                text.set_text("Time: %.2f sec" % time)
                 imX.set_data(pX[time_step])
                 imY.set_data(pY[time_step])
                 imZ.set_data(pZ[time_step])

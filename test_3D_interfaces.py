@@ -32,7 +32,7 @@ else:
 
 # Procedure parameters
 verbose = True
-auralize= True
+auralize= False
 visualize = True
 write_to_file = False
 compress_file = True
@@ -48,7 +48,8 @@ sim_param = SimulationParameters(
     Fs=Fs,
     spatial_samples_per_wave_length=spatial_samples_per_wave_length, 
     verbose=verbose,
-    visualize=visualize
+    visualize=visualize,
+    visualize_source = False
 )
 
 SCALE = 150 # Scale of room. Gets calculated by speed of sound divided by SCALE
@@ -85,16 +86,20 @@ partitions.append(AirPartition3D(np.array([
 # Interfaces of the room. Interfaces connect the room together
 interfaces = []
 
+title=''
 TEST_KIND = ['X','Y','Z','all'][2]
 if TEST_KIND == 'X':
     axis=2
     interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
+    title = 'YZ-Inteface'
 elif TEST_KIND == 'Y':
     axis=1
     interfaces.append(InterfaceData3D(0, 1, Direction3D.Y))
+    title = 'XZ-Inteface'
 elif TEST_KIND == 'Z':
     axis=0
     interfaces.append(InterfaceData3D(0, 1, Direction3D.Z))
+    title = 'XY-Inteface'
 elif TEST_KIND == 'all':
     partitions.append(AirPartition3D(np.array([
         [room_width], # X, width
@@ -128,12 +133,12 @@ elif TEST_KIND == 'all':
 
 # Initialize & position mics.
 mics = []
-mics.append(Mic(
-    0, [
-        int(partitions[0].dimensions[0] / 2), 
-        int(partitions[0].dimensions[1] / 2), 
-        int(partitions[0].dimensions[2] / 2)
-    ], sim_param, "left"))
+# mics.append(Mic(
+#     0, [
+#         int(partitions[0].dimensions[0] / 2), 
+#         int(partitions[0].dimensions[1] / 2), 
+#         int(partitions[0].dimensions[2] / 2)
+#     ], sim_param, "left"))
 '''
 
 mics.append(Mic(
@@ -198,7 +203,8 @@ if visualize:
         
         fps=30
         anim = AnimationPlotter().plot_3D(pf_t, 
-                                          sim_param, 
+                                          sim_param,
+                                          title,
                                           interval = 1000 / fps, # in ms
                                           zyx=partitions[0].src_grid_loc)
     else:

@@ -49,9 +49,10 @@ class Interface3D():
             p_x1 = self.part_data[interface_data.part2_index].pressure_field[:, :, :self.INTERFACE_SIZE]
 
             # Calculate new forces transmitted into room
-            p_along_xy = np.concatenate((p_x0, p_x1),axis=2)
-            # new_forces_from_interface_y = np.tensordot(p_along_xy, self.FDTD_COEFFS_Y)
-            new_forces_from_interface_y = np.matmul(p_along_xy, self.FDTD_COEFFS_Y)
+            p_along_yz = np.concatenate((p_x0, p_x1),axis=2)
+            new_forces_from_interface_y = np.matmul(p_along_yz, self.FDTD_COEFFS_Y)
+            # (60,60,6)
+            #new_forces_from_interface_y = np.einsum('kk,ijk->ijk', self.FDTD_COEFFS_Y,p_along_yz) # WORKS too!!
 
             # Add everything together
             self.part_data[interface_data.part1_index].new_forces[:, :, -self.INTERFACE_SIZE:] += new_forces_from_interface_y[:, :, :self.INTERFACE_SIZE]
@@ -77,7 +78,8 @@ class Interface3D():
             p_along_xy = np.concatenate((p_z0, p_z1),axis=0)
             # new_forces_from_interface_z = np.matmul(p_along_xy,self.FDTD_COEFFS_Z)
             # (6, 60, 60) x (6, 6) -> (6, 60, 60)
-            new_forces_from_interface_z = np.einsum('ijk,ii->ijk', p_along_xy, self.FDTD_COEFFS_Z)
+            # new_forces_from_interface_z = np.einsum('ijk,ii->ijk', p_along_xy, self.FDTD_COEFFS_Z)
+            new_forces_from_interface_z = np.einsum('ii,ijk->ijk', self.FDTD_COEFFS_Y,p_along_xy)
             # new_forces_from_interface_z = np.tensordot(p_along_xy,self.FDTD_COEFFS_Z, axes=([1,0],[0,1]))
 
             # Add everything together
