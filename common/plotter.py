@@ -146,10 +146,10 @@ class AnimationPlotter():
     
     @staticmethod
     def plot_3D(p_field_t, simulation_parameters,title='', interval=0, video_output=False, file_name='', zyx=None):
+        plt.close() # close any existing plots from runs before
         # xyz is e.g, source location
         if zyx is not None:
             (z,y,x) = zyx
-            
             fig, (X,Y,Z) = plt.subplots(nrows=3, ncols=1, figsize=(10,10))
             
             # for each time step we slice existing p field

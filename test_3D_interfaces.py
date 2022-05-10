@@ -76,12 +76,14 @@ partitions.append(AirPartition3D(np.array([
     [room_width], # Y, depth
     [room_width]  # Z, height
 ]), sim_param, impulse))
+# ]), sim_param))
 
 partitions.append(AirPartition3D(np.array([
     [room_width], # X, width
     [room_width], # Y, depth
     [room_width]  # Z, height
 ]), sim_param))
+# ]), sim_param, impulse))
  
 # Interfaces of the room. Interfaces connect the room together
 interfaces = []
@@ -161,7 +163,7 @@ serializer = Serializer(compress=compress_file)
 sim = ARDSimulator(sim_param, partitions, 1, interfaces, mics)
 sim.preprocessing()
 sim.simulation()
-
+# TODO check non squeared rooms
 # Find best peak to normalize mic signal and write mic signal to file
 if auralize:
     def find_best_peak(mics):
@@ -206,7 +208,8 @@ if visualize:
                                           sim_param,
                                           title,
                                           interval = 1000 / fps, # in ms
-                                          zyx=partitions[0].src_grid_loc)
+                                           zyx=partitions[0].src_grid_loc)
+                                          # zyx=partitions[1].src_grid_loc)
     else:
         plotter = Plotter()
         plotter.set_data_from_simulation(sim_param, partitions)

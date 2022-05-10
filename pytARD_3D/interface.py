@@ -76,11 +76,14 @@ class Interface3D():
 
             # Calculate new forces transmitted into room
             p_along_xy = np.concatenate((p_z0, p_z1),axis=0)
-            # new_forces_from_interface_z = np.matmul(p_along_xy,self.FDTD_COEFFS_Z)
-            # (6, 60, 60) x (6, 6) -> (6, 60, 60)
-            # new_forces_from_interface_z = np.einsum('ijk,ii->ijk', p_along_xy, self.FDTD_COEFFS_Z)
-            new_forces_from_interface_z = np.einsum('ii,ijk->ijk', self.FDTD_COEFFS_Y,p_along_xy)
-            # new_forces_from_interface_z = np.tensordot(p_along_xy,self.FDTD_COEFFS_Z, axes=([1,0],[0,1]))
+            
+            p_along_xy = p_along_xy.swapaxes(0, 2)# DO KEY
+            
+            new_forces_from_interface_z = np.matmul(p_along_xy, self.FDTD_COEFFS_Z)
+            # # (6, 60, 60) x (6, 6) -> (6, 60, 60)
+            new_forces_from_interface_z = new_forces_from_interface_z.swapaxes(2, 0) # UNDO KEY
+            # new_forces_from_interface_z = np.zeros(p_along_xy.shape)
+            # # new_forces_from_interface_z = np.einsum('kji,im->ikj', p_along_xy, self.FDTD_COEFFS_Z)
 
             # Add everything together
             self.part_data[interface_data.part1_index].new_forces[-self.INTERFACE_SIZE:, :, :] += new_forces_from_interface_z[:self.INTERFACE_SIZE, :, :]
