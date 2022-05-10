@@ -2,7 +2,7 @@ from common.microphone import Microphone
 from common.parameters import SimulationParameters
 from common.notification import Notification
 from pytARD_3D.partition import Partition3D
-from pytARD_3D.interface import Interface3DLooped
+from pytARD_3D.interface import Interface3DLooped, Interface3D
 
 import numpy as np
 from tqdm import tqdm
@@ -32,7 +32,11 @@ class ARDSimulator:
 
         # List of interfaces (InterfaceData objects)
         self.interface_data = interface_data
-        self.interfaces = Interface3DLooped(sim_param, part_data)
+        
+        if interface_data[0].looped:
+            self.interfaces = Interface3DLooped(sim_param, part_data)
+        else:
+            self.interfaces = Interface3D(sim_param, part_data)
 
         # Initialize & position mics.
         self.mics = mics

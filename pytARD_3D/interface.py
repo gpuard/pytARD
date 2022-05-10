@@ -13,10 +13,11 @@ class Direction3D(enum.Enum):
     Z = 'HEIGHT'
     
 class InterfaceData3D():
-    def __init__(self, part1_index: int, part2_index: int, direction: Direction3D):
+    def __init__(self, part1_index: int, part2_index: int, direction: Direction3D,looped=False):
         self.part1_index: int = part1_index
         self.part2_index: int = part2_index
         self.direction: Direction3D = direction
+        self.looped = False
 
 class Interface3D():
 
@@ -44,36 +45,40 @@ class Interface3D():
         TODO: Doc
         '''
         if interface_data.direction == Direction3D.X:
-            p_left = self.part_data[interface_data.part1_index].pressure_field[:, :, -self.INTERFACE_SIZE:]
-            p_right = self.part_data[interface_data.part2_index].pressure_field[:, :, :self.INTERFACE_SIZE]
+            p_x0 = self.part_data[interface_data.part1_index].pressure_field[:, :, -self.INTERFACE_SIZE:]
+            p_x1 = self.part_data[interface_data.part2_index].pressure_field[:, :, :self.INTERFACE_SIZE]
 
             # Calculate new forces transmitted into room
-            pressures_along_y = np.hstack((p_left, p_right))
-            new_forces_from_interface_y = np.tensordot(pressures_along_y, self.FDTD_COEFFS_Y)
+            p_along_xy = np.concatenate((p_x0, p_x1),axis=2)
+            # new_forces_from_interface_y = np.tensordot(p_along_xy, self.FDTD_COEFFS_Y)
+            new_forces_from_interface_y = np.matmul(p_along_xy, self.FDTD_COEFFS_Y)
 
             # Add everything together
             self.part_data[interface_data.part1_index].new_forces[:, :, -self.INTERFACE_SIZE:] += new_forces_from_interface_y[:, :, :self.INTERFACE_SIZE]
             self.part_data[interface_data.part2_index].new_forces[:, :, :self.INTERFACE_SIZE] += new_forces_from_interface_y[:, :, -self.INTERFACE_SIZE :]
 
         elif interface_data.direction == Direction3D.Y:
-            p_top = self.part_data[interface_data.part1_index].pressure_field[:, -self.INTERFACE_SIZE :, :]
-            p_bot = self.part_data[interface_data.part2_index].pressure_field[:, :self.INTERFACE_SIZE, :]
+            p_y0 = self.part_data[interface_data.part1_index].pressure_field[:, -self.INTERFACE_SIZE :, :]
+            p_y1 = self.part_data[interface_data.part2_index].pressure_field[:, :self.INTERFACE_SIZE, :]
 
             # Calculate new forces transmitted into room
-            pressures_along_x = np.vstack((p_top, p_bot))
-            new_forces_from_interface_x = np.matmul(self.FDTD_COEFFS_X, pressures_along_x)
+            p_along_zx = np.concatenate((p_y0, p_y1),axis=1)
+            new_forces_from_interface_x = np.matmul(self.FDTD_COEFFS_X, p_along_zx)
 
             # Add everything together
             self.part_data[interface_data.part1_index].new_forces[:, -self.INTERFACE_SIZE :, :] += new_forces_from_interface_x[:, :self.INTERFACE_SIZE, :]
             self.part_data[interface_data.part2_index].new_forces[:, :self.INTERFACE_SIZE, :] += new_forces_from_interface_x[:, -self.INTERFACE_SIZE :, :]
 
         elif interface_data.direction == Direction3D.Z:
-            p_high = self.part_data[interface_data.part1_index].pressure_field[-self.INTERFACE_SIZE:, :, :]
-            p_low = self.part_data[interface_data.part2_index].pressure_field[:self.INTERFACE_SIZE, :, :]
+            p_z0 = self.part_data[interface_data.part1_index].pressure_field[-self.INTERFACE_SIZE:, :, :]
+            p_z1 = self.part_data[interface_data.part2_index].pressure_field[:self.INTERFACE_SIZE, :, :]
 
             # Calculate new forces transmitted into room
-            pressures_along_z = np.dstack((p_high, p_low))
-            new_forces_from_interface_z = np.matmul(self.FDTD_COEFFS_Z, pressures_along_z)
+            p_along_xy = np.concatenate((p_z0, p_z1),axis=0)
+            # new_forces_from_interface_z = np.matmul(p_along_xy,self.FDTD_COEFFS_Z)
+            # (6, 60, 60) x (6, 6) -> (6, 60, 60)
+            new_forces_from_interface_z = np.einsum('ijk,ii->ijk', p_along_xy, self.FDTD_COEFFS_Z)
+            # new_forces_from_interface_z = np.tensordot(p_along_xy,self.FDTD_COEFFS_Z, axes=([1,0],[0,1]))
 
             # Add everything together
             self.part_data[interface_data.part1_index].new_forces[-self.INTERFACE_SIZE:, :, :] += new_forces_from_interface_z[:self.INTERFACE_SIZE, :, :]

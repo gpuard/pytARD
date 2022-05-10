@@ -85,9 +85,18 @@ partitions.append(AirPartition3D(np.array([
 # Interfaces of the room. Interfaces connect the room together
 interfaces = []
 
-interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
-#interfaces.append(InterfaceData3D(0, 2, Direction3D.X))
-#interfaces.append(InterfaceData3D(3, 0, Direction3D.Y))
+TEST_KIND = ['X','Y','Z','all'][2]
+if TEST_KIND == 'X':
+    axis=2
+    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
+elif TEST_KIND == 'Y':
+    axis=1
+    interfaces.append(InterfaceData3D(0, 1, Direction3D.Y))
+elif TEST_KIND == 'Z':
+    axis=0
+    interfaces.append(InterfaceData3D(0, 1, Direction3D.Z))
+elif TEST_KIND == 'all':
+    pass
 #interfaces.append(InterfaceData3D(4, 0, Direction3D.Y))
 
 # Initialize & position mics.
@@ -158,8 +167,9 @@ if visualize:
         # 1 y
         # 2 X
         
+        pf_t = [np.concatenate((pfX0[t],pfX1[t]),axis=axis) for t in range(sim_param.number_of_samples)]
+        
         fps=30
-        pf_t = [np.concatenate((pfX0[t],pfX1[t]),axis=2) for t in range(sim_param.number_of_samples)]
         anim = AnimationPlotter().plot_3D(pf_t, 
                                           sim_param, 
                                           interval = 1000 / fps, # in ms
