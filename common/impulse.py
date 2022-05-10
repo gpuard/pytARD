@@ -156,7 +156,7 @@ class Unit(Impulse):
         sim_param : SimulationParameters
             Parameters of ARD Simulation
         location : ndarray
-            Location in which the impulse gets injected
+            Location (x,y,z) in which the impulse gets injected 
         amplitude : int
             Determines the amplitude; "loudness" of impulse 
         cutoff_frequency : int

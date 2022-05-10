@@ -288,11 +288,13 @@ class AirPartition3D:
         # Fill impulse array with impulses.
         if impulse:
             # Emit impulse into room
+            self.src_grid_loc =  (  int(self.space_divisions_z * (impulse.location[2] / dimensions[2])),
+                                    int(self.space_divisions_y * (impulse.location[1] / dimensions[1])),
+                                    int(self.space_divisions_x * (impulse.location[0] / dimensions[0])))
             self.impulses[:, 
                 int(self.space_divisions_z * (impulse.location[2] / dimensions[2])),
                 int(self.space_divisions_y * (impulse.location[1] / dimensions[1])), 
                 int(self.space_divisions_x * (impulse.location[0] / dimensions[0]))] = impulse.get()
-
         if sim_param.verbose:
             print(
                 f"Created partition with dimensions {self.dimensions[0]}x{self.dimensions[1]}x{self.dimensions[2]} m\nℎ (z): {self.h_z}, ℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions: {self.space_divisions_y} | CFL = {CFL}")
