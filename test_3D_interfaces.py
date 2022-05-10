@@ -11,24 +11,24 @@ from common.microphone import Microphone as Mic
 
 import numpy as np
 
-# # SUPER FAST
-# # Room parameters
-# # duration = 1.5 # seconds
-# duration = 0.5 # seconds
-# Fs = 630 # sample rate
-# upper_frequency_limit = 60 # Hz
-# # c = 342 # m/s
-# c = 4 # m/s
-# spatial_samples_per_wave_length = 1
-
-# Room parameters
-# duration = 1.5 # seconds
-duration = 0.5 # seconds
-Fs = 630 # sample rate
-upper_frequency_limit = 60 # Hz
-# c = 342 # m/s
-c = 4 # m/s
-spatial_samples_per_wave_length = 2
+if False:# SUPER FAST
+    # Room parameters
+    # duration = 1.5 # seconds
+    duration = 0.5 # seconds
+    Fs = 630 # sample rate
+    upper_frequency_limit = 60 # Hz
+    # c = 342 # m/s
+    c = 4 # m/s
+    spatial_samples_per_wave_length = 1
+else:
+    # Room parameters
+    # duration = 1.5 # seconds
+    duration = 0.5 # seconds
+    Fs = 630 # sample rate
+    upper_frequency_limit = 60 # Hz
+    # c = 342 # m/s
+    c = 4 # m/s
+    spatial_samples_per_wave_length = 2
 
 # Procedure parameters
 verbose = True
@@ -148,7 +148,7 @@ if write_to_file:
 
 # Plotting waveform
 if visualize:
-    a=1
+    a=0
     if a == 0:
         pfX0 = partitions[0].pressure_field_results
         pfX1 = partitions[1].pressure_field_results

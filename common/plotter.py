@@ -150,7 +150,7 @@ class AnimationPlotter():
         if zyx is not None:
             (z,y,x) = zyx
             
-            fig, (X,Y,Z) = plt.subplots(nrows=3, ncols=1, figsize=(5,5))
+            fig, (X,Y,Z) = plt.subplots(nrows=3, ncols=1, figsize=(10,10))
             
             # for each time step we slice existing p field
             # X-slice=> YZ-Plane
@@ -161,16 +161,18 @@ class AnimationPlotter():
             
             fig.suptitle("Time: %.2f sec" % 0)
         
-            mi = np.min([p_field_t])
-            ma = np.max([p_field_t])
-            
+            # mi = np.min([p_field_t])
+            # ma = np.max([p_field_t])
+
+            k = np.max([np.min(np.abs([p_field_t])),np.max(np.abs([p_field_t]))])
+            k= 0.5*k
+            ma = k
+            mi = -k
         
-            imX = X.imshow(np.zeros_like(pX[0]), vmin=mi, vmax=ma,aspect='equal')
-            imY = Y.imshow(np.zeros_like(pY[0]), vmin=mi, vmax=ma,aspect='equal')
-            imZ = Z.imshow(np.zeros_like(pZ[0]), vmin=mi, vmax=ma,aspect='equal')
-            # imX = X.imshow(np.zeros_like(pX[0]),cmap='nipy_spectral')
-            # imY = Y.imshow(np.zeros_like(pY[0]),cmap='nipy_spectral')
-            # imZ = Z.imshow(np.zeros_like(pZ[0]),cmap='nipy_spectral')
+            colormap = ['Greys','seismic','coolwarm','twilight'][1]
+            imX = X.imshow(np.zeros_like(pX[0]), vmin=mi, vmax=ma,aspect='equal',cmap=colormap)
+            imY = Y.imshow(np.zeros_like(pY[0]), vmin=mi, vmax=ma,aspect='equal',cmap=colormap)
+            imZ = Z.imshow(np.zeros_like(pZ[0]), vmin=mi, vmax=ma,aspect='equal',cmap=colormap)
 
             # Color Bar
             fig.subplots_adjust(right=0.85)
