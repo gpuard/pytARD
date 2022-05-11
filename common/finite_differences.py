@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Coefficients taken from "Finite Difference Coefficients Calculator", Taylor,
-# Cameron R. (2016). URL: https://web.media.mit.edu/~crtaylor/calculator.html
+# Coefficients taken from 
+#  [1] https://en.wikipedia.org/wiki/Finite_difference_coefficient
+#  [2] "Finite Difference Coefficients Calculator", Taylor,
+#       Cameron R. (2016). URL: https://web.media.mit.edu/~crtaylor/calculator.html
 FD_COEFFICIENTS = {
     1 : {  2 : np.array([-1/2, 0, 1/2]),
         4 : np.array([1/12, -2/3, 0, 2/3, -1/12]),
@@ -13,7 +15,7 @@ FD_COEFFICIENTS = {
         4 : np.array([-1/12, 4/3, -5/2, 4/3, -1/12]),
         6 : np.array([1/90, -3/20, 3/2, -49/18, 3/2, -3/20, 1/90]),
         8 : np.array([-1/560, 8/315, -1/5, 8/5, -205/72, 8/5, -1/5, 8/315, -1/560]),
-        10: np.array([8 ,-125 ,1000 ,-6000 ,42000 ,-73766 ,42000 ,-6000 ,1000 ,-125 ,8])/(25200)
+        10: np.array([8 ,-125 ,1000 ,-6000 ,42000 ,-73766 ,42000 ,-6000 ,1000 ,-125 ,8])/(25200) # [2]
         }
     }
 

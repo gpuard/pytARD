@@ -74,7 +74,7 @@ partitions = []
 partitions.append(AirPartition3D(np.array([
     [room_width], # X, width
     [room_width], # Y, depth
-    [room_width]  # Z, height
+    [room_width+2]  # Z, height
 ]), sim_param, impulse))
 # ]), sim_param))
 
