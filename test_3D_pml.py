@@ -15,7 +15,7 @@ import numpy as np
 # import matplotlib.pyplot as plt
 # import matplotlib; matplotlib.use("TkAgg")
 
-if True:# SUPER FAST
+if False:# SUPER FAST
     # Room parameters
     # duration = 1.5 # seconds
     duration = 0.5 # seconds

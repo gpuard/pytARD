@@ -210,7 +210,8 @@ if visualize:
                                           sim_param,
                                           title,
                                           interval = 1000 / fps, # in ms
-                                           zyx=partitions[0].src_grid_loc)
+                                          zyx=partitions[0].src_grid_loc,
+                                          direction='z')
                                           # zyx=partitions[1].src_grid_loc)
         # plt.show() # To be able to display animations in PyCharm
     else:
