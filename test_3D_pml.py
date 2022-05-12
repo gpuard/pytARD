@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from pytARD_3D.ard import ARDSimulator
-from pytARD_3D.partition import AirPartition3D
+from pytARD_3D.partition import AirPartition3D, PMLPartition3D, DampingProfile, PMLType
 from pytARD_3D.interface import InterfaceData3D, Direction3D
 
 from common.parameters import SimulationParameters
@@ -8,12 +8,14 @@ from common.impulse import Gaussian, Unit, WaveFile
 from common.serializer import Serializer
 from common.plotter import Plotter, AnimationPlotter
 from common.microphone import Microphone as Mic
+
 import numpy as np
-# To be able to display animations in PyCharm
+
+# # To be able to display animations in PyCharm
 # import matplotlib.pyplot as plt
 # import matplotlib; matplotlib.use("TkAgg")
 
-if False:# SUPER FAST
+if True:# SUPER FAST
     # Room parameters
     # duration = 1.5 # seconds
     duration = 0.5 # seconds
@@ -71,6 +73,9 @@ impulse = Unit(sim_param, impulse_location, 20, upper_frequency_limit - 1)
 # room_width = int(c / SCALE)
 room_width = int(2)
 
+# Damping profile with according Zetta value (how much is absorbed)
+dp = DampingProfile(room_width, c, 1e-3)
+
 partitions = []
 
 partitions.append(AirPartition3D(np.array([
@@ -80,60 +85,33 @@ partitions.append(AirPartition3D(np.array([
 ]), sim_param, impulse))
 # ]), sim_param))
 
-partitions.append(AirPartition3D(np.array([
-    [room_width], # X, width
+partitions.append(PMLPartition3D(np.array([
+    [1.5],        # X, width
     [room_width], # Y, depth
     [room_width]  # Z, height
-]), sim_param))
+]), sim_param, PMLType.RIGHT, dp))
+
 # ]), sim_param, impulse))
  
 # Interfaces of the room. Interfaces connect the room together
 interfaces = []
 
 title=''
-TEST_KIND = ['X','Y','Z','all'][2]
+TEST_KIND = ['X','Y','Z','all'][0]
 if TEST_KIND == 'X':
     axis=2
     interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
-    title = 'YZ-Inteface'
+    title = 'YZ-PML-WALL'
 elif TEST_KIND == 'Y':
     axis=1
     interfaces.append(InterfaceData3D(0, 1, Direction3D.Y))
-    title = 'XZ-Inteface'
+    title = 'XZ-PML-WALL'
 elif TEST_KIND == 'Z':
     axis=0
     interfaces.append(InterfaceData3D(0, 1, Direction3D.Z))
-    title = 'XY-Inteface'
+    title = 'XY-PML-WALL'
 elif TEST_KIND == 'all':
-    partitions.append(AirPartition3D(np.array([
-        [room_width], # X, width
-        [room_width], # Y, depth
-        [room_width]  # Z, height
-    ]), sim_param, impulse))
-    
-    partitions.append(AirPartition3D(np.array([
-        [room_width], # X, width
-        [room_width], # Y, depth
-        [room_width]  # Z, height
-    ]), sim_param))
-    
-    partitions.append(AirPartition3D(np.array([
-        [room_width], # X, width
-        [room_width], # Y, depth
-        [room_width]  # Z, height
-    ]), sim_param, impulse))
-   
-    partitions.append(AirPartition3D(np.array([
-        [room_width], # X, width
-        [room_width], # Y, depth
-        [room_width]  # Z, height
-    ]), sim_param))
-    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
-    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
-    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
-    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
-    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
-    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
+    pass
 
 # Initialize & position mics.
 mics = []

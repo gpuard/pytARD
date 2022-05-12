@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 #  [1] https://en.wikipedia.org/wiki/Finite_difference_coefficient
 #  [2] "Finite Difference Coefficients Calculator", Taylor,
 #       Cameron R. (2016). URL: https://web.media.mit.edu/~crtaylor/calculator.html
-FD_COEFFICIENTS = {
+FD_COEFFICIENTS = { # [1]
     1 : {  2 : np.array([-1/2, 0, 1/2]),
         4 : np.array([1/12, -2/3, 0, 2/3, -1/12]),
         6 : np.array([-1/60, 3/20, -3/4, 0, 3/4, -3/20, 1/60]),

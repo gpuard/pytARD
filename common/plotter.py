@@ -191,8 +191,6 @@ class AnimationPlotter():
                 Y.set_title('ZX-Plane')
                 Z.set_title('XY-Plane')
                 
-                pass
-            
             def update_plot(time_step):
                 time = simulation_parameters.delta_t * time_step       
                 # fig.suptitle("Time: %.2f sec" % time)
