@@ -145,13 +145,29 @@ class Plotter():
 class AnimationPlotter():
     
     @staticmethod
-    def plot_3D(p_field_t, simulation_parameters,title='', interval=0, video_output=False, file_name='', zyx=None):
+    def plot_3D(p_field_t, simulation_parameters,title='', interval=0, video_output=False, file_name='', zyx=None, direction=[None,'x','y','z'][1]):
         plt.close() # close any existing plots from runs before
+        
         # xyz is e.g, source location
         if zyx is not None:
             (z,y,x) = zyx
             fig, (X,Y,Z) = plt.subplots(nrows=3, ncols=1, figsize=(10,10))
             
+            anim0 = None
+            if direction is not None:
+                p_t = list()
+                if direction == 'x':
+                    for frame in p_field_t:
+                        p_t.append(frame[z,y,:])
+                if direction == 'y':
+                    for frame in p_field_t:
+                        p_t.append(frame[z,:,x])
+                if direction == 'z':
+                    for frame in p_field_t:
+                        p_t.append(frame[:,y,x])
+                        
+                anim0 = AnimationPlotter.plot_1D(p_t, simulation_parameters, interval=0, video_output=False, file_name='')
+        
             # for each time step we slice existing p field
             # X-slice=> YZ-Plane
             pX = [p_field_t[i][:,:,x] for i in range(len(p_field_t))]
@@ -209,7 +225,7 @@ class AnimationPlotter():
                                     blit=False)
             if video_output:
                 AnimationPlotter.write_video(anim, file_name)
-            return anim
+            return [anim0,anim]
         else:
             # surface plotter
             pass
@@ -252,15 +268,22 @@ class AnimationPlotter():
         if video_output:
             AnimationPlotter.write_video(anim, file_name)
         return anim
-       
-    def plot_1D(p_field_t, simulation_parameters, frames, interval=0, video_output=False, file_name=''):
+    
+    @staticmethod   
+    def plot_1D(p_field_t, simulation_parameters, interval=0, video_output=False, file_name=''):
         
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5,5))
         
+        # text = fig.text(0.1, 0.9, '', # X, Y; 1-top or right
+        #         verticalalignment='center', horizontalalignment='center',
+        #         color='green', fontsize=15)
+    
         fig.suptitle("Time: %.2f sec" % 0)
 
-        mi = np.min(-np.abs([p_field_t]))
-        ma = np.max(np.abs([p_field_t]))
+        k = np.max([np.min(np.abs([p_field_t])),np.max(np.abs([p_field_t]))])
+        k= 0.5*k
+        ma = k
+        mi = -k
 
         ln, = ax.plot(0,0)
         def init_func():
@@ -269,8 +292,9 @@ class AnimationPlotter():
             ln.set_xdata(np.arange(len(p_field_t[0])))
             
         def update_plot(time_step):
-            time = simulation_parameters.dt * time_step       
+            time = simulation_parameters.delta_t * time_step       
             fig.suptitle("Time: %.2f sec" % time)
+            # text.set_text("Time: %.2f sec" % time)
             # ln.set_xdata(np.arange(len(p_field_t[time_step])))
             ln.set_ydata(p_field_t[time_step])
             return [ln]
@@ -278,7 +302,7 @@ class AnimationPlotter():
         # keep the reference
         anim = FuncAnimation(   fig,
                                 update_plot,
-                                frames=simulation_parameters.time_steps,
+                                frames=range(simulation_parameters.number_of_samples),
                                 init_func=init_func,
                                 interval=interval, # Delay between frames in milliseconds
                                 blit=False)
@@ -300,13 +324,13 @@ class AnimationPlotter():
                   # fps=60,
                   writer=writervideo) 
         
-    def plot(self):
-        dimension = 3
-        if self.verbose: 
-            print(f"Data is {dimension}-D.")
-        if dimension == 1: 
-            self.plot_1D()
-        if dimension == 2: 
-            self.plot_2D()
-        if dimension == 3: 
-            self.plot_3D()
+    # def plot(self):
+    #     dimension = 3
+    #     if self.verbose: 
+    #         print(f"Data is {dimension}-D.")
+    #     if dimension == 1: 
+    #         self.plot_1D()
+    #     if dimension == 2: 
+    #         self.plot_2D()
+    #     if dimension == 3: 
+    #         self.plot_3D()
