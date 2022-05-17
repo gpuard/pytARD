@@ -193,6 +193,16 @@ class PMLPartition2D(Partition2D):
         
 
     def simulate(self, t_s: int, normalization_factor: int=1):
+        '''
+        Executes the simulation for the partition.
+
+        Parameters
+        ----------
+        t_s : int
+            Current time step.
+        normalization_factor : float
+            Normalization multiplier to harmonize amplitudes between partitions.
+        '''
         dx = 1.0 
         dy = 1.0
 
@@ -312,8 +322,7 @@ class AirPartition2D(Partition2D):
         impulse: Impulse=None
     ):
         '''
-        Parameter container class for ARD simulator. Contains all relevant data to instantiate
-        and run ARD simulator.
+        Air partition. Resembles an empty space in which sound can travel through.
 
         Parameters
         ----------

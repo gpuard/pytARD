@@ -13,22 +13,55 @@ class Direction2D(enum.Enum):
     Y = 'VERTICAL'
     
 class InterfaceData2D():
+    '''
+    Supporting data structure for interfaces.
+    '''
+    
     def __init__(self, part1_index, part2_index, direction):
+        '''
+        Creates an instance of interface data between two partitions.
+
+        Parameters
+        ----------
+        part1_index : int, 
+            Index of first partition (index of PartitionData list)
+        part2_index : int 
+            Index of first partition (index of PartitionData list)
+        direction : Direction2D
+            Passing direction of the sound wave.
+        fdtd_acc : int
+            FDTD accuracy.
+        '''
+
         self.part1_index: int = part1_index
         self.part2_index: int = part2_index
         self.direction: Direction2D = direction
 
 class Interface2D():
+    '''
+    Interface for connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
+    '''
 
     def __init__(
         self, 
         sim_params: SimulationParameters, 
-        part_data: Partition2D, 
+        part_data: list, 
         fdtd_order: int=2, 
         fdtd_acc: int=6
         ):
         '''
-        TODO: Doc
+        Create an Interface for connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
+
+        Parameters
+        ----------
+        sim_param : SimulationParameters
+            Instance of simulation parameter class.
+        part_data : list
+            List of PartitionData objects. All partitions of the domain are collected here.
+        fdtd_order : int
+            FDTD order.
+        fdtd_acc : int
+            FDTD accuracy.
         '''
 
         self.part_data = part_data
@@ -45,7 +78,12 @@ class Interface2D():
 
     def handle_interface(self, interface_data: InterfaceData2D):
         '''
-        TODO: Doc
+        Handles the travelling of sound waves between two partitions.
+
+        Parameters
+        ----------
+        interface_data : InterfaceData2D
+            InterfaceData instance. Determines which two partitions pass sound waves to each other.
         '''
         if interface_data.direction == Direction2D.X:
             p_left = self.part_data[interface_data.part1_index].pressure_field[:, -self.INTERFACE_SIZE:]
@@ -94,9 +132,14 @@ class Interface2DLooped():
         # FDTD kernel size.
         self.INTERFACE_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
 
-    def handle_interface(self, interface_data):
+    def handle_interface(self, interface_data: InterfaceData2D):
         '''
-        TODO: Doc
+        Handles all calculations to enable passing of sound waves between partitions through the interface.
+
+        Parameters
+        ----------
+        interface_data : InterfaceData2D
+            Contains data which two partitions are involved, and in which direction the sound will travel.
         '''
         if interface_data.direction == Direction2D.X:
             for y in range(self.part_data[interface_data.part1_index].space_divisions_y):

@@ -20,12 +20,31 @@ class InterfaceData3D():
         direction: Direction3D,
         looped: bool=False
         ):
+        '''
+        Creates an instance of interface data between two partitions.
+
+        Parameters
+        ----------
+        part1_index : int, 
+            Index of first partition (index of PartitionData list)
+        part2_index : int 
+            Index of first partition (index of PartitionData list)
+        direction : Direction3D
+            Passing direction of the sound wave.
+        fdtd_acc : int
+            FDTD accuracy.
+        looped : bool
+            Determines if the interface handling is done via looping through data. If false, matrix multiplication is used.
+        '''
         self.part1_index = part1_index
         self.part2_index = part2_index
         self.direction = direction
         self.looped = False
 
 class Interface3D():
+    '''
+    Interface for connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
+    '''
 
     def __init__(
         self, 
@@ -34,9 +53,19 @@ class Interface3D():
         fdtd_order: int=2, 
         fdtd_acc: int=6
         ):
-
         '''
-        TODO: Doc
+        Create an Interface for connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
+
+        Parameters
+        ----------
+        sim_param : SimulationParameters
+            Instance of simulation parameter class.
+        part_data : list
+            List of PartitionData objects. All partitions of the domain are collected here.
+        fdtd_order : int
+            FDTD order.
+        fdtd_acc : int
+            FDTD accuracy.
         '''
 
         self.part_data = part_data
@@ -55,7 +84,12 @@ class Interface3D():
 
     def handle_interface(self, interface_data: InterfaceData3D):
         '''
-        TODO: Doc
+        Handles all calculations to enable passing of sound waves between partitions through the interface.
+
+        Parameters
+        ----------
+        interface_data : InterfaceData3D
+            Contains data which two partitions are involved, and in which direction the sound will travel.
         '''
         if interface_data.direction == Direction3D.X:
             p_x0 = self.part_data[interface_data.part1_index].pressure_field[:, :, -self.INTERFACE_SIZE:]

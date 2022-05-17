@@ -434,8 +434,7 @@ class AirPartition3D:
         impulse: bool=None
     ):
         '''
-        Parameter container class for ARD simulator. Contains all relevant data to instantiate
-        and run ARD simulator.
+        Air partition. Resembles an empty space in which sound can travel through.
 
         Parameters
         ----------
