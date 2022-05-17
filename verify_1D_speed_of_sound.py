@@ -1,4 +1,4 @@
-from pytARD_1D.ard import ARDSimulator
+from pytARD_1D.ard import ARDSimulator1D
 from pytARD_1D.partition import PartitionData
 from pytARD_1D.interface import InterfaceData1D
 
@@ -30,7 +30,7 @@ c_partition = PartitionData(np.array([sim_param.c]), sim_param, impulse)
 partitions = [c_partition]
 
 # Instantiating and executing simulation
-sim = ARDSimulator(sim_param, partitions, 1)
+sim = ARDSimulator1D(sim_param, partitions, 1)
 sim.preprocessing()
 sim.simulation()
 

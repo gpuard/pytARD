@@ -1,20 +1,19 @@
 
 
-
 class SimulationParameters:
     def __init__(
         self,
         max_simulation_frequency: float,
         T: int,
-        spatial_samples_per_wave_length: int=6,
-        c: int=343,
-        Fs: int=8000,
-        normalization_constant: float=1,
-        auralize: bool=None,
-        verbose: bool=False,
-        visualize: bool=False,
-        visualize_source = True,
-        benchmark: bool=False
+        spatial_samples_per_wave_length: int = 6,
+        c: int = 343,
+        Fs: int = 8000,
+        normalization_constant: float = 1,
+        auralize: bool = None,
+        verbose: bool = False,
+        visualize: bool = False,
+        visualize_source: bool = True,
+        benchmark: bool = False
     ):
         '''
         Parameter container class for ARD simulation. Contains all relevant data to instantiate
@@ -36,22 +35,27 @@ class SimulationParameters:
         c : float
             Speed of sound [m/s]. Depends on air temperature, pressure and humidity. 
         Fs : int
-            Sampling rate. The higher, the more fidelity but lower performance.
+            Sampling rate. The higher, the more fidelity and higher maximum frequency but at the expense of performance.
+        normalization_constant : float
+            Normalization multiplier to equalize amplitude across entire domain.
         auralize : ndarray
-            Auralizes (= makes hearable) the room by creating an impulse response (IR).
-            Format is a list with mic positions. If array is empty, no auralization is being made.
-        verbose : boolean
+            Auralizes the room (= makes hearable) by creating an impulse response (IR).
+            Format is a list with mic positions. If microphone array is empty, no auralization is being made.
+        verbose : bool
             Prints information on the terminal for debugging and status purposes.
-        visualize : boolean
-            Visualizes wave propagation in a plot.
+        visualize : bool
+            Visualizes wave propagation in the plot.
+        visualize_source : bool
+            Visualizes impulse source in the plot.
+        benchmark : bool
+            Enables performance benchmarking for comparing different accuracies.
         '''
 
         assert(T > 0), "Error: Simulation duration must be a positive number greater than 0."
         assert(Fs > 0), "Error: Sample rate must be a positive number."
         assert(c > 0), "Error: Speed of sound must be a positive number."
-        assert(max_simulation_frequency >
-               0), "Error: Uppermost frequency of simulation must be a positive number."
-        #assert(max_simulation_frequency > (Fs / 2)), "Nyquist-Shannon theorem violated. Make sure upper frequency limit is Fs / 2."
+        assert(max_simulation_frequency > 0), "Error: Uppermost frequency of simulation must be a positive number."
+        assert(max_simulation_frequency < (Fs / 2)), "Nyquist-Shannon theorem violated. Make sure upper frequency limit is Fs / 2."
 
         self.max_simulation_frequency = max_simulation_frequency
         self.c = c
@@ -73,7 +77,8 @@ class SimulationParameters:
         self.benchmark = benchmark
 
         if verbose:
-            print(f"Insantiated simulation.\nNumber of samples: {self.number_of_samples} | Δ_t: {self.delta_t}")
+            print(
+                f"Insantiated simulation.\nNumber of samples: {self.number_of_samples} | Δ_t: {self.delta_t}")
 
     @staticmethod
     def calculate_voxelization_step(sim_param):
@@ -94,4 +99,3 @@ class SimulationParameters:
             ℎ, the voxelization step. In numerics and papers, it's usually referred to ℎ. 
         '''
         return sim_param.c / (sim_param.spatial_samples_per_wave_length * sim_param.max_simulation_frequency)
-

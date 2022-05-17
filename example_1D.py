@@ -1,4 +1,4 @@
-from pytARD_1D.ard import ARDSimulator
+from pytARD_1D.ard import ARDSimulator1D
 from pytARD_1D.partition import PartitionData
 from pytARD_1D.interface import InterfaceData1D
 
@@ -64,7 +64,7 @@ if auralize:
 
 
 # Instantiating and executing simulation
-sim = ARDSimulator(sim_param, partitions, 1, interfaces, mics)
+sim = ARDSimulator1D(sim_param, partitions, 1, interfaces, mics)
 sim.preprocessing()
 sim.simulation()
 

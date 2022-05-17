@@ -1,4 +1,4 @@
-from pytARD_2D.ard import ARDSimulator as ARDS
+from pytARD_2D.ard import ARDSimulator2D as ARDS
 from pytARD_2D.partition import AirPartition2D as PARTD
 from pytARD_2D.interface import InterfaceData2D, Direction2D
 

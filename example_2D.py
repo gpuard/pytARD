@@ -1,4 +1,4 @@
-from pytARD_2D.ard import ARDSimulator
+from pytARD_2D.ard import ARDSimulator2D
 from pytARD_2D.partition import AirPartition2D, PMLPartition2D, PMLType, DampingProfile
 from pytARD_2D.interface import InterfaceData2D, Direction2D
 
@@ -91,7 +91,7 @@ if auralize:
 serializer = Serializer(compress=compress_file)
 
 # Instantiating and executing simulation
-sim = ARDSimulator(sim_param, partitions, 1, interfaces, mics)
+sim = ARDSimulator2D(sim_param, partitions, 1, interfaces, mics)
 sim.preprocessing()
 sim.simulation()
 

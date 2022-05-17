@@ -4,11 +4,9 @@ from common.parameters import SimulationParameters
 import numpy as np
 from enum import Enum
 from scipy.fft import idctn, dctn
-from scipy.io.wavfile import read
-from scipy.fftpack import idct, dct
 
 class Partition2D(): 
-    def __init__(self, dimensions, sim_param):
+    def __init__(self, dimensions: np.ndarray, sim_param: SimulationParameters):
         pass
 
     def preprocessing():
@@ -18,7 +16,21 @@ class Partition2D():
         pass
 
     @staticmethod
-    def check_CFL(sim_param, h_x, h_y):
+    def check_CFL(sim_param: SimulationParameters, h_x: float, h_y: float):
+        '''
+        Checks stability of wave equation via calculating Courant-Friedrichs-Lewy number.
+
+        Parameters
+        ----------
+        sim_param : SimulationParameters
+            Instance of simulation parameter class.
+        h_x : float
+            X direction voxel length (grid spacing)
+        h_y : float
+            Y direction voxel length (grid spacing)
+        '''
+
+
         CFL = sim_param.c * sim_param.delta_t * ((1 / h_x) + (1 / h_y))
         CFL_target = np.sqrt(1/3)
         assert(CFL <= CFL_target), f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than {CFL_target}. Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length."
@@ -48,7 +60,29 @@ class PMLType(Enum):
     }
 
 class DampingProfile:
-    def __init__(self, room_length: float, c : float, reflection_coefficient: float):
+    '''
+    Damping profile. Determines how intense the reflections of the PML partition are, or how much sound energy is absorbed.
+    '''
+
+    def __init__(
+        self, 
+        room_length: float, 
+        c : float, 
+        reflection_coefficient: float
+    ):
+        '''
+        Instantiates a damping profile for a PML partition.
+
+        Parameters
+        ----------
+        room_length : float
+            Length of partition.
+        c : float 
+            Speed of sound.
+        reflection_coefficient : float
+            Reflection coefficient R. Determines how intense the reflections of the PML partition are.
+        '''
+
         self.zetta_i = DampingProfile.calculate_zetta(room_length, c, reflection_coefficient)
 
     def damping_profile(self, x, width):
@@ -73,6 +107,10 @@ class DampingProfile:
         return (c / L) * np.log(1 / R)
 
 class PMLPartition2D(Partition2D):
+    '''
+    PML partition. Absorps sound energy depending on the damping profile.
+    '''
+
     def __init__(
         self,
         dimensions: np.ndarray,
@@ -80,6 +118,21 @@ class PMLPartition2D(Partition2D):
         type: PMLType,
         damping_profile: DampingProfile
     ):
+        '''
+        Instantiates a PML partition in the domain. Absorps sound energy depending on the damping profile.
+
+        Parameters
+        ----------
+        dimensions : ndarray
+            Size of the partition (room) in meters.
+        sim_param : SimulationParameters
+            Instance of simulation parameter class.
+        pml_type : PMLType
+            Type (direction) of PML partition.
+        damping_profile : DampingProfile
+            Damping profile of the PML partition, determines the intensity of wave absorption.
+        '''
+
         self.dimensions = dimensions
         self.sim_param = sim_param
         
@@ -133,13 +186,13 @@ class PMLPartition2D(Partition2D):
     def preprocessing(self):
         pass
 
-    def get_safe(self, source, y, x):
+    def get_safe(self, source: list, y: int, x: int):
         if x < 0 or x >= self.space_divisions_x or y < 0 or y >= self.space_divisions_y:
             return source[-1, -1]
         return source[y, x]    
         
 
-    def simulate(self, t_s, normalization_factor=1):
+    def simulate(self, t_s: int, normalization_factor: int=1):
         dx = 1.0 
         dy = 1.0
 
@@ -256,7 +309,7 @@ class AirPartition2D(Partition2D):
         self,
         dimensions: np.ndarray,
         sim_param: SimulationParameters,
-        impulse:Impulse=None
+        impulse: Impulse=None
     ):
         '''
         Parameter container class for ARD simulator. Contains all relevant data to instantiate
@@ -349,7 +402,18 @@ class AirPartition2D(Partition2D):
         if self.sim_param.verbose:
             print(f"Preprocessing started.\nShape of omega_i: {self.omega_i.shape}\nShape of pressure field: {self.pressure_field.shape}\n")
 
-    def simulate(self, t_s, normalization_factor=1):
+    def simulate(self, t_s: int, normalization_factor: float=1):
+        '''
+        Executes the simulation for the partition.
+
+        Parameters
+        ----------
+        t_s : int
+            Current time step.
+        normalization_factor : float
+            Normalization multiplier to harmonize amplitudes between partitions.
+        '''
+        
         # Execute DCT for next sample
         self.forces = dctn(self.new_forces, 
             type=2, 

@@ -1,27 +1,40 @@
 from common.microphone import Microphone
-from common.parameters import SimulationParameters
 from common.notification import Notification
-from pytARD_3D.partition import Partition3D
+from common.parameters import SimulationParameters
+
 from pytARD_3D.interface import Interface3DLooped, Interface3D
 
-import numpy as np
 from tqdm import tqdm
 
-class ARDSimulator:
+class ARDSimulator3D:
     '''
     ARD Simulation class. Creates and runs ARD simulator instance.
     '''
 
-    def __init__(self, sim_param, part_data, normalization_factor, interface_data=[], mics=[]):
+    def __init__(
+        self, 
+        sim_param: SimulationParameters, 
+        part_data: list, 
+        normalization_factor: float, 
+        interface_data: list=[], 
+        mics: list=[]
+    ):
+        
         '''
-        Create and run ARD simulator instance.
+        Create and prepare ARD simulator instance.
 
         Parameters
         ----------
-        sim_parameters : SimulationParameters
+        sim_param : SimulationParameters
             Instance of simulation parameter class.
         part_data : list
-            List of PartitionData objects.
+            List of PartitionData objects. All partitions of the domain are collected here.
+        normalization_factor : float
+            Normalization multiplier to harmonize amplitudes between partitions.
+        interface_data : list
+            List of Interface objects. All interfaces of the domain are collected here.
+        mics : list
+            List of Microphone objects. All microphones placed within the domain are collected here.
         '''
 
         # Parameter class instance (SimulationParameters)
@@ -52,9 +65,16 @@ class ARDSimulator:
             self.part_data[i].preprocessing()
 
 
-    def record_to_mic(self, mic, t_s):
+    def record_to_mic(self, mic: Microphone, t_s: int):
         '''
-        TODO: Doc
+        Records a given position in the domain to a given microphone.
+
+        Parameters
+        ----------
+        mic : Microphone
+            Microphone object instance which is placed inside the domain.
+        t_s : float
+            Current time step of the ARD simulation.
         '''
         pressure_field_z = int(self.part_data[mic.partition_number].space_divisions_z * (mic.location[2] / self.part_data[mic.partition_number].dimensions[2]))
         pressure_field_y = int(self.part_data[mic.partition_number].space_divisions_y * (mic.location[1] / self.part_data[mic.partition_number].dimensions[1]))

@@ -12,8 +12,9 @@ class PartitionData:
         self,
         dimensions: np.ndarray,
         sim_param: SimulationParameters,
-        impulse: Impulse=None    
+        impulse: Impulse=None
         ):
+
         '''
         Parameter container class for ARD simulator. Contains all relevant data to instantiate
         and run ARD simulator.

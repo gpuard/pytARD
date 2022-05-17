@@ -40,7 +40,13 @@ class Gaussian(Impulse):
     '''
     Creates and injects a Gaussian impulse as an impulse source.
     '''
-    def __init__(self, sim_param: SimulationParameters, location: np.ndarray, amplitude: int, width: float=69): # TODO Set width
+    def __init__(
+        self, 
+        sim_param: SimulationParameters, 
+        location: np.ndarray, 
+        amplitude: int, 
+        width: float=70
+    ): # TODO Set width
         '''
         Instantiation of a Gaussian impulse.
 
@@ -57,8 +63,7 @@ class Gaussian(Impulse):
         '''
         self.sim_param = sim_param
         self.location = location
-        self.time_sample_indices = np.arange(
-            0, self.sim_param.number_of_samples, 1)
+        self.time_sample_indices = np.arange(0, self.sim_param.number_of_samples, 1)
         self.amplitude = amplitude
         self.width = width
 

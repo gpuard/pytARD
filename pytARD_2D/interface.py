@@ -20,7 +20,13 @@ class InterfaceData2D():
 
 class Interface2D():
 
-    def __init__(self, sim_params: SimulationParameters, part_data: Partition2D, fdtd_order=2, fdtd_acc=6):
+    def __init__(
+        self, 
+        sim_params: SimulationParameters, 
+        part_data: Partition2D, 
+        fdtd_order: int=2, 
+        fdtd_acc: int=6
+        ):
         '''
         TODO: Doc
         '''
@@ -37,7 +43,7 @@ class Interface2D():
         # FDTD kernel size.
         self.INTERFACE_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
 
-    def handle_interface(self, interface_data):
+    def handle_interface(self, interface_data: InterfaceData2D):
         '''
         TODO: Doc
         '''

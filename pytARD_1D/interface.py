@@ -1,15 +1,23 @@
 import numpy as np
 from common.finite_differences import get_laplacian_matrix
+from common.parameters import SimulationParameters
     
 class InterfaceData1D():
-    def __init__(self, part1_index, part2_index, fdtd_acc=6):
+    def __init__(self, part1_index: int, part2_index: int, fdtd_acc: int=6):
         self.part1_index = part1_index
         self.part2_index = part2_index
         self.fdtd_acc = fdtd_acc
 
 class Interface1D():
 
-    def __init__(self, sim_params, part_data, fdtd_order=2, fdtd_acc=6):
+    def __init__(
+        self, 
+        sim_params: SimulationParameters, 
+        part_data: list, 
+        fdtd_order: int=2, 
+        fdtd_acc: int=6
+        ):
+        
         '''
         TODO: Doc
         '''
@@ -28,7 +36,7 @@ class Interface1D():
         # side of the interface (3 voxels left, 3 voxels right)
         self.INTERFACE_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
 
-    def handle_interface(self, interface_data):
+    def handle_interface(self, interface_data: InterfaceData1D):
         '''
         TODO: Doc
         '''

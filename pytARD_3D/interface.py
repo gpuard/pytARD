@@ -13,15 +13,28 @@ class Direction3D(enum.Enum):
     Z = 'HEIGHT'
     
 class InterfaceData3D():
-    def __init__(self, part1_index: int, part2_index: int, direction: Direction3D,looped=False):
-        self.part1_index: int = part1_index
-        self.part2_index: int = part2_index
-        self.direction: Direction3D = direction
+    def __init__(
+        self, 
+        part1_index: int, 
+        part2_index: int, 
+        direction: Direction3D,
+        looped: bool=False
+        ):
+        self.part1_index = part1_index
+        self.part2_index = part2_index
+        self.direction = direction
         self.looped = False
 
 class Interface3D():
 
-    def __init__(self, sim_params: SimulationParameters, part_data, fdtd_order: int=2, fdtd_acc: int=6):
+    def __init__(
+        self, 
+        sim_params: SimulationParameters, 
+        part_data: list, 
+        fdtd_order: int=2, 
+        fdtd_acc: int=6
+        ):
+
         '''
         TODO: Doc
         '''
@@ -40,7 +53,7 @@ class Interface3D():
         # FDTD kernel size.
         self.INTERFACE_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
 
-    def handle_interface(self, interface_data):
+    def handle_interface(self, interface_data: InterfaceData3D):
         '''
         TODO: Doc
         '''
@@ -127,7 +140,14 @@ class Interface3D():
 
 class Interface3DLooped():
 
-    def __init__(self, sim_params, part_data, fdtd_order=2, fdtd_acc=6):
+    def __init__(
+        self, 
+        sim_params: SimulationParameters, 
+        part_data: list, 
+        fdtd_order: int=2, 
+        fdtd_acc: int=6
+    ):
+
         '''
         TODO: Doc
         '''
@@ -146,13 +166,14 @@ class Interface3DLooped():
         # FDTD kernel size.
         self.FDTD_KERNEL_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
 
-    def handle_interface(self, interface_data):
+    def handle_interface(self, interface_data: list):
         '''
         TODO: Doc
         '''
         if interface_data.direction == Direction3D.X:
             for z in range(self.part_data[interface_data.part1_index].space_divisions_z):
                 for y in range(self.part_data[interface_data.part1_index].space_divisions_y):
+                    # Prepare pressure field in y direction
                     pressure_field_around_interface_y = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE])
                     pressure_field_around_interface_y[0 : self.FDTD_KERNEL_SIZE] = self.part_data[interface_data.part1_index].pressure_field[z, y, -self.FDTD_KERNEL_SIZE : ].copy()#.reshape([self.FDTD_KERNEL_SIZE, 1])
                     pressure_field_around_interface_y[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[interface_data.part2_index].pressure_field[z, y, 0 : self.FDTD_KERNEL_SIZE].copy()#.reshape(self.FDTD_KERNEL_SIZE, 1)
@@ -171,11 +192,12 @@ class Interface3DLooped():
         elif interface_data.direction == Direction3D.Y:
             for z in range(self.part_data[interface_data.part1_index].space_divisions_z):
                 for x in range(self.part_data[interface_data.part1_index].space_divisions_x):
+                    # Prepare pressure field in x direction
                     pressure_field_around_interface_x = np.zeros(shape=[2 * self.FDTD_KERNEL_SIZE])
                     pressure_field_around_interface_x[0 : self.FDTD_KERNEL_SIZE] = self.part_data[1].pressure_field[z, -self.FDTD_KERNEL_SIZE : , x].copy()#.reshape([self.FDTD_KERNEL_SIZE, 1])
                     pressure_field_around_interface_x[self.FDTD_KERNEL_SIZE : 2 * self.FDTD_KERNEL_SIZE] = self.part_data[2].pressure_field[z, 0 : self.FDTD_KERNEL_SIZE, x].copy()#.reshape(self.FDTD_KERNEL_SIZE, 1)
 
-                    # Calculate new forces transmitted into  room
+                    # Calculate new forces transmitted into room
                     new_forces_from_interface_x = self.FDTD_COEFFS_X.dot(pressure_field_around_interface_x)
 
                     # Add everything together
@@ -185,4 +207,3 @@ class Interface3DLooped():
                     self.part_data[interface_data.part2_index].new_forces[z, 0, x] += new_forces_from_interface_x[3]
                     self.part_data[interface_data.part2_index].new_forces[z, 1, x] += new_forces_from_interface_x[4]
                     self.part_data[interface_data.part2_index].new_forces[z, 2, x] += new_forces_from_interface_x[5]
-                    
