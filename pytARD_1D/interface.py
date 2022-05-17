@@ -77,6 +77,7 @@ class Interface1D():
         interface_data : InterfaceData1D
             InterfaceData instance. Determines which two partitions pass sound waves to each other.
         '''
+        # Initialize pressure field around interface
         pressure_field_around_interface = np.zeros(
             shape=[2 * self.INTERFACE_SIZE])
 
