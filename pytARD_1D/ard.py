@@ -1,12 +1,14 @@
+from pytARD_1D.interface import Interface1D, InterfaceData1D
+from pytARD_1D.partition import PartitionData
+
+from common.microphone import Microphone as Mic
+from common.parameters import SimulationParameters
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fftpack import idct, dct
-from common.microphone import Microphone as Mic
-from common.parameters import SimulationParameters
-from pytARD_1D.partition import PartitionData
 from tqdm import tqdm
-
-from pytARD_1D.interface import Interface1D, InterfaceData1D
+import time
 
 
 class ARDSimulator:
@@ -49,13 +51,18 @@ class ARDSimulator:
             self.part_data[i].preprocessing()
 
         
-    def simulation(self):
+    def simulation(self, benchmark_data=[]):
         '''
         Simulation stage. Refers to Step 2 in the paper.
         '''
         for t_s in tqdm(range(2, self.sim_param.number_of_samples)):
             for interface in self.interface_data:
-                self.interfaces.handle_interface(interface)
+                if self.sim_param.benchmark:
+                    start_time = time.time()
+                    self.interfaces.handle_interface(interface)
+                    benchmark_data.append(time.time() - start_time)
+                else:
+                    self.interfaces.handle_interface(interface)
 
             for i in range(len(self.part_data)):
                 #print(f"nu forces: {self.part_data[i].new_forces}")

@@ -1,4 +1,3 @@
-from matplotlib import ft2font
 from common.impulse import ExperimentalUnit, Gaussian
 from common.parameters import SimulationParameters as SIMP
 from common.microphone import Microphone as Mic
@@ -10,6 +9,8 @@ from pytARD_1D.interface import InterfaceData1D
 import numpy as np
 import time
 from matplotlib import pyplot as plt
+import csv
+from matplotlib import ft2font
 
 # Room parameters
 src_pos = [0] # m
@@ -33,7 +34,8 @@ sim_param = SIMP(
     Fs=Fs,
     spatial_samples_per_wave_length=spatial_samples_per_wave_length, 
     verbose=verbose,
-    visualize=False
+    visualize=False,
+    benchmark=True
 )
 
 impulse = Gaussian(sim_param, [0], 10000)
@@ -62,20 +64,30 @@ for accuracy in [4, 6, 10]:
         # Instantiating and executing simulation
         test_sim = ARDS(sim_param, test_room, 1, interface_data=interfaces, mics=test_mics)
         test_sim.preprocessing()
-        start = time.time()
-        test_sim.simulation()
-        end = time.time()
         if accuracy == 4:
-            result_time_4.append(end - start)
+            test_sim.simulation(result_time_4)
         elif accuracy == 6:
-            result_time_6.append(end - start)
+            test_sim.simulation(result_time_6)
         elif accuracy == 10:
-            result_time_10.append(end-start)
+            test_sim.simulation(result_time_10)
+
+def write_csv(filename, data):
+    with open(filename, 'w') as csvfile: 
+        csvwriter = csv.writer(csvfile) 
+        for i in range(len(data)):
+            csvwriter.writerow([data[i]]) 
+
+
+for accuracy in [4, 6, 10]:
+    if accuracy == 4:
+        write_csv(f"verify_1D_fdtd_accuracy_times_{accuracy}.csv", result_time_4)
+    elif accuracy == 6:
+        write_csv(f"verify_1D_fdtd_accuracy_times_{accuracy}.csv", result_time_6)
+    elif accuracy == 10:
+        write_csv(f"verify_1D_fdtd_accuracy_times_{accuracy}.csv", result_time_10)
+
 
 print(f"Average time of accuracy = 4: {np.sum(result_time_4) / len(result_time_4)}")
-print(result_time_4)    
 print(f"Average time of accuracy = 6: {np.sum(result_time_6) / len(result_time_6)}")
-print(result_time_6)    
 print(f"Average time of accuracy = 10: {np.sum(result_time_10) / len(result_time_10)}")
-print(result_time_10)    
 

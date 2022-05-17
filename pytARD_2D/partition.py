@@ -7,7 +7,7 @@ from scipy.fft import idctn, dctn
 from scipy.io.wavfile import read
 from scipy.fftpack import idct, dct
 
-class Partition(): # TODO Implement
+class Partition2D(): 
     def __init__(self, dimensions, sim_param):
         pass
 
@@ -72,7 +72,7 @@ class DampingProfile:
         assert(R > 0), "Reflection coefficient should be bigger than 0."
         return (c / L) * np.log(1 / R)
 
-class PMLPartition(Partition):
+class PMLPartition2D(Partition2D):
     def __init__(
         self,
         dimensions: np.ndarray,
@@ -84,10 +84,10 @@ class PMLPartition(Partition):
         self.sim_param = sim_param
         
         # Voxel grid spacing. Changes automatically according to frequency
-        self.h_y, self.h_x = Partition.calculate_h_x_y(sim_param)
+        self.h_y, self.h_x = Partition2D.calculate_h_x_y(sim_param)
 
         # Check stability of wave equation
-        Partition.check_CFL(self.sim_param, self.h_x, self.h_y)
+        Partition2D.check_CFL(self.sim_param, self.h_x, self.h_y)
 
         # Longest room dimension length dividied by H (voxel grid spacing).
         self.space_divisions_y = int(dimensions[1] / self.h_y)
@@ -251,7 +251,7 @@ class PMLPartition(Partition):
         # Reset force
         self.new_forces = np.zeros(shape=self.new_forces.shape)
 
-class AirPartition(Partition):
+class AirPartition2D(Partition2D):
     def __init__(
         self,
         dimensions: np.ndarray,
@@ -275,10 +275,10 @@ class AirPartition(Partition):
         self.sim_param = sim_param
 
         # Voxel grid spacing. Changes automatically according to frequency
-        self.h_y, self.h_x = Partition.calculate_h_x_y(sim_param)
+        self.h_y, self.h_x = Partition2D.calculate_h_x_y(sim_param)
 
         # Check stability of wave equation
-        Partition.check_CFL(self.sim_param, self.h_x, self.h_y)
+        Partition2D.check_CFL(self.sim_param, self.h_x, self.h_y)
 
         # Longest room dimension length dividied by H (voxel grid spacing).
         self.space_divisions_y = int(dimensions[1] / self.h_y)

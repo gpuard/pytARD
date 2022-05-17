@@ -1,4 +1,4 @@
-from pytARD_2D.partition import Partition
+from pytARD_2D.partition import Partition2D
 
 from common.notification import Notification
 from common.parameters import SimulationParameters
@@ -16,7 +16,7 @@ class Serializer():
         # TODO: put reference to rooms, sizes etc.
         return f"pytard_{date.today()}_{datetime.now().time()}"
 
-    def dump(self, sim_params: SimulationParameters, partitions: Partition, filename: string=None):
+    def dump(self, sim_params: SimulationParameters, partitions: Partition2D, filename: string=None):
         if filename:
             file_path = filename + ".xz"
         else:

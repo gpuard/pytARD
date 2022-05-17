@@ -156,7 +156,7 @@ class Unit(Impulse):
         sim_param : SimulationParameters
             Parameters of ARD Simulation
         location : ndarray
-            Location in which the impulse gets injected
+            Location (x,y,z) in which the impulse gets injected 
         amplitude : int
             Determines the amplitude; "loudness" of impulse 
         cutoff_frequency : int
@@ -176,7 +176,7 @@ class Unit(Impulse):
         self.impulse[0 : len(self.filter_coeffs)] = self.filter_coeffs
         self.impulse[len(self.filter_coeffs) : 2 * len(self.filter_coeffs)] = -self.filter_coeffs
 
-        if self.sim_param.visualize:
+        if self.sim_param.visualize_source:
             [f, H] = freqz(self.filter_coeffs, [1], fs=sim_param.Fs)
             plt.plot(f, np.abs(H))
             plt.show()
@@ -190,7 +190,7 @@ class Unit(Impulse):
         ndarray
             Impulse over time.
         '''
-        if self.sim_param.visualize:
+        if self.sim_param.visualize_source:
             plt.plot(self.impulse)
             plt.show()
 

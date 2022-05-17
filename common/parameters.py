@@ -12,7 +12,9 @@ class SimulationParameters:
         normalization_constant: float=1,
         auralize: bool=None,
         verbose: bool=False,
-        visualize: bool=False
+        visualize: bool=False,
+        visualize_source = True,
+        benchmark: bool=False
     ):
         '''
         Parameter container class for ARD simulation. Contains all relevant data to instantiate
@@ -49,7 +51,7 @@ class SimulationParameters:
         assert(c > 0), "Error: Speed of sound must be a positive number."
         assert(max_simulation_frequency >
                0), "Error: Uppermost frequency of simulation must be a positive number."
-        assert(max_simulation_frequency > (Fs / 2), "Nyquist-Shannon theorem violated. Make sure upper frequency limit is Fs / 2.")
+        #assert(max_simulation_frequency > (Fs / 2)), "Nyquist-Shannon theorem violated. Make sure upper frequency limit is Fs / 2."
 
         self.max_simulation_frequency = max_simulation_frequency
         self.c = c
@@ -67,6 +69,8 @@ class SimulationParameters:
         self.auralize = auralize
         self.verbose = verbose
         self.visualize = visualize
+        self.visualize_source = visualize_source
+        self.benchmark = benchmark
 
         if verbose:
             print(f"Insantiated simulation.\nNumber of samples: {self.number_of_samples} | Δ_t: {self.delta_t}")
