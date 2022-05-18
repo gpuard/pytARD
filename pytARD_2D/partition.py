@@ -52,7 +52,9 @@ class DampingProfile:
         self.zetta_i = DampingProfile.calculate_zetta(room_length, c, reflection_coefficient)
 
     def damping_profile(self, x, width):
-        return self.zetta_i * (x / width - np.sin(2 * np.pi * x / width) / (2 * np.pi))
+        # return self.zetta_i * (x / width - np.sin(2 * np.pi * x / width) / (2 * np.pi))
+        # return 0
+        return 100
 
     @staticmethod
     def calculate_zetta(L: float, c: float, R: float):
@@ -144,8 +146,6 @@ class PMLPartition2D(Partition2D):
         dy = 1.0
 
         for i in range(self.space_divisions_x):
-            #kx = 0.0
-            #ky = 0.0
             kx = self.damping_profile.damping_profile(i, self.space_divisions_x)
             '''
             # TODO put both ifs together into one -> optimize
@@ -167,6 +167,8 @@ class PMLPartition2D(Partition2D):
             '''
             for j in range(self.space_divisions_y):
                 ky = self.damping_profile.damping_profile(j, self.space_divisions_y)
+                # kx = 0.0
+                # ky = 0.0
                 '''
                 if self.type == PMLType.TOP:
                     if j < 20:
@@ -199,7 +201,7 @@ class PMLPartition2D(Partition2D):
                 term1 = 2 * self.pressure_field[j, i]
                 term2 = -self.p_old[j, i]
                 #if t_s < 10:
-                #term3 = (self.sim_param.c ** 2) * (KPx + KPy + self.new_forces[j, i])
+                # term3 = (self.sim_param.c ** 2) * (KPx + KPy + self.get_safe(self.new_forces, j, i))
                 term3 = (self.sim_param.c ** 2) * (KPx + KPy)
                 #else:
                 #    term3 = (self.sim_param.c ** 2) * (KPx + KPy)
@@ -220,9 +222,10 @@ class PMLPartition2D(Partition2D):
                 term6 = dphidx + dphidy
 
                 # Calculation of next wave
-                #self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6))
+                # self.p_new[j, i] = term1 + term2 + (self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6)
+                # self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6)) + self.sim_param.delta_t**2 * self.new_forces[j, i] / (1 + ((KPx+KPy)/2) * self.sim_param.delta_t) * kx*ky#not right gammas
                 self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6)) + self.sim_param.delta_t**2 * self.new_forces[j, i] / (1 + ((KPx+KPy)/2) * self.sim_param.delta_t)
-
+                # self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6)) + self.sim_param.delta_t**2 *  self.sim_param.c**2 * self.new_forces[j, i] 
                 dudx = 0.0
                 dudy = 0.0
 
@@ -304,6 +307,8 @@ class AirPartition2D(Partition2D):
         # Fill impulse array with impulses.
         if impulse:
             # Emit impulse into room
+            self.src_grid_loc =  (  int(self.space_divisions_y * (impulse.location[1] / dimensions[1])),
+                                    int(self.space_divisions_x * (impulse.location[0] / dimensions[0])))
             self.impulses[:, int(self.space_divisions_y * (impulse.location[1] / dimensions[1])), int(
                 self.space_divisions_x * (impulse.location[0] / dimensions[0]))] = impulse.get()
 

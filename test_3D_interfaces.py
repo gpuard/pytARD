@@ -25,7 +25,7 @@ if False:# SUPER FAST
 else:
     # Room parameters
     # duration = 1.5 # seconds
-    duration = 0.5 # seconds
+    duration = 0.8 # seconds
     Fs = 630 # sample rate
     upper_frequency_limit = 60 # Hz
     # c = 342 # m/s
@@ -65,7 +65,7 @@ impulse_location = np.array([
 
 # Define impulse location that gets emitted into the room
 # impulse = Gaussian(sim_param, impulse_location, 1)
-impulse = Unit(sim_param, impulse_location, 20, upper_frequency_limit - 1)
+impulse = Unit(sim_param, impulse_location, 2, upper_frequency_limit - 1)
 # impulse = WaveFile(sim_param, impulse_location, 'clap.wav', 100) # Uncomment for wave file injection
 
 # room_width = int(c / SCALE)
@@ -80,60 +80,32 @@ partitions.append(AirPartition3D(np.array([
 ]), sim_param, impulse))
 # ]), sim_param))
 
-partitions.append(AirPartition3D(np.array([
-    [room_width], # X, width
-    [room_width], # Y, depth
-    [room_width]  # Z, height
-]), sim_param))
-# ]), sim_param, impulse))
- 
 # Interfaces of the room. Interfaces connect the room together
+title='No interfaces'
 interfaces = []
 
-title=''
-TEST_KIND = ['X','Y','Z','all'][2]
-if TEST_KIND == 'X':
-    axis=2
-    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
-    title = 'YZ-Inteface'
-elif TEST_KIND == 'Y':
-    axis=1
-    interfaces.append(InterfaceData3D(0, 1, Direction3D.Y))
-    title = 'XZ-Inteface'
-elif TEST_KIND == 'Z':
-    axis=0
-    interfaces.append(InterfaceData3D(0, 1, Direction3D.Z))
-    title = 'XY-Inteface'
-elif TEST_KIND == 'all':
-    partitions.append(AirPartition3D(np.array([
-        [room_width], # X, width
-        [room_width], # Y, depth
-        [room_width]  # Z, height
-    ]), sim_param, impulse))
-    
+if False:
     partitions.append(AirPartition3D(np.array([
         [room_width], # X, width
         [room_width], # Y, depth
         [room_width]  # Z, height
     ]), sim_param))
-    
-    partitions.append(AirPartition3D(np.array([
-        [room_width], # X, width
-        [room_width], # Y, depth
-        [room_width]  # Z, height
-    ]), sim_param, impulse))
-   
-    partitions.append(AirPartition3D(np.array([
-        [room_width], # X, width
-        [room_width], # Y, depth
-        [room_width]  # Z, height
-    ]), sim_param))
-    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
-    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
-    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
-    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
-    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
-    interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
+    # ]), sim_param, impulse))
+    TEST_KIND = ['X','Y','Z','all'][2]
+    if TEST_KIND == 'X':
+        axis=2
+        interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
+        title = 'YZ-Inteface'
+    elif TEST_KIND == 'Y':
+        axis=1
+        interfaces.append(InterfaceData3D(0, 1, Direction3D.Y))
+        title = 'XZ-Inteface'
+    elif TEST_KIND == 'Z':
+        axis=0
+        interfaces.append(InterfaceData3D(0, 1, Direction3D.Z))
+        title = 'XY-Inteface'
+    elif TEST_KIND == 'all':
+       pass
 
 # Initialize & position mics.
 mics = []
@@ -195,15 +167,19 @@ if write_to_file:
 if visualize:
     a=0
     if a == 0:
-        pfX0 = partitions[0].pressure_field_results
-        pfX1 = partitions[1].pressure_field_results
         
-        #AXIS
-        # 0 Z
-        # 1 y
-        # 2 X
-        
-        pf_t = [np.concatenate((pfX0[t],pfX1[t]),axis=axis) for t in range(sim_param.number_of_samples)]
+        if len(partitions)>1:
+            pfX0 = partitions[0].pressure_field_results
+            pfX1 = partitions[1].pressure_field_results
+            
+            #AXIS
+            # 0 Z
+            # 1 y
+            # 2 X
+            
+            pf_t = [np.concatenate((pfX0[t],pfX1[t]),axis=axis) for t in range(sim_param.number_of_samples)]
+        else:
+          pf_t = partitions[0].pressure_field_results
         
         fps=30
         anim = AnimationPlotter().plot_3D(pf_t, 
@@ -211,7 +187,7 @@ if visualize:
                                           title,
                                           interval = 1000 / fps, # in ms
                                           zyx=partitions[0].src_grid_loc,
-                                          direction='z')
+                                          direction='x')
                                           # zyx=partitions[1].src_grid_loc)
         # plt.show() # To be able to display animations in PyCharm
     else:

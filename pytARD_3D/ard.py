@@ -33,7 +33,7 @@ class ARDSimulator:
         # List of interfaces (InterfaceData objects)
         self.interface_data = interface_data
         
-        if interface_data[0].looped:
+        if len(interface_data) !=0 and interface_data[0].looped:
             self.interfaces = Interface3DLooped(sim_param, part_data)
         else:
             self.interfaces = Interface3D(sim_param, part_data)

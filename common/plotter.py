@@ -145,7 +145,7 @@ class Plotter():
 class AnimationPlotter():
     
     @staticmethod
-    def plot_3D(p_field_t, simulation_parameters,title='', interval=0, video_output=False, file_name='', zyx=None, direction=[None,'x','y','z'][1]):
+    def plot_3D(p_field_t, simulation_parameters, title='', interval=0, video_output=False, file_name='', zyx=None, direction=[None,'x','y','z'][1]):
         plt.close() # close any existing plots from runs before
         
         # xyz is e.g, source location
@@ -230,9 +230,9 @@ class AnimationPlotter():
             # surface plotter
             pass
 
-
     @staticmethod
-    def plot_2D(p_field_t, simulation_parameters, interval=0, video_output=False, file_name=''):      
+    def plot_2D(p_field_t, simulation_parameters, title='', interval=0, video_output=False, file_name='', yx=None, direction=[None,'x','y'][1]):      
+        plt.close() # close any existing plots from runs before
 
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5,5))
         
@@ -241,8 +241,34 @@ class AnimationPlotter():
         mi = np.min(-np.abs([p_field_t]))
         ma = np.max(np.abs([p_field_t]))
         
-    
-        im = ax.imshow(np.zeros_like(p_field_t[0]),vmin=mi, vmax=ma)
+        anim0 = None
+        if yx is not None:
+            (y,x) = yx
+            if direction is not None:
+                p_t = list()
+                if direction == 'x':
+                    for frame in p_field_t:
+                        p_t.append(frame[y,:])
+                if direction == 'y':
+                    for frame in p_field_t:
+                        p_t.append(frame[:,x])
+                
+                anim0 = AnimationPlotter.plot_1D(p_t, simulation_parameters, interval=0, video_output=False, file_name='')  
+                
+        fig.suptitle(title, fontsize=14, fontweight='bold')
+        # mi = np.min([p_field_t])
+        # ma = np.max([p_field_t])
+        
+        # text = fig.text(0.95, 0.01, '',
+        #         verticalalignment='top', horizontalalignment='right',
+        #         transform=fig.transAxes,
+        #         color='green', fontsize=15)
+        text = fig.text(0.1, 0.9, '', # X, Y; 1-top or right
+                verticalalignment='center', horizontalalignment='center',
+                color='green', fontsize=15)
+        
+        colormap = ['Greys','seismic','coolwarm','twilight'][1]
+        im = ax.imshow(np.zeros_like(p_field_t[0]), vmin=mi, vmax=ma,aspect='equal',cmap=colormap)
         
         # Color Bar
         fig.subplots_adjust(right=0.85)
@@ -253,21 +279,25 @@ class AnimationPlotter():
             pass
         
         def update_plot(time_step):
-            time = simulation_parameters.dt * time_step       
-            fig.suptitle("Time: %.2f sec" % time)
+            time = simulation_parameters.delta_t * time_step  
+            # fig.suptitle("Time: %.2f sec" % time)
+            text.set_text("Time: %.2f sec" % time)
             im.set_data(p_field_t[time_step])
             return [im]
         
         # keep the reference
         anim = FuncAnimation(   fig,
                                 update_plot,
-                                frames=simulation_parameters.time_steps,
+                                frames=range(simulation_parameters.number_of_samples),
                                 init_func=init_func,
                                 interval=interval, # Delay between frames in milliseconds
                                 blit=False)
         if video_output:
             AnimationPlotter.write_video(anim, file_name)
-        return anim
+        if yx is not None:
+            return [anim0, anim]
+        else:
+            return anim
     
     @staticmethod   
     def plot_1D(p_field_t, simulation_parameters, interval=0, video_output=False, file_name=''):

@@ -100,7 +100,7 @@ class PMLPartition3D(Partition3D):
         self.space_divisions_z = int(dimensions[2] / self.h_z)
         self.space_divisions_y = int(dimensions[1] / self.h_y)
         if pml_type == PMLType.RIGHT or pml_type == PMLType.LEFT:
-            self.space_divisions_x = 7
+            self.space_divisions_x = 10
         else:
             self.space_divisions_x = int(dimensions[0] / self.h_x)
 
@@ -159,12 +159,12 @@ class PMLPartition3D(Partition3D):
             return source[-1, -1, -1]
         return source[z, y, x]    
         
-    # @profile
+    # # @profile
     def simulate(self, t_s, normalization_factor=1):
         dx = 1.0 
         dy = 1.0
         dz = 1.0
-
+        self.p = self.pressure_field
         for x in range(self.space_divisions_x):
             #kx = 0.0
             #ky = 0.0
@@ -175,15 +175,28 @@ class PMLPartition3D(Partition3D):
 
                 for z in range(self.space_divisions_z):
                     kz = self.damping_profile.damping_profile(z, self.space_divisions_z)
-
+                    
+                    if x < 10:
+                        kx = 0
+                        ky = 0
+                        kz = 0
+                    else:
+                        kx = 1
+                        ky = 1
+                        kz = 1
+                        # ky = 100
+                        # kz = 100
+                    
+                    # Extrapolation scheme: p
+                    # laplacian
                     KPx = 0.0
                     KPy = 0.0
                     KPz = 0.0
 
                     for k in range(len(self.FDTD_coeffs)):
-                        KPx += self.FDTD_coeffs[k] * self.get_safe(self.pressure_field, z, y, x + k - 3)
-                        KPy += self.FDTD_coeffs[k] * self.get_safe(self.pressure_field, z, y + k - 3, x)
-                        KPz += self.FDTD_coeffs[k] * self.get_safe(self.pressure_field, z + k - 3, y, x)
+                        KPx += self.FDTD_coeffs[k] * self.get_safe(self.p, z, y, x + k - 3)
+                        KPy += self.FDTD_coeffs[k] * self.get_safe(self.p, z, y + k - 3, x)
+                        KPz += self.FDTD_coeffs[k] * self.get_safe(self.p, z + k - 3, y, x)
                     
                     KPx /= 180.0
                     KPy /= 180.0
@@ -196,13 +209,14 @@ class PMLPartition3D(Partition3D):
                     # ky = 10000
                     # kz = 10000
                     
-
-                    term1 = 2 * self.pressure_field[z, y, x]
-                    term2 = -self.p_old[z, y, x]
-                    term3 = (self.sim_param.c ** 2) * (KPx + KPy + KPz)
-                    term4 = -(kx + ky + kz) * (self.pressure_field[z, y, x] - self.p_old[z, y, x]) / self.sim_param.delta_t
-                    term5 = -kx * ky * kz * self.pressure_field[z, y, x] #??
-                    
+                    # term1 = 2 * self.p[z, y, x]
+                    # term2 = -self.p_old[z, y, x]
+                    # term3 = (self.sim_param.c ** 2) * (KPx + KPy + KPz)
+                    # term4 = -(kx + ky + kz) * (self.p[z, y, x] - self.p_old[z, y, x]) / self.sim_param.delta_t
+                    # term5 = -kx * ky * kz * self.p[z, y, x] #???
+                    term1 = (2 * self.p[z,y,x] - self.p_old[z,y,x])/self.sim_param.delta_t**2
+                    term2 =  (kx + ky + kz) * self.p_old[z,y,x] / (2*self.sim_param.delta_t)
+                    term3 =  - (kx*ky + ky*kz +  kz*kx) * self.p[z,y,x]
                     
                     dphidx = 0.0
                     dphidy = 0.0
@@ -217,19 +231,24 @@ class PMLPartition3D(Partition3D):
                     dphidy /= 12.0
                     dphidz /= 12.0
 
-                    term6 = dphidx + dphidy + dphidz
-
+                    # term6 = dphidx + dphidy + dphidz
+                    term4 = self.sim_param.c**2 * (KPx + KPy + KPz)
+                    term5 = (dphidx + dphidy + dphidz)
+                    term6 = -kx * ky * kz * self.psi[z,y,x]
+                    term7 = (1/self.sim_param.delta_t**2 + (kx + ky + kz)/(2*self.sim_param.delta_t))
                     # Calculation of next wave
-                    self.p_new[z, y, x] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6)) + self.sim_param.delta_t ** 2 * self.new_forces[z, y, x] / (1 + ((KPx + KPy + KPz) / 2) * self.sim_param.delta_t)
+                    # self.p_new[z, y, x] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6)) + self.sim_param.delta_t ** 2 * self.new_forces[z, y, x] / (1 + ((KPx + KPy + KPz) / 2) * self.sim_param.delta_t) -  1/(1/self.sim_param.delta_t**2 + (kx + ky + kz)/(2*self.sim_param.delta_t)) * kx * ky * kz * self.psi[z,y,x]
+                    # self.p_new[z, y, x] = 1/term7 * (term1 + term2 + term3 + term4 * term5 + term6 + self.new_forces[z,y,x] * (kx * ky * kz))
+                    self.p_new[z, y, x] = 1/term7 * (term1 + term2 + term3 + term4 * term5 + term6 + self.new_forces[z,y,x])
 
                     dudx = 0.0
                     dudy = 0.0
                     dudz = 0.0
 
                     for k in range(len(self.fourth_coeffs)):
-                        dudx += self.fourth_coeffs[k] * self.get_safe(self.p_new, z, y, x + k - 2)
-                        dudy += self.fourth_coeffs[k] * self.get_safe(self.p_new, z, y + k - 2, x)
-                        dudz += self.fourth_coeffs[k] * self.get_safe(self.p_new, z + k - 2, y, x)
+                        dudx += self.fourth_coeffs[k] * self.get_safe(self.p, z, y, x + k - 2)
+                        dudy += self.fourth_coeffs[k] * self.get_safe(self.p, z, y + k - 2, x)
+                        dudz += self.fourth_coeffs[k] * self.get_safe(self.p, z + k - 2, y, x)
 
                     dudx /= 12.0
                     dudy /= 12.0
@@ -239,41 +258,43 @@ class PMLPartition3D(Partition3D):
                     dpsidy = 0.0
                     dpsidz = 0.0
                     
+                    # Extrapolation scheme: psi
+                    self.psi_new[z,y,x] = 2*self.sim_param.delta_t * self.p[z,y,x] + self.psi[z,y,x]
+
                     for k in range(len(self.fourth_coeffs)):
-                        dpsidx += self.fourth_coeffs[k] * self.get_safe(self.p_new, z, y, x + k - 2)
-                        dpsidy += self.fourth_coeffs[k] * self.get_safe(self.p_new, z, y + k - 2, x)
-                        dpsidz += self.fourth_coeffs[k] * self.get_safe(self.p_new, z + k - 2, y, x)
+                        dpsidx += self.fourth_coeffs[k] * self.get_safe(self.psi, z, y, x + k - 2)
+                        dpsidy += self.fourth_coeffs[k] * self.get_safe(self.psi, z, y + k - 2, x)
+                        dpsidz += self.fourth_coeffs[k] * self.get_safe(self.psi, z + k - 2, y, x)
 
                     dpsidx /= 12.0
                     dpsidy /= 12.0
                     dpsidz /= 12.0
                     
-                    self.phi_x_new[z, y, x] = self.phi_x[z, y, x] - self.sim_param.delta_t * kx * self.phi_x[z, y, x] + self.sim_param.delta_t * (self.sim_param.c ** 2) * (ky + kz - kx) * dudx + self.sim_param.delta_t * ky * kz * dpsidx
-                    self.phi_y_new[z, y, x] = self.phi_y[z, y, x] - self.sim_param.delta_t * ky * self.phi_y[z, y, x] + self.sim_param.delta_t * (self.sim_param.c ** 2) * (kz + kx - ky) * dudy + self.sim_param.delta_t * kz * kx * dpsidy
-                    self.phi_z_new[z, y, x] = self.phi_z[z, y, x] - self.sim_param.delta_t * kz * self.phi_z[z, y, x] + self.sim_param.delta_t * (self.sim_param.c ** 2) * (kx + ky - kz) * dudz + self.sim_param.delta_t * kx * ky * dpsidz
+                    # Extrapolation scheme: phi
+                    self.phi_x_new[z, y, x] = self.phi_x[z, y, x] - self.sim_param.delta_t * kx * self.phi_x[z, y, x] + self.sim_param.delta_t * (self.sim_param.c ** 2) * (ky + kz - kx) * dudx - self.sim_param.delta_t * ky * kz * dpsidx
+                    self.phi_y_new[z, y, x] = self.phi_y[z, y, x] - self.sim_param.delta_t * ky * self.phi_y[z, y, x] + self.sim_param.delta_t * (self.sim_param.c ** 2) * (kz + kx - ky) * dudy - self.sim_param.delta_t * kz * kx * dpsidy
+                    self.phi_z_new[z, y, x] = self.phi_z[z, y, x] - self.sim_param.delta_t * kz * self.phi_z[z, y, x] + self.sim_param.delta_t * (self.sim_param.c ** 2) * (kx + ky - kz) * dudz - self.sim_param.delta_t * kx * ky * dpsidz
                     
-                    self.psi_new[z,y,x] = self.sim_param.delta_t * self.pressure_field[z,y,x] + self.psi[z,y,x]
 
-        self.pressure_field_results.append(self.p_new.copy())
+        self.pressure_field_results.append(self.p.copy())
 
-        # Swap old with new phis with the new switcheroo
         self.phi_x = self.phi_x_new.copy()
         self.phi_y = self.phi_y_new.copy()
         self.phi_z = self.phi_z_new.copy()
         
         self.psi = self.psi_new.copy()
 
-        # Do the ol' switcheroo
-        temp = self.p_old.copy()
-        self.p_old = self.pressure_field.copy()
-        self.pressure_field = self.p_new.copy()
-        self.p_new = temp
+        # temp = self.p_old.copy()
+        self.p_old = self.p.copy()
+        self.p = self.p_new.copy()
+        # self.p_new = temp
+        self.pressure_field = self.p
 
         # Reset force
         self.new_forces = np.zeros(shape=self.new_forces.shape)
     
     # def simulate(self, t_s, normalization_factor=1):
-        # based on paper; using staggered grid
+    #     # based on paper; using staggered grid
     # # a possibility to split calculation of phi    
     #     dx = 1.0 
     #     dy = 1.0
@@ -336,10 +357,13 @@ class PMLPartition3D(Partition3D):
                     
     #                 term5 = dphidx  + dphidy + dphidz
                     
-    #                 term6 = -kx * ky * kz * self.pressure_field[z, y, x]
+    #                 term6 = - kx * ky * kz * 0.5 * (self.psi[z, y, x])
                     
     #                 self.p_new[z, y, x] = (term2 + term3 * term4 + term5 + term6 + self.new_forces[z,y,x]) / term1 # NOTE: adde forcing field
-                    
+    #                 # UPDATE RULE: psi
+    
+    #                 self.psi_new[z, y, x]  = self.sim_param.delta_t * self.pressure_field[z,y,x] - self.psi[z, y, x] 
+
     #                 # UPDATE RULE: phi
     #                 avg_p = lambda k,j,i: self.pressure_field[k,j,i] + self.pressure_field[k+1,j,i] + self.pressure_field[k,j+1,i] + self.pressure_field[k+1,j+1,i]
     #                 avg_pn = lambda k,j,i: self.p_new[k,j,i] + self.p_new[k+1,j,i] + self.p_new[k,j+1,i] + self.p_new[k+1,j+1,i]
@@ -371,22 +395,19 @@ class PMLPartition3D(Partition3D):
     #                 term4 = self.sim_param.c**2 * kx*ky/self.h_x * 0.25 * (avg_psi(z+1,y,x) - avg_psi(z,y,x))
                     
     #                 self.phi_z_new[z, y, x]  = 1/term1 * (term2 + term3 + term4)
-                    
-    #                 self.psi_new[z, y, x]  = self.sim_param.delta_t * self.p_new[z,y,x] - self.psi[z, y, x] 
-
                 
     #     self.pressure_field_results.append(self.p_new.copy())
 
     #     self.phi_x = self.phi_x_new.copy()
     #     self.phi_y = self.phi_y_new.copy()
     #     self.phi_z = self.phi_z_new.copy()
-    #     self.psi = self.psi_new.copy() 
+        
+        
+    #     self.psi = self.psi_new.copy()
 
-    #     # Do the ol' switcheroo
-    #     temp = self.p_old.copy()
+    #     # temp = self.p_old.copy()
     #     self.p_old = self.pressure_field.copy()
     #     self.pressure_field = self.p_new.copy()
-    #     self.p_new = temp
 
     #     # Reset force
     #     self.new_forces = np.zeros(shape=self.new_forces.shape)         
@@ -491,13 +512,12 @@ class AirPartition3D:
             for y in range(self.space_divisions_y):
                 for x in range(self.space_divisions_x):
                     self.omega_i[z, y, x] = \
-                        self.sim_param.c * (
-                            (np.pi ** 2) *
+                        self.sim_param.c * np.pi * (
                             (
-                                ((x ** 2) / (self.dimensions[0] ** 2)) +
-                                ((y ** 2) / (self.dimensions[1] ** 2)) +
-                                ((z ** 2) / (self.dimensions[2] ** 2))
-                            )
+                                (x / self.dimensions[0])**2 +
+                                (y / self.dimensions[1])**2 +
+                                (z / self.dimensions[2])**2
+                            ) 
                         ) ** 0.5
 
         # TODO Semi disgusting hack. Without it, the calculation of update rule (equation 9) would crash due to division by zero
@@ -537,17 +557,19 @@ class AirPartition3D:
         np.cos(self.omega_i * self.sim_param.delta_t) - self.M_previous + self.force_field
         
         # Convert modes to pressure values using inverse DCT.
+        # self.pressure_field = idctn(
+        #     self.M_next.reshape(
+        #         self.space_divisions_z, 
+        #         self.space_divisions_y, 
+        #         self.space_divisions_x
+        #     ), type=2,
+        # s=[ # TODO This parameter may be unnecessary
+        #     self.space_divisions_z, 
+        #     self.space_divisions_y, 
+        #     self.space_divisions_x
+        # ])
         self.pressure_field = idctn(
-            self.M_next.reshape(
-                self.space_divisions_z, 
-                self.space_divisions_y, 
-                self.space_divisions_x
-            ), type=2,
-        s=[ # TODO This parameter may be unnecessary
-            self.space_divisions_z, 
-            self.space_divisions_y, 
-            self.space_divisions_x
-        ])
+            self.M_next, type=2)
         
         self.pressure_field_results.append(self.pressure_field.copy())
         
