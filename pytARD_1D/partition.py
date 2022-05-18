@@ -4,7 +4,10 @@ from common.impulse import Impulse
 import numpy as np
 
 
-class PartitionData:
+class AirPartition1D:
+    '''
+    Air partition. Resembles an empty space in which sound can travel through.
+    '''
     def __init__(
         self,
         dimensions: np.ndarray,
@@ -12,8 +15,7 @@ class PartitionData:
         impulse: Impulse = None
     ):
         '''
-        Parameter container class for ARD simulator. Contains all relevant data to instantiate
-        and run ARD simulator.
+        Creates an air partition
 
         Parameters
         ----------
@@ -22,14 +24,14 @@ class PartitionData:
         sim_param : SimulationParameters
             Instance of simulation parameter class.
         do_impulse : bool
-            Determines if the impulse is generated on this partition.
+            Determines if the impulse is generated on this partition. Impulse location is hard coded here.
         '''
         self.dimensions = dimensions
         self.sim_param = sim_param
 
         # Voxel grid spacing. Changes automatically according to frequency
-        self.h = PartitionData.calculate_h(self.sim_param)
-        PartitionData.check_CFL(self.sim_param, self.h)
+        self.h = AirPartition1D.calculate_h(self.sim_param)
+        AirPartition1D.check_CFL(self.sim_param, self.h)
 
         # Longest room dimension length dividied by H (voxel grid spacing).
         self.space_divisions = int(dimensions[0] / self.h)

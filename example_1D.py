@@ -1,5 +1,5 @@
 from pytARD_1D.ard import ARDSimulator1D
-from pytARD_1D.partition import PartitionData
+from pytARD_1D.partition import AirPartition1D
 from pytARD_1D.interface import InterfaceData1D
 
 from common.parameters import SimulationParameters
@@ -43,8 +43,8 @@ impulse = ExperimentalUnit(sim_param, impulse_location, 1, cutoff_frequency=uppe
 #impulse = WaveFile(sim_param, impulse_location, 'clap_8000.wav', 1000)
 
 partitions = []
-partitions.append(PartitionData(np.array([c / 2]), sim_param, impulse))
-partitions.append(PartitionData(np.array([c / 2]), sim_param))
+partitions.append(AirPartition1D(np.array([c / 2]), sim_param, impulse))
+partitions.append(AirPartition1D(np.array([c / 2]), sim_param))
 
 interfaces = []
 interfaces.append(InterfaceData1D(0, 1))

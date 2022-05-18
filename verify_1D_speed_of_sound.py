@@ -1,5 +1,5 @@
 from pytARD_1D.ard import ARDSimulator1D
-from pytARD_1D.partition import PartitionData
+from pytARD_1D.partition import AirPartition1D
 from pytARD_1D.interface import InterfaceData1D
 
 from common.parameters import SimulationParameters
@@ -26,7 +26,7 @@ impulse_location = np.array([[0]])
 impulse = ExperimentalUnit(sim_param, impulse_location, 1, cutoff_frequency=sim_param.max_simulation_frequency)
 #impulse = WaveFile(sim_param, impulse_location, 'clap_8000.wav', 1000)
 
-c_partition = PartitionData(np.array([sim_param.c]), sim_param, impulse)
+c_partition = AirPartition1D(np.array([sim_param.c]), sim_param, impulse)
 partitions = [c_partition]
 
 # Instantiating and executing simulation

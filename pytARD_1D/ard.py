@@ -1,7 +1,7 @@
 from common.parameters import SimulationParameters
 
 from pytARD_1D.interface import Interface1D
-from pytARD_1D.partition import PartitionData
+from pytARD_1D.partition import AirPartition1D
 
 import numpy as np
 from scipy.fftpack import idct, dct
@@ -17,7 +17,7 @@ class ARDSimulator1D:
     def __init__(
         self, 
         sim_param: SimulationParameters, 
-        part_data: PartitionData, 
+        part_data: AirPartition1D, 
         normalization_factor: float, 
         interface_data: list=[], 
         mics: list=[]
