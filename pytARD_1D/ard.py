@@ -17,7 +17,7 @@ class ARDSimulator1D:
     def __init__(
         self, 
         sim_param: SimulationParameters, 
-        part_data: AirPartition1D, 
+        partitions: AirPartition1D, 
         normalization_factor: float, 
         interface_data: list=[], 
         mics: list=[]
@@ -30,7 +30,7 @@ class ARDSimulator1D:
         ----------
         sim_param : SimulationParameters
             Instance of simulation parameter class.
-        part_data : list
+        partitions : list
             List of PartitionData objects. All partitions of the domain are collected here.
         normalization_factor : float
             Normalization multiplier to harmonize amplitudes between partitions.
@@ -44,10 +44,10 @@ class ARDSimulator1D:
         self.sim_param = sim_param
 
         # List of partition data (PartitionData objects)
-        self.part_data = part_data
+        self.part_data = partitions
 
         self.interface_data = interface_data
-        self.interfaces = Interface1D(sim_param, part_data, fdtd_acc=interface_data[0].fdtd_acc) # TODO: Just first fdtd accuracy is used. Needs to be dynamic
+        self.interfaces = Interface1D(sim_param, partitions, fdtd_acc=interface_data[0].fdtd_acc) # TODO: Just first fdtd accuracy is used. Needs to be dynamic
 
         self.normalization_factor = normalization_factor
 

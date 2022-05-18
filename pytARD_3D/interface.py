@@ -48,8 +48,8 @@ class Interface3D():
 
     def __init__(
         self, 
-        sim_params: SimulationParameters, 
-        part_data: list, 
+        sim_param: SimulationParameters, 
+        partitions: list, 
         fdtd_order: int=2, 
         fdtd_acc: int=6
         ):
@@ -60,24 +60,24 @@ class Interface3D():
         ----------
         sim_param : SimulationParameters
             Instance of simulation parameter class.
-        part_data : list
-            List of PartitionData objects. All partitions of the domain are collected here.
+        partitions : list
+            List of Partition objects. All partitions of the domain are collected here.
         fdtd_order : int
             FDTD order.
         fdtd_acc : int
             FDTD accuracy.
         '''
 
-        self.part_data = part_data
+        self.part_data = partitions
 
         # 2D FDTD coefficents array. Normalize FDTD coefficents with space divisions and speed of sound. 
         fdtd_coeffs_not_normalized = get_laplacian_matrix(fdtd_order, fdtd_acc)
         
         # TODO: Unify h of partition data, atm it's hard coded to first partition
         # Important: For each direction the sound passes through an interface, the according FDTD coeffs should be used.
-        self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_params.c / part_data[0].h_x) ** 2)
-        self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_params.c / part_data[0].h_y) ** 2)
-        self.FDTD_COEFFS_Z = fdtd_coeffs_not_normalized * ((sim_params.c / part_data[0].h_z) ** 2)
+        self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_x) ** 2)
+        self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_y) ** 2)
+        self.FDTD_COEFFS_Z = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_z) ** 2)
 
         # FDTD kernel size.
         self.INTERFACE_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
@@ -176,8 +176,8 @@ class Interface3DLooped():
 
     def __init__(
         self, 
-        sim_params: SimulationParameters, 
-        part_data: list, 
+        sim_param: SimulationParameters, 
+        partitions: list, 
         fdtd_order: int=2, 
         fdtd_acc: int=6
     ):
@@ -186,16 +186,16 @@ class Interface3DLooped():
         TODO: Doc
         '''
 
-        self.part_data = part_data
+        self.part_data = partitions
 
         # 2D FDTD coefficents array. Normalize FDTD coefficents with space divisions and speed of sound. 
         fdtd_coeffs_not_normalized = get_laplacian_matrix(fdtd_order, fdtd_acc)
         
         # TODO: Unify h of partition data, atm it's hard coded to first partition
         # Important: For each direction the sound passes through an interface, the according FDTD coeffs should be used.
-        self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_params.c / part_data[0].h_x) ** 2)
-        self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_params.c / part_data[0].h_y) ** 2)
-        self.FDTD_COEFFS_Z = fdtd_coeffs_not_normalized * ((sim_params.c / part_data[0].h_z) ** 2)
+        self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_x) ** 2)
+        self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_y) ** 2)
+        self.FDTD_COEFFS_Z = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_z) ** 2)
 
         # FDTD kernel size.
         self.FDTD_KERNEL_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 

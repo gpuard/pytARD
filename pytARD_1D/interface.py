@@ -33,8 +33,8 @@ class Interface1D():
 
     def __init__(
         self,
-        sim_params: SimulationParameters,
-        part_data: list,
+        sim_param: SimulationParameters,
+        partitions: list,
         fdtd_order: int = 2,
         fdtd_acc: int = 6
     ):
@@ -45,15 +45,15 @@ class Interface1D():
         ----------
         sim_param : SimulationParameters
             Instance of simulation parameter class.
-        part_data : list
-            List of PartitionData objects. All partitions of the domain are collected here.
+        partitions : list
+            List of Partition objects. All partitions of the domain are collected here.
         fdtd_order : int
             FDTD order.
         fdtd_acc : int
             FDTD accuracy.
         '''
 
-        self.part_data = part_data
+        self.part_data = partitions
 
         # 1D FDTD coefficents array. Normalize FDTD coefficents with space divisions and speed of sound.
         fdtd_coeffs_not_normalized = get_laplacian_matrix(fdtd_order, fdtd_acc)
@@ -61,7 +61,7 @@ class Interface1D():
         # TODO: Unify h of partition data, atm it's hard coded to first partition
         # TODO: In the papers it's supposed to be multiplied by *(c/h)**2
         self.FDTD_COEFFS = fdtd_coeffs_not_normalized * \
-            (sim_params.c / part_data[0].h)
+            (sim_param.c / partitions[0].h)
 
         # Interface size derived from FDTD kernel size.
         # If FDTD Accuracy is for example 6, then the interface is 3 on each

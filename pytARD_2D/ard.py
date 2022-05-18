@@ -14,7 +14,7 @@ class ARDSimulator2D:
     def __init__(
         self, 
         sim_param: SimulationParameters, 
-        part_data: list, 
+        partitions: list, 
         normalization_factor: float=1, 
         interface_data: list=[], 
         mics: list=[]
@@ -27,8 +27,8 @@ class ARDSimulator2D:
         ----------
         sim_param : SimulationParameters
             Instance of simulation parameter class.
-        part_data : list
-            List of PartitionData objects. All partitions of the domain are collected here.
+        partitions : list
+            List of Partition objects. All partitions of the domain are collected here.
         normalization_factor : float
             Normalization multiplier to harmonize amplitudes between partitions.
         interface_data : list
@@ -41,11 +41,11 @@ class ARDSimulator2D:
         self.sim_param = sim_param
 
         # List of partition data (PartitionData objects)
-        self.part_data = part_data
+        self.part_data = partitions
 
         # List of interfaces (InterfaceData objects)
         self.interface_data = interface_data
-        self.interfaces = Interface2D(sim_param, part_data)
+        self.interfaces = Interface2D(sim_param, partitions)
 
         # Initialize & position mics.
         self.mics = mics

@@ -13,6 +13,13 @@ class Partition3D():
     def __init__(self, dimensions: np.ndarray, sim_param: SimulationParameters):
         '''
         No implementation
+
+        Parameters
+        ----------
+        dimensions : ndarray
+            Size of the partition (room) in meters.
+        sim_param : SimulationParameters
+            Instance of simulation parameter class.
         '''
         pass
 
