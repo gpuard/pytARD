@@ -13,12 +13,12 @@ class Plotter():
 
     def set_data_from_file(self, file_name: string):
         serializer = Serializer(compress=True)
-        (sim_params, partitions) = serializer.read(file_name)
-        self.sim_param = sim_params
+        (sim_param, partitions) = serializer.read(file_name)
+        self.sim_param = sim_param
         self.partitions = partitions
         
-    def set_data_from_simulation(self, sim_params, partitions):
-        self.sim_param = sim_params
+    def set_data_from_simulation(self, sim_param, partitions):
+        self.sim_param = sim_param
         self.partitions = partitions
 
 

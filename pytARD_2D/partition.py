@@ -1,57 +1,153 @@
-from common.impulse import Impulse
 from common.parameters import SimulationParameters
+from common.impulse import Impulse
 
 import numpy as np
 from enum import Enum
 from scipy.fft import idctn, dctn
-from scipy.io.wavfile import read
-from scipy.fftpack import idct, dct
 
-class Partition2D(): 
-    def __init__(self, dimensions, sim_param):
+
+class Partition2D():
+    '''
+    Abstract partition class. Provides template for all partition implementations
+    '''
+
+    def __init__(self, dimensions: np.ndarray, sim_param: SimulationParameters):
+        '''
+        No implementation
+
+        Parameters
+        ----------
+        dimensions : ndarray
+            Size of the partition (room) in meters.
+        sim_param : SimulationParameters
+            Instance of simulation parameter class.
+        '''
         pass
 
-    def preprocessing():
+    def preprocessing(self):
+        '''
+        No implementation
+        '''
         pass
 
-    def simulate():
+    def simulate(self, t_s: int = 0, normalization_factor: float = 1):
+        '''
+        No implementation
+
+        Parameters
+        ----------
+        t_s : int
+            Current time step.
+        normalization_factor : float
+            Normalization multiplier to harmonize amplitudes between partitions.
+        '''
         pass
 
     @staticmethod
-    def check_CFL(sim_param, h_x, h_y):
+    def check_CFL(sim_param: SimulationParameters, h_x: float, h_y: float):
+        '''
+        Checks stability of wave equation via calculating Courant-Friedrichs-Lewy number.
+
+        Parameters
+        ----------
+        sim_param : SimulationParameters
+            Instance of simulation parameter class.
+        h_x : float
+            X direction voxel length (grid spacing)
+        h_y : float
+            Y direction voxel length (grid spacing)
+        '''
+
         CFL = sim_param.c * sim_param.delta_t * ((1 / h_x) + (1 / h_y))
         CFL_target = np.sqrt(1/3)
-        assert(CFL <= CFL_target), f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than {CFL_target}. Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length."
+        assert(
+            CFL <= CFL_target), f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than {CFL_target}. Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length."
         if sim_param.verbose:
             print(f"CFL = {CFL}")
 
     @staticmethod
     def calculate_h_x_y(sim_param):
-        # Voxel grid spacing. Changes automatically according to frequency
-        h_y = SimulationParameters.calculate_voxelization_step(sim_param) 
-        h_x = SimulationParameters.calculate_voxelization_step(sim_param)     
-        return h_y, h_x 
+        '''
+        Calculates voxel grid spacing ℎ_x and ℎ_y.
+
+        Parameters
+        ----------
+        sim_param : SimulationParameters
+            Instance of simulation parameter class.
+
+        Returns
+        -------
+        float
+            Voxel grid spacing in y direction (ℎ_y).
+        float
+            Voxel grid spacing in x direction (ℎ_x).
+        '''
+        h_y = SimulationParameters.calculate_voxelization_step(sim_param)
+        h_x = SimulationParameters.calculate_voxelization_step(sim_param)
+        return h_y, h_x
 
 
 class PMLType(Enum):
-    LEFT = { # for kx
+    '''
+    TODO: Is this needed?
+    '''
+    LEFT = {  # for kx
         "Min": 0.2, "Max": 0.0
     }
-    RIGHT = { # for kx
+    RIGHT = {  # for kx
         "Min": 0.0, "Max": 0.2
     }
-    TOP = { # for ky
+    TOP = {  # for ky
         "Min": 0.2, "Max": 0.0
     }
-    BOTTOM = { # for ky
+    BOTTOM = {  # for ky
         "Min": 0.0, "Max": 0.2
     }
+
 
 class DampingProfile:
-    def __init__(self, room_length: float, c : float, reflection_coefficient: float):
-        self.zetta_i = DampingProfile.calculate_zetta(room_length, c, reflection_coefficient)
+    '''
+    Damping profile. Determines how intense the reflections of the PML partition are, or how much sound energy is absorbed.
+    '''
 
-    def damping_profile(self, x, width):
+    def __init__(
+        self,
+        room_length: float,
+        c: float,
+        reflection_coefficient: float
+    ):
+        '''
+        Instantiates a damping profile for a PML partition.
+
+        Parameters
+        ----------
+        room_length : float
+            Length of partition.
+        c : float 
+            Speed of sound.
+        reflection_coefficient : float
+            Reflection coefficient R. Determines how intense the reflections of the PML partition are.
+        '''
+
+        self.zetta_i = DampingProfile.calculate_zetta(
+            room_length, c, reflection_coefficient)
+
+    def damping_profile(self, x: int, width: float):
+        '''
+        Calculates the damping profile depending on zetta_i and the width of the room.
+
+        Parameters
+        ----------
+        x : int
+            Index of current space division.
+        width : float
+            Total amount of space divisions.
+
+        Returns
+        -------
+        float
+            Damping profile. Amount of dampening applied to the sound.
+        '''
         return self.zetta_i * (x / width - np.sin(2 * np.pi * x / width) / (2 * np.pi))
 
     @staticmethod
@@ -72,17 +168,37 @@ class DampingProfile:
         assert(R > 0), "Reflection coefficient should be bigger than 0."
         return (c / L) * np.log(1 / R)
 
+
 class PMLPartition2D(Partition2D):
+    '''
+    PML partition. Absorbs sound energy depending on the damping profile.
+    '''
+
     def __init__(
         self,
         dimensions: np.ndarray,
-        sim_param: SimulationParameters, 
+        sim_param: SimulationParameters,
         type: PMLType,
         damping_profile: DampingProfile
     ):
+        '''
+        Instantiates a PML partition in the domain. Absorps sound energy depending on the damping profile.
+
+        Parameters
+        ----------
+        dimensions : ndarray
+            Size of the partition (room) in meters.
+        sim_param : SimulationParameters
+            Instance of simulation parameter class.
+        pml_type : PMLType
+            Type (direction) of PML partition.
+        damping_profile : DampingProfile
+            Damping profile of the PML partition, determines the intensity of wave absorption.
+        '''
+
         self.dimensions = dimensions
         self.sim_param = sim_param
-        
+
         # Voxel grid spacing. Changes automatically according to frequency
         self.h_y, self.h_x = Partition2D.calculate_h_x_y(sim_param)
 
@@ -93,7 +209,8 @@ class PMLPartition2D(Partition2D):
         self.space_divisions_y = int(dimensions[1] / self.h_y)
         self.space_divisions_x = int(dimensions[0] / self.h_x)
 
-        shape_template = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
+        shape_template = np.zeros(
+            shape=[self.space_divisions_y, self.space_divisions_x])
 
         # Instantiate force f to spectral domain array, which corresponds to 𝑓~. TODO: Elaborate more
         self.new_forces = shape_template.copy()
@@ -129,24 +246,36 @@ class PMLPartition2D(Partition2D):
             print(
                 f"Created PML partition with dimensions {self.dimensions[0]}x{self.dimensions[1]} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions (y): {self.space_divisions_y} (x): {self.space_divisions_x} | Zetta_i: {self.damping_profile.zetta_i}")
 
-
     def preprocessing(self):
+        '''
+        No implementation
+        '''
         pass
 
-    def get_safe(self, source, y, x):
+    def get_safe(self, source: list, y: int, x: int):
         if x < 0 or x >= self.space_divisions_x or y < 0 or y >= self.space_divisions_y:
             return source[-1, -1]
-        return source[y, x]    
-        
+        return source[y, x]
 
-    def simulate(self, t_s, normalization_factor=1):
-        dx = 1.0 
+    def simulate(self, t_s: int = 0, normalization_factor: int = 1):
+        '''
+        Executes the simulation for the partition.
+
+        Parameters
+        ----------
+        t_s : int
+            Current time step.
+        normalization_factor : float
+            Normalization multiplier to harmonize amplitudes between partitions.
+        '''
+        dx = 1.0
         dy = 1.0
 
         for i in range(self.space_divisions_x):
             #kx = 0.0
             #ky = 0.0
-            kx = self.damping_profile.damping_profile(i, self.space_divisions_x)
+            kx = self.damping_profile.damping_profile(
+                i, self.space_divisions_x)
             '''
             # TODO put both ifs together into one -> optimize
             if self.type == PMLType.LEFT:
@@ -166,7 +295,8 @@ class PMLPartition2D(Partition2D):
                     ky = 0.0
             '''
             for j in range(self.space_divisions_y):
-                ky = self.damping_profile.damping_profile(j, self.space_divisions_y)
+                ky = self.damping_profile.damping_profile(
+                    j, self.space_divisions_y)
                 '''
                 if self.type == PMLType.TOP:
                     if j < 20:
@@ -190,29 +320,35 @@ class PMLPartition2D(Partition2D):
                 KPy = 0.0
 
                 for k in range(len(self.FDTD_coeffs)):
-                    KPx += self.FDTD_coeffs[k] * self.get_safe(self.pressure_field, j, i + k - 3)
-                    KPy += self.FDTD_coeffs[k] * self.get_safe(self.pressure_field, j + k - 3, i)
-                    
+                    KPx += self.FDTD_coeffs[k] * \
+                        self.get_safe(self.pressure_field, j, i + k - 3)
+                    KPy += self.FDTD_coeffs[k] * \
+                        self.get_safe(self.pressure_field, j + k - 3, i)
+
                 KPx /= 180.0
                 KPy /= 180.0
 
                 term1 = 2 * self.pressure_field[j, i]
                 term2 = -self.p_old[j, i]
-                #if t_s < 10:
+                # if t_s < 10:
                 #term3 = (self.sim_param.c ** 2) * (KPx + KPy + self.new_forces[j, i])
                 term3 = (self.sim_param.c ** 2) * (KPx + KPy)
-                #else:
+                # else:
                 #    term3 = (self.sim_param.c ** 2) * (KPx + KPy)
                 #print(f"{term3}", end="\t")
-                term4 = -(kx + ky) * (self.pressure_field[j, i] - self.p_old[j, i]) / self.sim_param.delta_t
+                term4 = - \
+                    (kx + ky) * (self.pressure_field[j, i] -
+                                 self.p_old[j, i]) / self.sim_param.delta_t
                 term5 = -kx * ky * self.pressure_field[j, i]
 
                 dphidx = 0.0
                 dphidy = 0.0
 
                 for k in range(len(self.fourth_coeffs)):
-                    dphidx += self.fourth_coeffs[k] * self.get_safe(self.phi_x, j, i + k - 2)
-                    dphidy += self.fourth_coeffs[k] * self.get_safe(self.phi_y, j + k - 2, i)
+                    dphidx += self.fourth_coeffs[k] * \
+                        self.get_safe(self.phi_x, j, i + k - 2)
+                    dphidy += self.fourth_coeffs[k] * \
+                        self.get_safe(self.phi_y, j + k - 2, i)
 
                 dphidx /= 12.0
                 dphidy /= 12.0
@@ -221,27 +357,36 @@ class PMLPartition2D(Partition2D):
 
                 # Calculation of next wave
                 #self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6))
-                self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6)) + self.sim_param.delta_t**2 * self.new_forces[j, i] / (1 + ((KPx+KPy)/2) * self.sim_param.delta_t)
+                self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6)) + \
+                    self.sim_param.delta_t**2 * \
+                    self.new_forces[j, i] / \
+                    (1 + ((KPx+KPy)/2) * self.sim_param.delta_t)
 
                 dudx = 0.0
                 dudy = 0.0
 
                 for k in range(len(self.fourth_coeffs)):
-                    dudx += self.fourth_coeffs[k] * self.get_safe(self.p_new, j, i + k - 2)
-                    dudy += self.fourth_coeffs[k] * self.get_safe(self.p_new, j + k - 2, i)
+                    dudx += self.fourth_coeffs[k] * \
+                        self.get_safe(self.p_new, j, i + k - 2)
+                    dudy += self.fourth_coeffs[k] * \
+                        self.get_safe(self.p_new, j + k - 2, i)
 
                 dudx /= 12.0
                 dudy /= 12.0
 
-                self.phi_x_new[j, i] = self.phi_x[j, i] - self.sim_param.delta_t * kx * self.phi_x[j, i] + self.sim_param.delta_t * (self.sim_param.c ** 2) * (ky - kx) * dudx
-                self.phi_y_new[j, i] = self.phi_y[j, i] - self.sim_param.delta_t * ky * self.phi_y[j, i] + self.sim_param.delta_t * (self.sim_param.c ** 2) * (kx - ky) * dudy
+                self.phi_x_new[j, i] = self.phi_x[j, i] - self.sim_param.delta_t * kx * \
+                    self.phi_x[j, i] + self.sim_param.delta_t * \
+                    (self.sim_param.c ** 2) * (ky - kx) * dudx
+                self.phi_y_new[j, i] = self.phi_y[j, i] - self.sim_param.delta_t * ky * \
+                    self.phi_y[j, i] + self.sim_param.delta_t * \
+                    (self.sim_param.c ** 2) * (kx - ky) * dudy
 
         self.pressure_field_results.append(self.p_new.copy())
 
         # Swap old with new phis with the new switcheroo
         self.phi_x, self.phi_x_new = self.phi_x_new.copy(), self.phi_x.copy()
         self.phi_y, self.phi_y_new = self.phi_y_new.copy(), self.phi_y.copy()
-        
+
         # Do the ol' switcheroo
         temp = self.p_old.copy()
         self.p_old = self.pressure_field.copy()
@@ -251,16 +396,20 @@ class PMLPartition2D(Partition2D):
         # Reset force
         self.new_forces = np.zeros(shape=self.new_forces.shape)
 
+
 class AirPartition2D(Partition2D):
+    '''
+    Air partition. Resembles an empty space in which sound can travel through.
+    '''
+
     def __init__(
         self,
         dimensions: np.ndarray,
         sim_param: SimulationParameters,
-        impulse:Impulse=None
+        impulse: Impulse = None
     ):
         '''
-        Parameter container class for ARD simulator. Contains all relevant data to instantiate
-        and run ARD simulator.
+        Creates an air partition.
 
         Parameters
         ----------
@@ -281,25 +430,25 @@ class AirPartition2D(Partition2D):
         Partition2D.check_CFL(self.sim_param, self.h_x, self.h_y)
 
         # Longest room dimension length dividied by H (voxel grid spacing).
-        self.space_divisions_y = int(dimensions[1] / self.h_y)
-        self.space_divisions_x = int(dimensions[0] / self.h_x)
+        self.space_divisions_y: int = int(dimensions[1] / self.h_y)
+        self.space_divisions_x: int = int(dimensions[0] / self.h_x)
 
         # Instantiate force f to spectral domain array, which corresponds to 𝑓~. (results of DCT computation). TODO: Elaborate more
-        self.forces = None
+        self.forces: np.ndarray = None
 
         # Instantiate updated force f to spectral domain array. Combination of impulse and/or contribution of the interface.
         # DCT of new_forces will be written into forces. TODO: Is that correct?
-        self.new_forces = None
+        self.new_forces: np.ndarray = None
 
         # Impulse array which keeps track of impulses in space over time.
-        self.impulses = np.zeros(
+        self.impulses: np.ndarray = np.zeros(
             shape=[self.sim_param.number_of_samples, self.space_divisions_y, self.space_divisions_x])
 
         # Array, which stores air pressure at each given point in time in the voxelized grid
-        self.pressure_field = None
+        self.pressure_field: np.ndarray = None
 
         # Array for pressure field results (auralisation and visualisation)
-        self.pressure_field_results = []
+        self.pressure_field_results: np.ndarray = []
 
         # Fill impulse array with impulses.
         if impulse:
@@ -325,7 +474,8 @@ class AirPartition2D(Partition2D):
         # Relates to equation 5 and 8 of "An efficient GPU-based time domain solver for the
         # acoustic wave equation" paper.
         # For reference, see https://www.microsoft.com/en-us/research/wp-content/uploads/2016/10/4.pdf.
-        self.omega_i = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
+        self.omega_i = np.zeros(
+            shape=[self.space_divisions_y, self.space_divisions_x])
 
         # Initialize omega_i
         for y in range(self.space_divisions_y):
@@ -333,30 +483,43 @@ class AirPartition2D(Partition2D):
                 self.omega_i[y, x] = \
                     self.sim_param.c * (
                         (np.pi ** 2) * (
-                            ((x ** 2) / (self.dimensions[0] ** 2)) + 
+                            ((x ** 2) / (self.dimensions[0] ** 2)) +
                             ((y ** 2) / (self.dimensions[1] ** 2))
                         )
-                    ) ** 0.5
+                ) ** 0.5
 
         # TODO Semi disgusting hack. Without it, the calculation of update rule (equation 9) would crash due to division by zero
-        self.omega_i[0, 0] = 1e-8   
+        self.omega_i[0, 0] = 1e-8
 
         # Update time stepping. Relates to M^(n+1) and M^n in equation 8.
-        self.M_previous = np.zeros(shape=[self.space_divisions_y, self.space_divisions_x])
+        self.M_previous = np.zeros(
+            shape=[self.space_divisions_y, self.space_divisions_x])
         self.M_current = np.zeros(shape=self.M_previous.shape)
         self.M_next = None
 
         if self.sim_param.verbose:
-            print(f"Preprocessing started.\nShape of omega_i: {self.omega_i.shape}\nShape of pressure field: {self.pressure_field.shape}\n")
+            print(
+                f"Preprocessing started.\nShape of omega_i: {self.omega_i.shape}\nShape of pressure field: {self.pressure_field.shape}\n")
 
-    def simulate(self, t_s, normalization_factor=1):
+    def simulate(self, t_s: int = 0, normalization_factor: float = 1):
+        '''
+        Executes the simulation for the partition.
+
+        Parameters
+        ----------
+        t_s : int
+            Current time step.
+        normalization_factor : float
+            Normalization multiplier to harmonize amplitudes between partitions.
+        '''
+
         # Execute DCT for next sample
-        self.forces = dctn(self.new_forces, 
-            type=2, 
-            s=[ # TODO This parameter may be unnecessary
-                self.space_divisions_y, 
-                self.space_divisions_x
-            ])
+        self.forces = dctn(self.new_forces,
+                           type=2,
+                           s=[  #  TODO This parameter may be unnecessary
+                               self.space_divisions_y,
+                               self.space_divisions_x
+                           ])
 
         # Updating mode for spectral coefficients p.
         # Relates to (2 * F^n) / (ω_i ^ 2) * (1 - cos(ω_i * Δ_t)) in equation 8.
@@ -367,7 +530,7 @@ class AirPartition2D(Partition2D):
         # Edge case for first iteration according to Nikunj Raghuvanshi. p[n+1] = 2*p[n] – p[n-1] + (\delta t)^2 f[n], while f is impulse and p is pressure field.
         self.force_field[0, 0] = 2 * self.M_current[0, 0] - self.M_previous[0, 0] + \
             self.sim_param.delta_t ** 2 * \
-                self.impulses[t_s][0, 0]
+            self.impulses[t_s][0, 0]
 
         # Relates to M^(n+1) in equation 8.
         self.M_next = (2 * self.M_current * np.cos(
@@ -375,13 +538,13 @@ class AirPartition2D(Partition2D):
 
         # Convert modes to pressure values using inverse DCT.
         self.pressure_field = idctn(self.M_next.reshape(
-            self.space_divisions_y, 
-            self.space_divisions_x), 
-            type=2, 
-            s=[ # TODO This parameter may be unnecessary
-                self.space_divisions_y, 
+            self.space_divisions_y,
+            self.space_divisions_x),
+            type=2,
+            s=[  #  TODO This parameter may be unnecessary
+                self.space_divisions_y,
                 self.space_divisions_x
-            ])
+        ])
 
         # Normalize pressure p by using normalization constant.
         self.pressure_field *= np.sqrt(normalization_factor)

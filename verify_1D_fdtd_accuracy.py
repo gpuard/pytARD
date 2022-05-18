@@ -2,8 +2,8 @@ from common.impulse import ExperimentalUnit, Gaussian
 from common.parameters import SimulationParameters as SIMP
 from common.microphone import Microphone as Mic
 
-from pytARD_1D.ard import ARDSimulator as ARDS
-from pytARD_1D.partition import PartitionData as PARTD
+from pytARD_1D.ard import ARDSimulator1D as ARDS
+from pytARD_1D.partition import AirPartition1D as PARTD
 from pytARD_1D.interface import InterfaceData1D
 
 import numpy as np
