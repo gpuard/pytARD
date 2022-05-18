@@ -60,19 +60,20 @@ room_width = int(c / SCALE)
 dp = DampingProfile(room_width, c, 1e-8)
 
 # Paritions of the room. Can be 1..n. Add or remove partitions here. 
-# Also, provide impulse in the partition(s) of your choosing.
+# This example is a square room surrounded by absorbing PML partitions.
+# Also, you may provide impulse in the partition(s) of your choosing.
 partitions.append(AirPartition2D(np.array([[room_width], [room_width]]), sim_param, impulse)) # id=0
 partitions.append(PMLPartition2D(np.array([[1.0], [room_width]]), sim_param, PMLType.LEFT, dp)) # id=1
-#partitions.append(PMLPartition2D(np.array([[1.0], [room_width]]), sim_param, PMLType.RIGHT, dp)) # id=2
-#partitions.append(PMLPartition2D(np.array([[room_width], [1.0]]), sim_param, PMLType.TOP, dp)) # id=3
-#partitions.append(PMLPartition2D(np.array([[room_width], [1.0]]), sim_param, PMLType.BOTTOM, dp)) # id=4
+partitions.append(PMLPartition2D(np.array([[1.0], [room_width]]), sim_param, PMLType.RIGHT, dp)) # id=2
+partitions.append(PMLPartition2D(np.array([[room_width], [1.0]]), sim_param, PMLType.TOP, dp)) # id=3
+partitions.append(PMLPartition2D(np.array([[room_width], [1.0]]), sim_param, PMLType.BOTTOM, dp)) # id=4
 
 # Interfaces of the room. Interfaces connect the partitions together
 interfaces = []
 interfaces.append(InterfaceData2D(1, 0, Direction2D.X))
-#interfaces.append(InterfaceData2D(2, 0, Direction2D.X))
-#interfaces.append(InterfaceData2D(3, 0, Direction2D.Y))
-#interfaces.append(InterfaceData2D(4, 0, Direction2D.Y))
+interfaces.append(InterfaceData2D(2, 0, Direction2D.X))
+interfaces.append(InterfaceData2D(3, 0, Direction2D.Y))
+interfaces.append(InterfaceData2D(4, 0, Direction2D.Y))
 
 # Microphones. Add and remove microphones here by copying or deleting mic objects. 
 # Only gets used if the auralization option is enabled.
