@@ -16,10 +16,10 @@ from datetime import date, datetime
 
 # Simulation parameters
 duration = 1  #  seconds
-Fs = 48000  # sample rate
-upper_frequency_limit = Fs / 16  # Hz
+Fs = 8000  # sample rate
+upper_frequency_limit = 200  # Hz
 c = 342  # m/s
-spatial_samples_per_wave_length = 4
+spatial_samples_per_wave_length = 6
 
 # Procedure parameters
 verbose = True
@@ -40,15 +40,15 @@ sim_param = SimulationParameters(
 )
 
 # Scale of room. Gets calculated by speed of sound divided by SCALE
-SCALE = 200
+SCALE = 80
 
 # Location of impulse that gets emitted into the room.
 impulse_location = np.array([[int((c / SCALE) / 2)], [int((c / SCALE) / 2)]])
 
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want
 #impulse = Gaussian(sim_param, impulse_location, 10000)
-#impulse = Unit(sim_param, impulse_location, 1, 100)
-impulse = WaveFile(sim_param, impulse_location, 'clap_48000.wav', 1000)
+impulse = Unit(sim_param, impulse_location, 1, 100)
+#impulse = WaveFile(sim_param, impulse_location, 'clap_48000.wav', 1000)
 
 # Compilation of all partitions into one part_data object. Add or remove rooms here.
 partitions = []
@@ -57,7 +57,7 @@ partitions = []
 room_width = int(c / SCALE)
 
 # Damping profile with according Zetta value (how much is absorbed)
-dp = DampingProfile(room_width, c, 1e-12)
+dp = DampingProfile(room_width, c, 1e-8)
 
 # Paritions of the room. Can be 1..n. Add or remove partitions here. 
 # Also, provide impulse in the partition(s) of your choosing.
@@ -69,8 +69,8 @@ partitions.append(PMLPartition2D(np.array([[1.0], [room_width]]), sim_param, PML
 
 # Interfaces of the room. Interfaces connect the partitions together
 interfaces = []
-interfaces.append(InterfaceData2D(0, 1, Direction2D.X))
-#interfaces.append(InterfaceData2D(0, 2, Direction2D.X))
+interfaces.append(InterfaceData2D(1, 0, Direction2D.X))
+#interfaces.append(InterfaceData2D(2, 0, Direction2D.X))
 #interfaces.append(InterfaceData2D(3, 0, Direction2D.Y))
 #interfaces.append(InterfaceData2D(4, 0, Direction2D.Y))
 

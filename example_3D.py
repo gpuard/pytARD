@@ -13,7 +13,7 @@ import numpy as np
 
 # Room parameters
 duration = 1 # seconds
-Fs = 10000 # sample rate
+Fs = 8000 # sample rate
 upper_frequency_limit = 300 # Hz
 c = 342 # m/s
 spatial_samples_per_wave_length = 6
@@ -39,7 +39,7 @@ sim_param = SimulationParameters(
     visualize=visualize
 )
 
-SCALE = 150 # Scale of room. Gets calculated by speed of sound divided by SCALE
+SCALE = 80 # Scale of room. Gets calculated by speed of sound divided by SCALE
 
 # Define impulse location
 impulse_location = np.array([
@@ -66,12 +66,18 @@ partitions.append(AirPartition3D(np.array([
     [room_width]  # Z, height
 ]), sim_param, impulse))
 
+partitions.append(AirPartition3D(np.array([
+    [room_width], # X, width
+    [room_width], # Y, depth
+    [room_width]  # Z, height
+]), sim_param))
+
+'''
 partitions.append(PMLPartition3D(np.array([
     [1.5], # X, width
     [room_width], # Y, depth
     [room_width]  # Z, height
 ]), sim_param, PMLType.LEFT, dp))
-'''
 
 partitions.append(PMLPartition3D(np.array([
     [1.5], # X, width
