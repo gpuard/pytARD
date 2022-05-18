@@ -19,7 +19,7 @@ class InterfaceData3D():
         part2_index: int, 
         direction: Direction3D,
         looped: bool=False
-        ):
+    ):
         '''
         Creates an instance of interface data between two partitions.
 

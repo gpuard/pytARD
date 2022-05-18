@@ -29,9 +29,16 @@ class Partition3D():
         '''
         pass
 
-    def simulate(self):
+    def simulate(self, t_s: int = 0, normalization_factor: float = 1):
         '''
         No implementation
+
+        Parameters
+        ----------
+        t_s : int
+            Current time step.
+        normalization_factor : float
+            Normalization multiplier to harmonize amplitudes between partitions.
         '''
         pass
 
@@ -261,6 +268,9 @@ class PMLPartition3D(Partition3D):
                 f"PML grid shape: {self.grid_shape}")
 
     def preprocessing(self):
+        '''
+        No implementation
+        '''
         pass
 
     def get_safe(self, source, z, y, x):
@@ -269,7 +279,7 @@ class PMLPartition3D(Partition3D):
         return source[z, y, x]
 
     # @profile
-    def simulate(self, t_s, normalization_factor=1):
+    def simulate(self, t_s: int = 0, normalization_factor: float = 1):
         '''
         Executes the simulation for the partition.
 
@@ -531,7 +541,7 @@ class PMLPartition3D(Partition3D):
     #     self.new_forces = np.zeros(shape=self.new_forces.shape)
 
 
-class AirPartition3D:
+class AirPartition3D(Partition3D):
     '''
     Air partition. Resembles an empty space in which sound can travel through.
     '''
@@ -558,9 +568,9 @@ class AirPartition3D:
         self.sim_param = sim_param
 
         # Voxel grid spacing. Changes automatically according to frequency
-        self.h_z = SimulationParameters.calculate_voxelization_step(sim_param)
-        self.h_y = SimulationParameters.calculate_voxelization_step(sim_param)
-        self.h_x = SimulationParameters.calculate_voxelization_step(sim_param)
+        self.h_z: float = SimulationParameters.calculate_voxelization_step(sim_param)
+        self.h_y: float = SimulationParameters.calculate_voxelization_step(sim_param)
+        self.h_x: float = SimulationParameters.calculate_voxelization_step(sim_param)
 
         # Check stability of wave equation
         CFL = sim_param.c * sim_param.delta_t * \
@@ -570,26 +580,26 @@ class AirPartition3D:
             CFL <= CFL_target), f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than {CFL_target}. Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length."
 
         # Longest room dimension length dividied by H (voxel grid spacing).
-        self.space_divisions_z = int(dimensions[2] / self.h_z)
-        self.space_divisions_y = int(dimensions[1] / self.h_y)
-        self.space_divisions_x = int(dimensions[0] / self.h_x)
+        self.space_divisions_z: int = int(dimensions[2] / self.h_z)
+        self.space_divisions_y: int = int(dimensions[1] / self.h_y)
+        self.space_divisions_x: int = int(dimensions[0] / self.h_x)
 
         # Instantiate forces array, which corresponds to F in update rule (results of DCT computation). TODO: Elaborate more
-        self.forces = None
+        self.forces: np.ndarray = None
 
         # Instantiate updated forces array. Combination of impulse and/or contribution of the interface.
         # DCT of new_forces will be written into forces. TODO: Is that correct?
-        self.new_forces = None
+        self.new_forces: np.ndarray = None
 
         # Impulse array which keeps track of impulses in space over time.
         self.impulses = np.zeros(
             shape=[self.sim_param.number_of_samples, self.space_divisions_z, self.space_divisions_y, self.space_divisions_x])
 
         # Array, which stores air pressure at each given point in time in the voxelized grid
-        self.pressure_field = None
+        self.pressure_field: np.ndarray = None
 
         # Array for pressure field results (auralisation and visualisation)
-        self.pressure_field_results = []
+        self.pressure_field_results: np.ndarray = []
 
         # Fill impulse array with impulses.
         if impulse:
@@ -661,7 +671,7 @@ class AirPartition3D:
             print(
                 f"Preprocessing started.\nShape of omega_i: {self.omega_i.shape}\nShape of pressure field: {self.pressure_field.shape}\n")
 
-    def simulate(self, t_s: int, normalization_factor: float = 1):
+    def simulate(self, t_s: int = 0, normalization_factor: float = 1):
         '''
         Executes the simulation for the partition.
 

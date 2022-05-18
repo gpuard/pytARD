@@ -17,7 +17,7 @@ class InterfaceData2D():
     Supporting data structure for interfaces.
     '''
     
-    def __init__(self, part1_index, part2_index, direction):
+    def __init__(self, part1_index: int, part2_index: int, direction: Direction2D):
         '''
         Creates an instance of interface data between two partitions.
 
@@ -33,9 +33,9 @@ class InterfaceData2D():
             FDTD accuracy.
         '''
 
-        self.part1_index: int = part1_index
-        self.part2_index: int = part2_index
-        self.direction: Direction2D = direction
+        self.part1_index = part1_index
+        self.part2_index = part2_index
+        self.direction = direction
 
 class Interface2D():
     '''
@@ -48,7 +48,7 @@ class Interface2D():
         partitions: list, 
         fdtd_order: int=2, 
         fdtd_acc: int=6
-        ):
+    ):
         '''
         Create an Interface for connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
 
