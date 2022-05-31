@@ -54,28 +54,36 @@ class Plotter():
             plt.grid()
             plt.pause(0.001)
 
-    def plot_2D(self):
-        partition_1 = self.partitions[0]
-        partition_2 = self.partitions[1]
-        #partition_3 = self.partitions[2]
+    def plot_2D(self, subplot_structure: list, speed: int = 50, partition_cutoff: int = None):
+        '''
+        Plot 2D domain.
 
-        room_dims = np.linspace(0., partition_1.dimensions[0], len(
-            partition_1.pressure_field_results[0]))
-        ytop = np.max(partition_1.pressure_field_results)
-        ybtm = np.min(partition_1.pressure_field_results)
-
+        Parameters
+        ----------
+        subplot_structure : list
+            2D array which correlates partitions to Pyplot subplot numbers. See Pyplot documentation to display your plot correctly.
+        speed : int
+            Speed interval to speed up real time plot. The number correlates to number of frames skipped (e.g. 50 equates to only showing each 50th frame).
+        partition_cutoff : int
+            Partition display cutoff. Limits the number of partitions to be plotted, e.g. 1 just displays the first partition.
+        '''
         fig = plt.figure(figsize=plt.figaspect(0.5))
         
-        axs = []
-        axs.append(fig.add_subplot(2, 2, 1))
-        axs.append(fig.add_subplot(2, 2, 2))
-        #axs.append(fig.add_subplot(2, 2, 4))
+        number_of_partitions = len(self.partitions)
 
-        for i in range(0, len(partition_1.pressure_field_results), 50):
+        # Cutoff to limit plotting to a certain number of partitions
+        if partition_cutoff:
+            number_of_partitions = partition_cutoff
+
+        axs = []
+        for i in range(number_of_partitions):
+            axs.append(fig.add_subplot(subplot_structure[i][0], subplot_structure[i][1], subplot_structure[i][2]))
+
+        for i in range(0, len(self.partitions[0].pressure_field_results), speed):
             Z = []
-            Z.append(partition_1.pressure_field_results[i])
-            Z.append(partition_2.pressure_field_results[i])
-            #Z.append(partition_3.pressure_field_results[i])
+
+            for partition in self.partitions:
+                Z.append(partition.pressure_field_results[i])
 
             for ax in axs:
                 ax.cla()
@@ -92,7 +100,7 @@ class Plotter():
                     mic_pos_y = int((self.mics[i].location[1] / self.partitions[current_partition].dimensions[1]) * self.partitions[i].space_divisions_y)
 
                     # Plot microphone
-                    axs[current_partition].plot([mic_pos_x],[mic_pos_y], 'o')
+                    axs[current_partition].plot([mic_pos_x],[mic_pos_y], 'ro')
 
             image = None
 
