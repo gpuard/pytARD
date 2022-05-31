@@ -21,7 +21,7 @@ spatial_samples_per_wave_length = 6
 verbose = True
 auralize= True
 visualize = True
-write_to_file = True
+write_to_file = False
 
 # For Debug
 # np.seterr(all='raise')

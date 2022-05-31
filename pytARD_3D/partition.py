@@ -201,6 +201,7 @@ class PMLPartition3D(Partition3D):
 
         self.dimensions = dimensions
         self.sim_param = sim_param
+        self.impulse = False # Needed for plotting
 
         # Voxel grid spacing. Changes automatically according to frequency
         self.h_z, self.h_y, self.h_x = Partition3D.calculate_h_x_y_z(sim_param)
@@ -571,6 +572,7 @@ class AirPartition3D(Partition3D):
         '''
         self.dimensions = dimensions
         self.sim_param = sim_param
+        self.impulse = impulse
 
         # Voxel grid spacing. Changes automatically according to frequency
         self.h_z: float = SimulationParameters.calculate_voxelization_step(sim_param)

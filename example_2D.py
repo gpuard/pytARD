@@ -25,7 +25,7 @@ spatial_samples_per_wave_length = 6
 verbose = True
 auralize = True
 visualize = True
-write_to_file = True
+write_to_file = False
 
 # Compilation of room parameters into parameter class
 sim_param = SimulationParameters(
@@ -42,7 +42,7 @@ sim_param = SimulationParameters(
 SCALE = 80
 
 # Location of impulse that gets emitted into the room.
-impulse_location = np.array([[int((c / SCALE) / 2)], [int((c / SCALE) / 2)]])
+impulse_location = np.array([[int((c / SCALE) / 3)], [int((c / SCALE) / 3)]])
 
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want
 #impulse = Gaussian(sim_param, impulse_location, 10000)
@@ -81,8 +81,8 @@ if auralize:
     mics.append(Mic(
         0, # Parition number
         # Position
-        [int(partitions[0].dimensions[0] / 2), 
-        int(partitions[0].dimensions[1] / 2)], 
+        [int(partitions[0].dimensions[0] / 1.5), 
+        int(partitions[0].dimensions[1] / 1.5)], 
         sim_param, 
         f"pytARD_2D_{date.today()}_{datetime.now().time()}" # Name of resulting wave file
     ))
@@ -115,7 +115,7 @@ if auralize:
 
 # Structure of plot graph. Optional, only for visualization.
 plot_structure = [
-    # Structure: [Width of domain, height of domain, index of partition to plot on the graph]
+    # Structure: [Width of domain, height of domain, index of partition to plot on the graph (min: 1, max: width* height)]
     [3, 3, 5],
     [3, 3, 4],
     [3, 3, 6],

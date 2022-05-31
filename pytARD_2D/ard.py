@@ -14,10 +14,10 @@ class ARDSimulator2D:
     def __init__(
         self, 
         sim_param: SimulationParameters, 
-        partitions: list, 
-        normalization_factor: float=1, 
-        interface_data: list=[], 
-        mics: list=[]
+        partitions: list,
+        normalization_factor: float = 1,
+        interface_data: list = [],
+        mics: list = []
         ):
 
         '''

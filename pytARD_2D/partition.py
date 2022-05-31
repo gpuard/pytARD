@@ -198,6 +198,7 @@ class PMLPartition2D(Partition2D):
 
         self.dimensions = dimensions
         self.sim_param = sim_param
+        self.impulse = False # Needed for plotting
 
         # Voxel grid spacing. Changes automatically according to frequency
         self.h_y, self.h_x = Partition2D.calculate_h_x_y(sim_param)
@@ -260,7 +261,7 @@ class PMLPartition2D(Partition2D):
             return source[-1, -1]
         return source[y, x]
 
-    def simulate(self, t_s: int = 0, normalization_factor: int = 1):
+    def simulate(self, t_s: int = 0, normalization_factor: float = 1):
         '''
         Executes the simulation for the partition.
 
@@ -425,6 +426,7 @@ class AirPartition2D(Partition2D):
         '''
         self.dimensions = dimensions
         self.sim_param = sim_param
+        self.impulse = impulse
 
         # Voxel grid spacing. Changes automatically according to frequency
         self.h_y, self.h_x = Partition2D.calculate_h_x_y(sim_param)

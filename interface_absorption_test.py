@@ -12,16 +12,15 @@ import numpy as np
 
 # Room parameters
 Fs = 8000  # sample rate
-upper_frequency_limit = Fs / 7  # Hz
+upper_frequency_limit = 200  # Hz
 c = 342  # m/s
 duration = 0.2 #  seconds
-spatial_samples_per_wave_length = 4
+spatial_samples_per_wave_length = 6
 
 # Procedure parameters
 verbose = True
 visualize = False
 write_to_file = True
-compress_file = True
 
 # Compilation of room parameters into parameter class
 sim_param = SIMP(
@@ -91,7 +90,7 @@ test_mics = [short_room_mic1, short_room_mic2]
 
 
 # Instantiation serializer for reading and writing simulation state data
-serializer = Serializer(compress=compress_file)
+serializer = Serializer()
 plotter = Plotter()
 
 def write_and_plot(room):
@@ -101,19 +100,25 @@ def write_and_plot(room):
             print("Writing state data to disk. Please wait...")
         serializer.dump(sim_param, room)
 
+    plot_structure = [
+        [2, 2, 1],
+        [2, 2, 2],
+        [2, 2, 3]
+    ]
+
     # Plotting waveform
-    plotter.set_data_from_simulation(sim_param, room)
-    plotter.plot_2D()
+    plotter.set_data_from_simulation(sim_param, room, control_mics, plot_structure)
+    plotter.plot()
 
 # Instantiating and executing control simulation
-control_sim = ARDS(sim_param, control_room, mics=control_mics)
+control_sim = ARDS(sim_param, control_room, normalization_factor=.5, mics=control_mics)
 control_sim.preprocessing()
 control_sim.simulation()
 
 # write_and_plot(control_room)
 
 # Instantiating and executing test simulation
-test_sim = ARDS(sim_param, test_room, interfaces, mics=test_mics)
+test_sim = ARDS(sim_param, test_room, normalization_factor=1, interface_data=interfaces, mics=test_mics)
 test_sim.preprocessing()
 test_sim.simulation()
 
