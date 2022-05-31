@@ -54,14 +54,15 @@ class Plotter():
             plt.grid()
             plt.pause(0.001)
 
-    def plot_2D(self, subplot_structure: list, speed: int = 50, partition_cutoff: int = None):
+    def plot_2D(self, plot_structure: list, speed: int = 50, partition_cutoff: int = None):
         '''
         Plot 2D domain.
 
         Parameters
         ----------
-        subplot_structure : list
-            2D array which correlates partitions to Pyplot subplot numbers. See Pyplot documentation to display your plot correctly.
+        plot_structure : list
+            2D array which correlates partitions to Pyplot subplot numbers (width of domain, height of domain, index of partition). 
+            See Pyplot documentation to make sure your plot is displayed correctly.
         speed : int
             Speed interval to speed up real time plot. The number correlates to number of frames skipped (e.g. 50 equates to only showing each 50th frame).
         partition_cutoff : int
@@ -77,7 +78,7 @@ class Plotter():
 
         axs = []
         for i in range(number_of_partitions):
-            axs.append(fig.add_subplot(subplot_structure[i][0], subplot_structure[i][1], subplot_structure[i][2]))
+            axs.append(fig.add_subplot(plot_structure[i][0], plot_structure[i][1], plot_structure[i][2]))
 
         for i in range(0, len(self.partitions[0].pressure_field_results), speed):
             Z = []
