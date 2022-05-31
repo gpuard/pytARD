@@ -4,13 +4,12 @@
 class SimulationParameters:
     def __init__(
         self,
-        src_pos,
         max_simulation_frequency,
         T,
-        spatial_samples_per_wave_length=4,
+        spatial_samples_per_wave_length=6,
         c=343,
         Fs=8000,
-        enable_multicore=True,
+        normalization_constant=1,
         auralize=None,
         verbose=False,
         visualize=False
@@ -36,8 +35,6 @@ class SimulationParameters:
             Speed of sound [m/s]. Depends on air temperature, pressure and humidity. 
         Fs : int
             Sampling rate. The higher, the more fidelity but lower performance.
-        enable_multicore : bool
-            Enables performance optimization by enabling multicore/multi-CPU processing.
         auralize : ndarray
             Auralizes (= makes hearable) the room by creating an impulse response (IR).
             Format is a list with mic positions. If array is empty, no auralization is being made.
@@ -47,13 +44,13 @@ class SimulationParameters:
             Visualizes wave propagation in a plot.
         '''
 
-        assert(T > 0), "Error: Simulation duration must be a positive number"
-        assert(Fs > 0), "Error: Sample rate must be a positive number"
-        assert(c > 0), "Error: Speed of sound must be a positive number"
+        assert(T > 0), "Error: Simulation duration must be a positive number greater than 0."
+        assert(Fs > 0), "Error: Sample rate must be a positive number."
+        assert(c > 0), "Error: Speed of sound must be a positive number."
         assert(max_simulation_frequency >
-               0), "Error: Uppermost frequency of simulation must be a positive number"
+               0), "Error: Uppermost frequency of simulation must be a positive number."
+        assert(max_simulation_frequency > (Fs / 2), "Nyquist-Shannon theorem violated. Make sure upper frequency limit is Fs / 2.")
 
-        self.src_pos = src_pos
         self.max_simulation_frequency = max_simulation_frequency
         self.c = c
         self.Fs = Fs
@@ -66,25 +63,16 @@ class SimulationParameters:
         # Calculate time stepping (Δ_t)
         self.delta_t = T / self.number_of_samples
 
-        # Voxel grid spacing. Changes according to frequency
-        self.H = SimulationParameters.calculate_voxelization_step(
-            self.c, spatial_samples_per_wave_length, self.max_simulation_frequency)
-
-        self.impulse_location = 0
-
-        # Save dimension for distinguishing between 1D, 2D and 3D processing TODO implement dimension distinction
-        self.dimension = None
-
-        self.enable_multicore = enable_multicore
+        self.normalization_constant = normalization_constant
         self.auralize = auralize
         self.verbose = verbose
         self.visualize = visualize
 
-        #if verbose:
-        #    print(f"Created a {self.dimension}-D room, sized {room_size} m, with signal source position {src_pos} m.\nNumber of samples: {self.number_of_samples} | Δ_t: {self.delta_t} | ℎ: {self.H} | Space divisions: {self.space_divisions} ({self.room_size/self.space_divisions} m each)")
+        if verbose:
+            print(f"Insantiated simulation.\nNumber of samples: {self.number_of_samples} | Δ_t: {self.delta_t}")
 
     @staticmethod
-    def calculate_voxelization_step(c, spatial_samples_per_wave_length, max_simulation_frequency):
+    def calculate_voxelization_step(sim_param):
         '''
         Calculate voxelization step for the segmentation of the room (voxelizing the scene).
         The cell size is fixed by the chosen wave length and the number of spatial samples per 
@@ -93,12 +81,13 @@ class SimulationParameters:
 
         Parameters
         ----------
-        spatial_samples_per_wave_length : int
-            Number of spatial samples per wave length. Usually 2 to 4.
+        sim_param : SimulationParameters
+            ARD simulation parameter object
 
         Returns
         -------
         float
             ℎ, the voxelization step. In numerics and papers, it's usually referred to ℎ. 
         '''
-        return c / (spatial_samples_per_wave_length * max_simulation_frequency)
+        return sim_param.c / (sim_param.spatial_samples_per_wave_length * sim_param.max_simulation_frequency)
+

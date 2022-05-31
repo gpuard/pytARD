@@ -1,91 +1,93 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fftpack import idct, dct
+from common.microphone import Microphone as Mic
+from tqdm import tqdm
+
+from pytARD_1D.interface import Interface1D
 
 
 class ARDSimulator:
-    # TODO Maybe create parameter class?
-    def __init__(self, sim_parameters, part_data):
+    '''
+    ARD Simulation class. Creates and runs ARD simulator instance.
+    '''
+
+    def __init__(self, sim_param, part_data, normalization_factor, interface_data=[], mics=[]):
         '''
         Create and run ARD simulator instance.
 
         Parameters
         ----------
-        sim_parameters : SimulationParameters
+        sim_param : SimulationParameters
             Instance of simulation parameter class.
         part_data : list
             List of PartitionData objects.
         '''
+
         # Parameter class instance (SimulationParameters)
-        self.sim_param = sim_parameters
+        self.sim_param = sim_param
 
         # List of partition data (PartitionData objects)
         self.part_data = part_data
-        
+
+        self.interface_data = interface_data
+        self.interfaces = Interface1D(sim_param, part_data)
+
+        self.normalization_factor = normalization_factor
+
+        self.mics = mics
+
 
     def preprocessing(self):
         '''
         Preprocessing stage. Refers to Step 1 in the paper.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
         '''
+
         for i in range(len(self.part_data)):
             self.part_data[i].preprocessing()
 
+        
     def simulation(self):
         '''
         Simulation stage. Refers to Step 2 in the paper.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
         '''
-        for i in range(len(self.part_data)):
-            self.part_data[i].simulation()
+        for t_s in tqdm(range(2, self.sim_param.number_of_samples)):
+            for interface in self.interface_data:
+                self.interfaces.handle_interface(interface)
 
-        #self.mic = np.zeros(shape=self.sim_param.number_of_samples, dtype=np.float)
+            for i in range(len(self.part_data)):
+                #print(f"nu forces: {self.part_data[i].new_forces}")
+                # Execute DCT for next sample
+                self.part_data[i].forces = dct(self.part_data[i].new_forces, n=self.part_data[i].space_divisions, type=2)
 
-        
+                # Updating mode using the update rule in equation 8.
+                # Relates to (2 * F^n) / (ω_i ^ 2) * (1 - cos(ω_i * Δ_t)) in equation 8.
+                self.part_data[i].force_field = ((2 * self.part_data[i].forces.reshape([self.part_data[i].space_divisions, 1])) / (
+                    (self.part_data[i].omega_i) ** 2)) * (1 - np.cos(self.part_data[i].omega_i * self.sim_param.delta_t))
 
-        #self.mic = self.mic / np.max(self.mic)
-        #write("impulse_response.wav", self.sim_param.Fs, self.mic.astype(np.float))
+                # Relates to M^(n+1) in equation 8.
+                self.part_data[i].M_next = 2 * self.part_data[i].M_current * \
+                np.cos(self.part_data[i].omega_i * self.sim_param.delta_t) - self.part_data[i].M_previous + self.part_data[i].force_field
+                
+                # Convert modes to pressure values using inverse DCT.
+                self.part_data[i].pressure_field = idct(self.part_data[i].M_next.reshape(
+                    self.part_data[i].space_divisions), n=self.part_data[i].space_divisions, type=2)
+                
+                # Normalize pressure p by using normalization constant.
+                self.part_data[i].pressure_field *= self.normalization_factor
 
+                # Record signal with mics
+                for m_i in range(len(self.mics)):
+                    p_num = self.mics[m_i].partition_number                    
+                    self.mics[m_i].record(self.part_data[p_num].pressure_field[int(self.part_data[p_num].space_divisions * (self.mics[m_i].location / self.part_data[p_num].dimensions))], t_s)
+                
+                # Update time stepping to prepare for next time step / loop iteration.
+                self.part_data[i].M_previous = self.part_data[i].M_current.copy()
+                self.part_data[i].M_current = self.part_data[i].M_next.copy()
 
+                # Update impulses
+                self.part_data[i].new_forces = self.part_data[i].impulses[t_s].copy()
 
-    @staticmethod
-    def update_rule(M, omega_i, delta_t, Fn): # TODO Offload update rule here or scrap this function
-        '''
-        Relates to equation 8 of "An efficient GPU-based time domain solver for the acoustic wave 
-        equation" paper.
-        For reference, see https://www.microsoft.com/en-us/research/wp-content/uploads/2016/10/4.pdf.
-
-        Parameters
-        ----------
-        M : ?
-            ?
-        omega_i : float
-            Speed of sound (C) times pi.
-        delta_t : float
-            Time deviation [s].
-        Fn : ?
-            ?
-
-        Returns
-        -------
-        float
-            M_i ^ (n + 1)
-        '''
-        # TODO: Maybe use this?
-
-    
-
-    
 
 
 '''
