@@ -166,5 +166,10 @@ if write_to_file:
 if visualize:
     plotter = Plotter()
     plotter.set_data_from_simulation(sim_param, partitions)
-    plotter.plot_3D()
+    plot_structure = [
+        # Structure: [Width of domain, height of domain, index of partition to plot on the graph]
+        [2, 2, 1],
+        [2, 2, 2]
+    ]
+    plotter.plot_3D(plot_structure, enable_colorbar=True)
 

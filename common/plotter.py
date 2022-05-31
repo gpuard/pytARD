@@ -54,15 +54,17 @@ class Plotter():
             plt.grid()
             plt.pause(0.001)
 
-    def plot_2D(self, plot_structure: list, speed: int = 50, partition_cutoff: int = None):
+    def plot_2D(self, plot_structure: list, enable_colorbar: bool = False, speed: int = 50, partition_cutoff: int = None):
         '''
-        Plot 2D domain.
+        Plot 2D domain in real-time.
 
         Parameters
         ----------
         plot_structure : list
             2D array which correlates partitions to Pyplot subplot numbers (width of domain, height of domain, index of partition). 
             See Pyplot documentation to make sure your plot is displayed correctly.
+        enable_colorbar : bool
+            Displays a color bar, representing amplitude.
         speed : int
             Speed interval to speed up real time plot. The number correlates to number of frames skipped (e.g. 50 equates to only showing each 50th frame).
         partition_cutoff : int
@@ -86,6 +88,7 @@ class Plotter():
             for partition in self.partitions:
                 Z.append(partition.pressure_field_results[i])
 
+            # Clear axes
             for ax in axs:
                 ax.cla()
 
@@ -103,70 +106,90 @@ class Plotter():
                     # Plot microphone
                     axs[current_partition].plot([mic_pos_x],[mic_pos_y], 'ro')
 
+            # Plot pressure fields
             image = None
-
             for i in range(len(axs)):
                 image = axs[i].imshow(Z[i])
 
-            cbar_ax = fig.add_axes([0.88, 0.15, 0.04, 0.7])
-            bar = fig.colorbar(image, cax=cbar_ax)
+            # Color bar
+            if enable_colorbar:
+                cbar_ax = fig.add_axes([0.88, 0.15, 0.04, 0.7])
+                bar = fig.colorbar(image, cax=cbar_ax)
+
             plt.pause(0.1)
-            bar.remove()
 
-    def plot_3D(self):
-        partition_1 = self.partitions[0]
-        partition_2 = self.partitions[1]
-        # partition_3 = self.partitions[2]
+            if enable_colorbar:
+                bar.remove()
 
-        room_dims = np.linspace(0., partition_1.dimensions[0], len(
-            partition_1.pressure_field_results[0]))
-        ytop = np.max(partition_1.pressure_field_results)
-        ybtm = np.min(partition_1.pressure_field_results)
+    def plot_3D(self, plot_structure: list, enable_colorbar: bool = False, speed: int = 50, partition_cutoff: int = None):
+        '''
+        Plot 3D domain in real-time on a 2D plane (bird's eye view).
 
+        Parameters
+        ----------
+        plot_structure : list
+            2D array which correlates partitions to Pyplot subplot numbers (width of domain, height of domain, index of partition). 
+            See Pyplot documentation to make sure your plot is displayed correctly.
+        enable_colorbar : bool
+            Displays a color bar, representing amplitude.
+        speed : int
+            Speed interval to speed up real time plot. The number correlates to number of frames skipped (e.g. 50 equates to only showing each 50th frame).
+        partition_cutoff : int
+            Partition display cutoff. Limits the number of partitions to be plotted, e.g. 1 just displays the first partition.
+        '''
         fig = plt.figure(figsize=plt.figaspect(0.5))
-        ax_1 = fig.add_subplot(2, 2, 1)
-        ax_2 = fig.add_subplot(2, 2, 2)
-        # ax_3 = fig.add_subplot(2, 2, 4)
 
-        temp_X_1 = np.linspace(
-            0, partition_1.space_divisions_x, partition_1.space_divisions_x)
-        temp_Y_1 = np.linspace(
-            0, partition_1.space_divisions_y, partition_1.space_divisions_y)
-        X_1, Y_1 = np.meshgrid(temp_X_1, temp_Y_1)
+        number_of_partitions = len(self.partitions)
 
-        temp_X_2 = np.linspace(
-            0, partition_2.space_divisions_x, partition_2.space_divisions_x)
-        temp_Y_2 = np.linspace(
-            0, partition_2.space_divisions_y, partition_2.space_divisions_y)
-        X_2, Y_2 = np.meshgrid(temp_X_2, temp_Y_2)
+        # Cutoff to limit plotting to a certain number of partitions
+        if partition_cutoff:
+            number_of_partitions = partition_cutoff
 
-        # temp_X_3 = np.linspace(0, partition_3.space_divisions_x, partition_3.space_divisions_x)
-        # temp_Y_3 = np.linspace(0, partition_3.space_divisions_y, partition_3.space_divisions_y)
-        # X_3, Y_3 = np.meshgrid(temp_X_3, temp_Y_3)
-
-        plot_limit_min = np.min(partition_1.pressure_field_results[:])
-        plot_limit_max = np.max(partition_1.pressure_field_results[:])
+        axs = []
+        for i in range(number_of_partitions):
+            axs.append(fig.add_subplot(plot_structure[i][0], plot_structure[i][1], plot_structure[i][2]))
 
         # middle of Z axis
-        vertical_slice = int(partition_1.space_divisions_z / 2)
+        vertical_slice = int(self.partitions[0].space_divisions_z / 2)
 
-        for i in range(0, len(partition_1.pressure_field_results), 50):
-            Z_1 = partition_1.pressure_field_results[i][vertical_slice]
-            Z_2 = partition_2.pressure_field_results[i][vertical_slice]
-            # Z_3 = partition_3.pressure_field_results[i][vertical_slice]
+        for i in range(0, len(self.partitions[0].pressure_field_results), speed):
+            Z = []
 
-            ax_1.cla()
-            ax_2.cla()
-            # ax_3.cla()
+            for partition in self.partitions:
+                Z.append(partition.pressure_field_results[i][vertical_slice])
 
-            plt.title(
-                f"t = {(self.sim_param.T * (i / self.sim_param.number_of_samples)):.4f}s")
+            # Clear axes
+            for ax in axs:
+                ax.cla()
 
-            ax_1.imshow(Z_1)
-            ax_2.imshow(Z_2)
-            # ax_3.imshow(Z_3)
+            plt.title(f"t = {(self.sim_param.T * (i / self.sim_param.number_of_samples)):.4f}s")
+
+            if self.mics:
+                for i in range(len(self.mics)):
+                    # Select current partition
+                    current_partition = self.mics[i].partition_number
+
+                    # Convert meters to indices
+                    mic_pos_x = int((self.mics[i].location[0] / self.partitions[current_partition].dimensions[0]) * self.partitions[i].space_divisions_x)
+                    mic_pos_y = int((self.mics[i].location[1] / self.partitions[current_partition].dimensions[1]) * self.partitions[i].space_divisions_y)
+
+                    # Plot microphone
+                    axs[current_partition].plot([mic_pos_x],[mic_pos_y], 'ro')
+
+            # Plot pressure fields
+            image = None
+            for i in range(len(axs)):
+                image = axs[i].imshow(Z[i])
+
+            # Color bar
+            if enable_colorbar:
+                cbar_ax = fig.add_axes([0.88, 0.15, 0.04, 0.7])
+                bar = fig.colorbar(image, cax=cbar_ax)
 
             plt.pause(0.005)
+
+            if enable_colorbar:
+                bar.remove()
 
     def plot(self):
         dimension = len(self.partitions[0].dimensions)

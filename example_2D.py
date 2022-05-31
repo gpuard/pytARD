@@ -124,11 +124,11 @@ if visualize:
     plotter = Plotter()
     plotter.set_data_from_simulation(sim_param, partitions, mics)
     plot_structure = [
-        # Structure: [ Width of domain, height of domain, index of partition to plot on the graph ]
+        # Structure: [Width of domain, height of domain, index of partition to plot on the graph]
         [3, 3, 5],
         [3, 3, 4],
         [3, 3, 6],
         [3, 3, 2],
         [3, 3, 8]
     ]
-    plotter.plot_2D(plot_structure)
+    plotter.plot_2D(plot_structure, enable_colorbar=True)
