@@ -18,15 +18,33 @@ class Plotter():
         self.verbose = verbose
 
     def set_data_from_file(self, file_name: string):
-        serializer = Serializer(compress=True)
-        (sim_param, partitions) = serializer.read(file_name)
-        self.sim_param = sim_param
-        self.partitions = partitions
-
-    def set_data_from_simulation(self, sim_param, partitions, mics=None):
+        serializer = Serializer()
+        (sim_param, partitions, mics, plot_structure) = serializer.read(file_name)
         self.sim_param = sim_param
         self.partitions = partitions
         self.mics = mics
+        self.plot_structure = plot_structure
+
+    def set_data_from_simulation(self, sim_param, partitions, mics = None, plot_structure: list = None):
+        '''
+        Injects data directly from ARD simulation frontend.
+        
+        Parameters
+        ----------
+        sim_param : SimulationParameters
+            Instance of simulation parameter class.
+        partitions : list
+            List of Partition objects. All partitions of the domain are collected here.
+        mics : list
+            List of Microphone objects. All microphones placed within the domain are collected here.
+        plot_structure : list
+            2D array which correlates partitions to Pyplot subplot numbers (width of domain, height of domain, index of partition). 
+            See Pyplot documentation to make sure your plot is displayed correctly.
+        '''
+        self.sim_param = sim_param
+        self.partitions = partitions
+        self.mics = mics
+        self.plot_structure = plot_structure
 
     def plot_1D(self):
         room_dims = np.linspace(0., self.partitions[0].dimensions[0], len(self.partitions[0].pressure_field_results[0]))
@@ -54,15 +72,12 @@ class Plotter():
             plt.grid()
             plt.pause(0.001)
 
-    def plot_2D(self, plot_structure: list, enable_colorbar: bool = False, speed: int = 50, partition_cutoff: int = None):
+    def plot_2D(self, enable_colorbar: bool = False, speed: int = 50, partition_cutoff: int = None):
         '''
         Plot 2D domain in real-time.
 
         Parameters
         ----------
-        plot_structure : list
-            2D array which correlates partitions to Pyplot subplot numbers (width of domain, height of domain, index of partition). 
-            See Pyplot documentation to make sure your plot is displayed correctly.
         enable_colorbar : bool
             Displays a color bar, representing amplitude.
         speed : int
@@ -80,7 +95,7 @@ class Plotter():
 
         axs = []
         for i in range(number_of_partitions):
-            axs.append(fig.add_subplot(plot_structure[i][0], plot_structure[i][1], plot_structure[i][2]))
+            axs.append(fig.add_subplot(self.plot_structure[i][0], self.plot_structure[i][1], self.plot_structure[i][2]))
 
         for i in range(0, len(self.partitions[0].pressure_field_results), speed):
             Z = []
@@ -121,15 +136,12 @@ class Plotter():
             if enable_colorbar:
                 bar.remove()
 
-    def plot_3D(self, plot_structure: list, enable_colorbar: bool = False, speed: int = 50, partition_cutoff: int = None):
+    def plot_3D(self, enable_colorbar: bool = False, speed: int = 50, partition_cutoff: int = None):
         '''
         Plot 3D domain in real-time on a 2D plane (bird's eye view).
 
         Parameters
         ----------
-        plot_structure : list
-            2D array which correlates partitions to Pyplot subplot numbers (width of domain, height of domain, index of partition). 
-            See Pyplot documentation to make sure your plot is displayed correctly.
         enable_colorbar : bool
             Displays a color bar, representing amplitude.
         speed : int
@@ -147,7 +159,7 @@ class Plotter():
 
         axs = []
         for i in range(number_of_partitions):
-            axs.append(fig.add_subplot(plot_structure[i][0], plot_structure[i][1], plot_structure[i][2]))
+            axs.append(fig.add_subplot(self.plot_structure[i][0], self.plot_structure[i][1], self.plot_structure[i][2]))
 
         # middle of Z axis
         vertical_slice = int(self.partitions[0].space_divisions_z / 2)
@@ -191,16 +203,28 @@ class Plotter():
             if enable_colorbar:
                 bar.remove()
 
-    def plot(self):
+    def plot(self, enable_colorbar: bool = False, speed: int = 50, partition_cutoff: int = None):
+        '''
+        Plot 1D, 2D or 3D domain in real-time.
+
+        Parameters
+        ----------
+        enable_colorbar : bool
+            Displays a color bar, representing amplitude.
+        speed : int
+            Speed interval to speed up real time plot. The number correlates to number of frames skipped (e.g. 50 equates to only showing each 50th frame).
+        partition_cutoff : int
+            Partition display cutoff. Limits the number of partitions to be plotted, e.g. 1 just displays the first partition.
+        '''
         dimension = len(self.partitions[0].dimensions)
         if self.verbose:
             print(f"Data is {dimension}-D.")
         if dimension == 1:
             self.plot_1D()
         if dimension == 2:
-            self.plot_2D()
+            self.plot_2D(enable_colorbar, speed, partition_cutoff)
         if dimension == 3:
-            self.plot_3D()
+            self.plot_3D(enable_colorbar, speed, partition_cutoff)
 
 
 class AnimationPlotter():

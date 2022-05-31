@@ -8,7 +8,6 @@ from common.serializer import Serializer
 from common.plotter import Plotter
 from common.microphone import Microphone as Mic
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 # Room parameters
@@ -22,8 +21,7 @@ spatial_samples_per_wave_length = 6
 verbose = True
 auralize= True
 visualize = True
-write_to_file = False
-compress_file = True
+write_to_file = True
 
 # For Debug
 # np.seterr(all='raise')
@@ -131,7 +129,7 @@ mics.append(Mic(
     ], sim_param, "bottom"))
 '''
 # Instantiation serializer for reading and writing simulation state data
-serializer = Serializer(compress=compress_file)
+serializer = Serializer()
 
 # Instantiating and executing simulation (don't change this)
 sim = ARDSimulator3D(sim_param, partitions, 1, interfaces, mics)
@@ -156,20 +154,22 @@ if auralize:
 
     write_mic_files(mics, best_peak)
 
-# Write partitions and state data to disk
-if write_to_file:
-    if verbose:
-        print("Writing state data to disk. Please wait...")
-    serializer.dump(sim_param, partitions)
-
-# Plotting waveform
-if visualize:
-    plotter = Plotter()
-    plotter.set_data_from_simulation(sim_param, partitions, mics)
-    plot_structure = [
+# Structure of plot graph. Optional, only for visualization.
+plot_structure = [
         # Structure: [Width of domain, height of domain, index of partition to plot on the graph]
         [2, 2, 1],
         [2, 2, 2]
     ]
-    plotter.plot_3D(plot_structure, enable_colorbar=True)
+
+# Write partitions and state data to disk
+if write_to_file:
+    if verbose:
+        print("Writing state data to disk. Please wait...")
+    serializer.dump(sim_param, partitions, mics, plot_structure)
+
+# Plotting waveform
+if visualize:
+    plotter = Plotter()
+    plotter.set_data_from_simulation(sim_param, partitions, mics, plot_structure)
+    plotter.plot(enable_colorbar=True)
 

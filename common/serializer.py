@@ -12,16 +12,11 @@ class Serializer():
     '''
     Saves and reads simulation to and from disk.
     '''
-    def __init__(self, compress: bool=False):
+    def __init__(self, ):
         '''
-        Creates a serializer.
-
-        Parameters
-        ----------
-        compress : bool
-            Determines if the data is read or written with LZMA compression.
+        Creates a serializer. No implementation.
         '''
-        self.compress = compress
+        pass
 
     def create_filename(self):
         '''
@@ -29,7 +24,7 @@ class Serializer():
         '''
         return f"pytard_{date.today()}_{datetime.now().time()}"
 
-    def dump(self, sim_param: SimulationParameters, partitions: Partition2D, filename: str=None):
+    def dump(self, sim_param: SimulationParameters, partitions: list, mics: list, plot_structure: list, filename: str=None):
         '''
         Writes simulation state data to disk.
 
@@ -49,17 +44,12 @@ class Serializer():
         if sim_param.verbose:
             print(f"Writing state data to disk ({file_path}). Please wait...", end="")
         Notification.notify("Writing state data to disk ({file_path}). Please wait...", "pytARD: Writing state data")
-        if self.compress: 
-            with lzma.open(file_path, 'wb') as fh:
-                pickle.dump((sim_param, partitions), fh)
-                fh.close()
-        else:
-            with pickle.open(file_path, 'wb') as fh:
-                pickle.dump((sim_param, partitions), fh)
-                fh.close()
+        with lzma.open(file_path, 'wb') as fh:
+            pickle.dump((sim_param, partitions, mics, plot_structure), fh)
+            fh.close()
         if sim_param.verbose:
             print("Done.")
-    Notification.notify("Writing state data completed", "pytARD: Writing state data")
+        Notification.notify("Writing state data completed", "pytARD: Writing state data")
 
 
     def read(self, file_path: string):
@@ -71,8 +61,4 @@ class Serializer():
         filename : str
             File path to read from.
         '''
-        if self.compress:
-            raw_bytes = lzma.open(file_path, 'rb')
-        else:
-            raw_bytes = pickle.open(file_path, 'rb')
-        return pickle.load(raw_bytes)
+        return pickle.load(lzma.open(file_path, 'rb'))

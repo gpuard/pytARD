@@ -13,7 +13,7 @@ class Notification:
         pass
 
     @staticmethod
-    def notify(title: str, message: str):
+    def notify(text: str, title: str):
         '''
         Notifies the user of action the software is currently doing via desktop notification.
 
@@ -28,11 +28,11 @@ class Notification:
         plt = platform.system()
         if plt=='Darwin':
             command = f'''
-            osascript -e 'display notification "{message}" with title "{title}"'
+            osascript -e 'display notification "{text}" with title "{title}"'
             '''
         if plt=='Linux':
             command = f'''
-            notify-send "{title}" "{message}"
+            notify-send "{text}" "{title}"
             '''
         else:
             return

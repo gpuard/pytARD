@@ -26,7 +26,6 @@ verbose = True
 auralize = True
 visualize = True
 write_to_file = True
-compress_file = True
 
 # Compilation of room parameters into parameter class
 sim_param = SimulationParameters(
@@ -89,7 +88,7 @@ if auralize:
     ))
 
 # Instantiation serializer for reading and writing simulation state data
-serializer = Serializer(compress=compress_file)
+serializer = Serializer()
 
 # Instantiating and executing simulation
 sim = ARDSimulator2D(sim_param, partitions, 1, interfaces, mics)
@@ -114,21 +113,23 @@ if auralize:
 
     write_mic_files(mics, best_peak)
 
+# Structure of plot graph. Optional, only for visualization.
+plot_structure = [
+    # Structure: [Width of domain, height of domain, index of partition to plot on the graph]
+    [3, 3, 5],
+    [3, 3, 4],
+    [3, 3, 6],
+    [3, 3, 2],
+    [3, 3, 8]
+]
 
 # Write partitions and state data to disk
 if write_to_file:
-    serializer.dump(sim_param, partitions)
+    serializer.dump(sim_param, partitions, mics, plot_structure)
 
 # Plotting waveform
 if visualize:
     plotter = Plotter()
-    plotter.set_data_from_simulation(sim_param, partitions, mics)
-    plot_structure = [
-        # Structure: [Width of domain, height of domain, index of partition to plot on the graph]
-        [3, 3, 5],
-        [3, 3, 4],
-        [3, 3, 6],
-        [3, 3, 2],
-        [3, 3, 8]
-    ]
-    plotter.plot_2D(plot_structure, enable_colorbar=True)
+    plotter.set_data_from_simulation(sim_param, partitions, mics, plot_structure)
+    plotter.plot(enable_colorbar=True)
+
