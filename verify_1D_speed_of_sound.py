@@ -9,6 +9,11 @@ from common.microphone import Microphone
 import matplotlib.pyplot as plt
 import numpy as np
 
+'''
+Plots a sound wave at three different times when travelling through an air partition.
+Goal is to make sure the speed of sound (c) is accurate.
+'''
+
 sim_param = SimulationParameters(
     max_simulation_frequency=500, 
     T=1, 

@@ -7,10 +7,16 @@ from pytARD_1D.ard import ARDSimulator1D as ARDS
 from pytARD_1D.partition import AirPartition1D as PARTD
 from pytARD_1D.interface import InterfaceData1D
 
-from scipy.io.wavfile import read, write
+from scipy.io.wavfile import read
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+'''
+Test script to measure amplitude of interface reflection.
+By ARD definition, all interfaces create a reflection smaller than -40 dB when sound is passing through. 
+A plot is drawn to highlight amplitude differences of reflections when different FDTD accuracies are chosen.
+'''
 
 # Room parameters
 src_pos = [0] # m

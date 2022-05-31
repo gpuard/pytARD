@@ -44,10 +44,12 @@ class ARDSimulator1D:
         self.sim_param = sim_param
 
         # List of partition data (PartitionData objects)
-        self.part_data = partitions
+        self.partitions = partitions
 
         self.interface_data = interface_data
-        self.interfaces = Interface1D(sim_param, partitions, fdtd_acc=interface_data[0].fdtd_acc)
+        self.interfaces = None
+        if self.interface_data:
+            self.interfaces = Interface1D(sim_param, partitions, fdtd_acc=self.interface_data[0].fdtd_acc) 
 
         self.normalization_factor = normalization_factor
 
@@ -59,8 +61,8 @@ class ARDSimulator1D:
         Preprocessing stage. Refers to Step 1 in the paper.
         '''
 
-        for i in range(len(self.part_data)):
-            self.part_data[i].preprocessing()
+        for i in range(len(self.partitions)):
+            self.partitions[i].preprocessing()
 
         
     def simulation(self, benchmark_data: list=[]):
@@ -77,38 +79,38 @@ class ARDSimulator1D:
                 else:
                     self.interfaces.handle_interface(interface)
 
-            for i in range(len(self.part_data)):
+            for i in range(len(self.partitions)):
                 # Execute DCT for next sample
-                self.part_data[i].forces = dct(self.part_data[i].new_forces, n=self.part_data[i].space_divisions, type=2)
+                self.partitions[i].forces = dct(self.partitions[i].new_forces, n=self.partitions[i].space_divisions, type=2)
 
                 # Updating mode using the update rule in equation 8.
                 # Relates to (2 * F^n) / (ω_i ^ 2) * (1 - cos(ω_i * Δ_t)) in equation 8.
-                self.part_data[i].force_field = ((2 * self.part_data[i].forces.reshape([self.part_data[i].space_divisions, 1])) / (
-                    (self.part_data[i].omega_i) ** 2)) * (1 - np.cos(self.part_data[i].omega_i * self.sim_param.delta_t))
+                self.partitions[i].force_field = ((2 * self.partitions[i].forces.reshape([self.partitions[i].space_divisions, 1])) / (
+                    (self.partitions[i].omega_i) ** 2)) * (1 - np.cos(self.partitions[i].omega_i * self.sim_param.delta_t))
 
                 # Relates to M^(n+1) in equation 8.
-                self.part_data[i].M_next = 2 * self.part_data[i].M_current * \
-                np.cos(self.part_data[i].omega_i * self.sim_param.delta_t) - self.part_data[i].M_previous + self.part_data[i].force_field
+                self.partitions[i].M_next = 2 * self.partitions[i].M_current * \
+                np.cos(self.partitions[i].omega_i * self.sim_param.delta_t) - self.partitions[i].M_previous + self.partitions[i].force_field
                 
                 # Convert modes to pressure values using inverse DCT.
-                self.part_data[i].pressure_field = idct(self.part_data[i].M_next.reshape(
-                    self.part_data[i].space_divisions), n=self.part_data[i].space_divisions, type=2)
+                self.partitions[i].pressure_field = idct(self.partitions[i].M_next.reshape(
+                    self.partitions[i].space_divisions), n=self.partitions[i].space_divisions, type=2)
                 
                 # Normalize pressure p by using normalization constant.
-                self.part_data[i].pressure_field *= self.normalization_factor
+                self.partitions[i].pressure_field *= self.normalization_factor
 
                 # Add results of IDCT to pressure field
-                self.part_data[i].pressure_field_results.append(
-                    self.part_data[i].pressure_field.copy())
+                self.partitions[i].pressure_field_results.append(
+                    self.partitions[i].pressure_field.copy())
 
                 # Record signal with mics, if provided
                 for m_i in range(len(self.mics)):
                     p_num = self.mics[m_i].partition_number                    
-                    self.mics[m_i].record(self.part_data[p_num].pressure_field[int(self.part_data[p_num].space_divisions * (self.mics[m_i].location / self.part_data[p_num].dimensions))], t_s)
+                    self.mics[m_i].record(self.partitions[p_num].pressure_field[int(self.partitions[p_num].space_divisions * (self.mics[m_i].location / self.partitions[p_num].dimensions))], t_s)
                 
                 # Update time stepping to prepare for next time step / loop iteration.
-                self.part_data[i].M_previous = self.part_data[i].M_current.copy()
-                self.part_data[i].M_current = self.part_data[i].M_next.copy()
+                self.partitions[i].M_previous = self.partitions[i].M_current.copy()
+                self.partitions[i].M_current = self.partitions[i].M_next.copy()
 
                 # Update impulses
-                self.part_data[i].new_forces = self.part_data[i].impulses[t_s].copy()
+                self.partitions[i].new_forces = self.partitions[i].impulses[t_s].copy()

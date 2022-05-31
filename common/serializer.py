@@ -24,7 +24,7 @@ class Serializer():
         '''
         return f"pytard_{date.today()}_{datetime.now().time()}"
 
-    def dump(self, sim_param: SimulationParameters, partitions: list, mics: list, plot_structure: list, filename: str=None):
+    def dump(self, sim_param: SimulationParameters, partitions: list, mics: list = None, plot_structure: list = None, filename: str = None):
         '''
         Writes simulation state data to disk.
 
@@ -34,6 +34,11 @@ class Serializer():
             Instance of simulation parameter class.
         partitions : list
             List of Partition objects. All partitions of the domain are collected here.
+        mics : list
+            List of Microphone objects. All microphones placed within the domain are collected here.
+        plot_structure : list
+            2D array which correlates partitions to Pyplot subplot numbers (width of domain, height of domain, index of partition). 
+            See Pyplot documentation to make sure your plot is displayed correctly.
         filename : str
             File path to write to.
         '''

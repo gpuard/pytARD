@@ -11,6 +11,13 @@ from wavdiff import wav_diff, visualize_multiple_waveforms
 import matplotlib.pyplot as plt
 import numpy as np
 
+'''
+Measures sound absorption when a waves are travelling through an interface in 1D.
+Control setup is one continuous domain with a single partition, test setup is a seperated domain with
+two individual partitions, connected by an interface. Both setups have the same total domain length.
+A plot is drawn illustrating the differences between both impulse response files (IRs).
+'''
+
 # Room parameters
 src_pos = [0] # m
 duration = 2 # seconds
@@ -48,7 +55,7 @@ test_room = [test_partition_1, test_partition_2]
 
 # Define Interfaces
 interfaces = []
-interfaces.append(InterfaceData1D(0, 1))
+interfaces.append(InterfaceData1D(0, 1, fdtd_acc=6))
 
 # Define and position mics
 
@@ -62,11 +69,11 @@ test_mic_after = Mic(1, int(c / 2), sim_param, filename + "_" +"roomB_mic2")
 test_mics = [test_mic_before, test_mic_after]
 
 # Instantiating and executing simulation
-control_sim = ARDS(sim_param, control_room, .5, mics=control_mics)
+control_sim = ARDS(sim_param, control_room, normalization_factor=.5, mics=control_mics)
 control_sim.preprocessing()
 control_sim.simulation()
 
-test_sim = ARDS(sim_param, test_room, 1, interface_data=interfaces, mics=test_mics)
+test_sim = ARDS(sim_param, test_room, normalization_factor=1, interface_data=interfaces, mics=test_mics)
 test_sim.preprocessing()
 test_sim.simulation()
 

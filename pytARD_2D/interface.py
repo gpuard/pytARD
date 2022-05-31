@@ -1,3 +1,4 @@
+from turtle import fd
 import numpy as np
 import enum
 
@@ -17,7 +18,7 @@ class InterfaceData2D():
     Supporting data structure for interfaces.
     '''
     
-    def __init__(self, part1_index: int, part2_index: int, direction: Direction2D):
+    def __init__(self, part1_index: int, part2_index: int, direction: Direction2D, fdtd_acc: int = 6):
         '''
         Creates an instance of interface data between two partitions.
 
@@ -36,6 +37,7 @@ class InterfaceData2D():
         self.part1_index = part1_index
         self.part2_index = part2_index
         self.direction = direction
+        self.fdtd_acc = fdtd_acc
 
 class Interface2D():
     '''
@@ -65,6 +67,7 @@ class Interface2D():
         '''
 
         self.part_data = partitions
+        self.fdtd_acc = fdtd_acc
 
         # 2D FDTD coefficents calculation. Normalize FDTD coefficents with space divisions and speed of sound. 
         fdtd_coeffs_not_normalized = get_laplacian_matrix(fdtd_order, fdtd_acc)

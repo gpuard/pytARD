@@ -111,7 +111,7 @@ def write_and_plot(room):
     plotter.plot()
 
 # Instantiating and executing control simulation
-control_sim = ARDS(sim_param, control_room, normalization_factor=.5, mics=control_mics)
+control_sim = ARDS(sim_param, control_room, normalization_factor=.1, mics=control_mics)
 control_sim.preprocessing()
 control_sim.simulation()
 

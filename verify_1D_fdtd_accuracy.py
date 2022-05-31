@@ -12,6 +12,11 @@ from matplotlib import pyplot as plt
 import csv
 from matplotlib import ft2font
 
+'''
+Measures average calculation time for each FDTD accuracy (4, 6 and 10).
+For each accuracy, a csv file is generated with seperate iteration time results.
+'''
+
 # Room parameters
 src_pos = [0] # m
 duration = 2 # seconds

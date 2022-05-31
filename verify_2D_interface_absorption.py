@@ -12,6 +12,13 @@ from wavdiff import wav_diff, visualize_multiple_waveforms
 
 import numpy as np
 
+'''
+Measures sound absorption when a waves are travelling through an interface in 2D.
+Control setup is one continuous domain with a single partition, test setup is a seperated domain with
+two individual partitions, connected by an interface. Both setups have the same total domain length.
+A plot is drawn illustrating the differences between both impulse response files (IRs).
+'''
+
 # Room parameters
 Fs = 8000  # sample rate
 upper_frequency_limit = 300 # Hz
@@ -23,7 +30,6 @@ spatial_samples_per_wave_length = 6
 verbose = True
 visualize = False
 write_to_file = True
-compress_file = True
 filename = "verify_2D_interface_absorption"
 
 # Compilation of room parameters into parameter class
@@ -40,8 +46,8 @@ sim_param = SIMP(
 
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want
 impulse_location = np.array([[0.5], [0.5]])
-#impulse = ExperimentalUnit(sim_param, impulse_location, 1, upper_frequency_limit)
-impulse = WaveFile(sim_param, impulse_location, 'clap_8000.wav', 1000)
+impulse = ExperimentalUnit(sim_param, impulse_location, 1, upper_frequency_limit)
+#impulse = WaveFile(sim_param, impulse_location, 'clap_8000.wav', 1000)
 #impulse = Gaussian(sim_param, impulse_location, 10000)
 
 # Paritions of long room
@@ -94,7 +100,7 @@ test_mics = [short_room_mic1, short_room_mic2]
 
 
 # Instantiation serializer for reading and writing simulation state data
-serializer = Serializer(compress=compress_file)
+serializer = Serializer()
 plotter = Plotter()
 
 def write_and_plot(room):
@@ -102,7 +108,7 @@ def write_and_plot(room):
     if write_to_file:
         if verbose:
             print("Writing state data to disk. Please wait...")
-        serializer.dump(sim_param, room, filename=filename)
+        serializer.dump(sim_param, room, mics=[], plot_structure=[], filename=filename,)
 
     # Plotting waveform
     #plotter.set_data_from_simulation(sim_params, room)

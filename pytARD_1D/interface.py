@@ -54,6 +54,7 @@ class Interface1D():
         '''
 
         self.part_data = partitions
+        self.fdtd_acc = fdtd_acc
 
         # 1D FDTD coefficents calculation. Normalize FDTD coefficents with space divisions and speed of sound.
         # TODO: In the papers it's supposed to be multiplied by *(c/h)**2
