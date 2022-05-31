@@ -5,8 +5,8 @@ from pytARD_1D.interface import InterfaceData1D
 from common.parameters import SimulationParameters
 from common.impulse import Gaussian, Unit, WaveFile, ExperimentalUnit
 from common.microphone import Microphone
+from common.plotter import Plotter
 
-import matplotlib.pyplot as plt
 import numpy as np
 from datetime import date, datetime
 
@@ -88,30 +88,7 @@ if auralize:
 
 # Plotting waveform
 if visualize:
-    room_dims = np.linspace(0., partitions[0].dimensions[0], len(partitions[0].pressure_field_results[0]))
-    ytop = np.max(partitions[0].pressure_field_results)
-    ybtm = np.min(partitions[0].pressure_field_results)
-
-    plt.figure()
-    for i in range(0, len(partitions[0].pressure_field_results), 50):
-        plt.clf()
-        plt.title(f"ARD 1D (t = {(sim_param.T * (i / sim_param.number_of_samples)):.4f}s)")
-        plt.subplot(1, 2, 1)
-        plt.plot(room_dims, partitions[0].pressure_field_results[i], 'r', linewidth=1)
-        plt.ylim(top=ytop)
-        plt.ylim(bottom=ybtm)
-        plt.vlines(np.min(room_dims), ybtm, ytop, color='gray')
-        plt.vlines(np.max(room_dims), ybtm, ytop, color='gray')
-        plt.subplot(1, 2, 2)
-        plt.plot(room_dims, partitions[1].pressure_field_results[i], 'b', linewidth=1)
-        plt.xlabel("Position [m]")
-        plt.ylabel("Displacement")
-        plt.ylim(top=ytop)
-        plt.ylim(bottom=ybtm)
-        plt.vlines(np.min(room_dims), ybtm, ytop, color='gray')
-        plt.vlines(np.max(room_dims), ybtm, ytop, color='gray')
-        plt.grid()
-        plt.pause(0.001)
-
-    plot_step = 100
+    plotter = Plotter()
+    plotter.set_data_from_simulation(sim_param, partitions)
+    plotter.plot_1D()
 

@@ -1,11 +1,16 @@
-import string
 from common.serializer import Serializer
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-import numpy as np
 
+import numpy as np
+import string
+from datetime import datetime
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation, FFMpegWriter
 
 class Plotter():
+    '''
+    Plotting class. Caution: The plotter is static and can be a bit of a chore to display everything correctly.
+    You have to edit the code for each setup you want to display.
+    '''
 
     def __init__(self, verbose: bool = False):
         self.sim_param = None
@@ -23,8 +28,30 @@ class Plotter():
         self.partitions = partitions
 
     def plot_1D(self):
-        # TODO Implement
-        pass
+        room_dims = np.linspace(0., self.partitions[0].dimensions[0], len(self.partitions[0].pressure_field_results[0]))
+        ytop = np.max(self.partitions[0].pressure_field_results)
+        ybtm = np.min(self.partitions[0].pressure_field_results)
+
+        plt.figure()
+        for i in range(0, len(self.partitions[0].pressure_field_results), 50):
+            plt.clf()
+            plt.title(f"ARD 1D (t = {(self.sim_param.T * (i / self.sim_param.number_of_samples)):.4f}s)")
+            plt.subplot(1, 2, 1)
+            plt.plot(room_dims, self.partitions[0].pressure_field_results[i], 'r', linewidth=1)
+            plt.ylim(top=ytop)
+            plt.ylim(bottom=ybtm)
+            plt.vlines(np.min(room_dims), ybtm, ytop, color='gray')
+            plt.vlines(np.max(room_dims), ybtm, ytop, color='gray')
+            plt.subplot(1, 2, 2)
+            plt.plot(room_dims, self.partitions[1].pressure_field_results[i], 'b', linewidth=1)
+            plt.xlabel("Position [m]")
+            plt.ylabel("Displacement")
+            plt.ylim(top=ytop)
+            plt.ylim(bottom=ybtm)
+            plt.vlines(np.min(room_dims), ybtm, ytop, color='gray')
+            plt.vlines(np.max(room_dims), ybtm, ytop, color='gray')
+            plt.grid()
+            plt.pause(0.001)
 
     def plot_2D(self):
         partition_1 = self.partitions[0]
@@ -79,8 +106,6 @@ class Plotter():
             bar = fig.colorbar(image1, cax=cbar_ax)
             plt.pause(0.1)
             bar.remove()
-
-        plot_step = 1
 
     def plot_3D(self):
         partition_1 = self.partitions[0]
@@ -137,8 +162,6 @@ class Plotter():
 
             plt.pause(0.005)
 
-        plot_step = 100
-
     def plot(self):
         dimension = len(self.partitions[0].dimensions)
         if self.verbose:
@@ -152,9 +175,16 @@ class Plotter():
 
 
 class AnimationPlotter():
+    '''
+    TODO: Documentation
+    '''
 
     @staticmethod
     def plot_3D(p_field_t, simulation_parameters, title='', interval=0, video_output=False, file_name='', zyx=None, direction=[None, 'x', 'y', 'z'][1]):
+        '''
+        TODO: Documentation
+        '''
+
         plt.close()  # close any existing plots from runs before
 
         # xyz is e.g, source location
@@ -237,6 +267,9 @@ class AnimationPlotter():
 
     @staticmethod
     def plot_2D(p_field_t, simulation_parameters, interval=0, video_output=False, file_name=''):
+        '''
+        TODO: Documentation
+        '''
 
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5, 5))
 
@@ -310,9 +343,9 @@ class AnimationPlotter():
 
     @staticmethod
     def write_video(anim, file_name):
-
-        from matplotlib.animation import FFMpegWriter
-        from datetime import datetime
+        '''
+        TODO: Documentation
+        '''
 
         writervideo = FFMpegWriter(fps=60)
         fileloc = "videos/"
