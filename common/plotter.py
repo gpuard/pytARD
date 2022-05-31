@@ -23,9 +23,10 @@ class Plotter():
         self.sim_param = sim_param
         self.partitions = partitions
 
-    def set_data_from_simulation(self, sim_param, partitions):
+    def set_data_from_simulation(self, sim_param, partitions, mics=None):
         self.sim_param = sim_param
         self.partitions = partitions
+        self.mics = mics
 
     def plot_1D(self):
         room_dims = np.linspace(0., self.partitions[0].dimensions[0], len(self.partitions[0].pressure_field_results[0]))
@@ -64,46 +65,42 @@ class Plotter():
         ybtm = np.min(partition_1.pressure_field_results)
 
         fig = plt.figure(figsize=plt.figaspect(0.5))
-        ax_1 = fig.add_subplot(2, 2, 1)
-        ax_2 = fig.add_subplot(2, 2, 2)
-        #ax_3 = fig.add_subplot(2, 2, 4)
-
-        temp_X_1 = np.linspace(
-            0, partition_1.space_divisions_x, partition_1.space_divisions_x)
-        temp_Y_1 = np.linspace(
-            0, partition_1.space_divisions_y, partition_1.space_divisions_y)
-        X_1, Y_1 = np.meshgrid(temp_X_1, temp_Y_1)
-
-        temp_X_2 = np.linspace(
-            0, partition_2.space_divisions_x, partition_2.space_divisions_x)
-        temp_Y_2 = np.linspace(
-            0, partition_2.space_divisions_y, partition_2.space_divisions_y)
-        X_2, Y_2 = np.meshgrid(temp_X_2, temp_Y_2)
-
-        # temp_X_3 = np.linspace(0, partition_3.space_divisions_x, partition_3.space_divisions_x)
-        # temp_Y_3 = np.linspace(0, partition_3.space_divisions_y, partition_3.space_divisions_y)
-        # X_3, Y_3 = np.meshgrid(temp_X_3, temp_Y_3)
-
-        plot_limit_min = np.min(partition_2.pressure_field_results[:])
-        plot_limit_max = np.max(partition_2.pressure_field_results[:])
+        
+        axs = []
+        axs.append(fig.add_subplot(2, 2, 1))
+        axs.append(fig.add_subplot(2, 2, 2))
+        #axs.append(fig.add_subplot(2, 2, 4))
 
         for i in range(0, len(partition_1.pressure_field_results), 50):
-            Z_1 = partition_1.pressure_field_results[i]
-            Z_2 = partition_2.pressure_field_results[i]
-            #   Z_3 = partition_3.pressure_field_results[i]
+            Z = []
+            Z.append(partition_1.pressure_field_results[i])
+            Z.append(partition_2.pressure_field_results[i])
+            #Z.append(partition_3.pressure_field_results[i])
 
-            ax_1.cla()
-            ax_2.cla()
-            #  ax_3.cla()
+            for ax in axs:
+                ax.cla()
 
-            plt.title(
-                f"t = {(self.sim_param.T * (i / self.sim_param.number_of_samples)):.4f}s")
+            plt.title(f"t = {(self.sim_param.T * (i / self.sim_param.number_of_samples)):.4f}s")
 
-            image1 = ax_1.imshow(Z_1)
-            ax_2.imshow(Z_2)
-            # ax_3.imshow(Z_3)
+            if self.mics:
+                for i in range(len(self.mics)):
+                    # Select current partition
+                    current_partition = self.mics[i].partition_number
+
+                    # Convert meters to indices
+                    mic_pos_x = int((self.mics[i].location[0] / self.partitions[current_partition].dimensions[0]) * self.partitions[i].space_divisions_x)
+                    mic_pos_y = int((self.mics[i].location[1] / self.partitions[current_partition].dimensions[1]) * self.partitions[i].space_divisions_y)
+
+                    # Plot microphone
+                    axs[current_partition].plot([mic_pos_x],[mic_pos_y], 'o')
+
+            image = None
+
+            for i in range(len(axs)):
+                image = axs[i].imshow(Z[i])
+
             cbar_ax = fig.add_axes([0.88, 0.15, 0.04, 0.7])
-            bar = fig.colorbar(image1, cax=cbar_ax)
+            bar = fig.colorbar(image, cax=cbar_ax)
             plt.pause(0.1)
             bar.remove()
 

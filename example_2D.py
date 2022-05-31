@@ -122,5 +122,5 @@ if write_to_file:
 # Plotting waveform
 if visualize:
     plotter = Plotter()
-    plotter.set_data_from_simulation(sim_param, partitions)
+    plotter.set_data_from_simulation(sim_param, partitions, mics)
     plotter.plot_2D()
