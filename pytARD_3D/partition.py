@@ -231,7 +231,7 @@ class PMLPartition3D(Partition3D):
         # Array, which stores air pressure at each given point in time in the voxelized grid
         self.p_old = shape_template.copy()
 
-        # TODO: Who dis? -> Document
+        # Prepare pressure field
         self.pressure_field = shape_template.copy()
 
         # Array for pressure field results (auralisation and visualisation)
@@ -245,20 +245,24 @@ class PMLPartition3D(Partition3D):
         self.phi_z = shape_template.copy()
         self.phi_z_new = shape_template.copy()
 
-        #staggered in time
+        # staggered in time
+        # TODO: WHat is this? Please elaborate
         self.psi = shape_template.copy()
         self.psi_new = shape_template.copy()
 
+        # TODO Cleanup! Not parameterized in the constructor
         self.include_self_terms = False
         self.render = False
         self.pml_type = pml_type
 
-        self.FDTD_coeffs = [2.0, -27.0, 270.0, -490.0, 270.0, -27.0, 2.0]
-        self.fourth_coeffs = [1.0, -8.0, 0.0, 8.0, -1.0]
+        # FDTD coefficents. Constant values.
+        self.FDTD_COEFFS = [2.0, -27.0, 270.0, -490.0, 270.0, -27.0, 2.0]
+        self.FOURTH_COEFFS = [1.0, -8.0, 0.0, 8.0, -1.0]
 
         # Array for pressure field results (auralisation and visualisation)
         self.pressure_field_results = []
 
+        # Damping profile for PML.
         self.damping_profile = damping_profile
 
         if sim_param.verbose:
@@ -312,12 +316,12 @@ class PMLPartition3D(Partition3D):
                     KPy = 0.0
                     KPz = 0.0
 
-                    for k in range(len(self.FDTD_coeffs)):
-                        KPx += self.FDTD_coeffs[k] * self.get_safe(
+                    for k in range(len(self.FDTD_COEFFS)):
+                        KPx += self.FDTD_COEFFS[k] * self.get_safe(
                             self.pressure_field, z, y, x + k - 3)
-                        KPy += self.FDTD_coeffs[k] * self.get_safe(
+                        KPy += self.FDTD_COEFFS[k] * self.get_safe(
                             self.pressure_field, z, y + k - 3, x)
-                        KPz += self.FDTD_coeffs[k] * self.get_safe(
+                        KPz += self.FDTD_COEFFS[k] * self.get_safe(
                             self.pressure_field, z + k - 3, y, x)
 
                     KPx /= 180.0
@@ -344,12 +348,12 @@ class PMLPartition3D(Partition3D):
                     dphidy = 0.0
                     dphidz = 0.0
 
-                    for k in range(len(self.fourth_coeffs)):
-                        dphidx += self.fourth_coeffs[k] * \
+                    for k in range(len(self.FOURTH_COEFFS)):
+                        dphidx += self.FOURTH_COEFFS[k] * \
                             self.get_safe(self.phi_x, z, y, x + k - 2)
-                        dphidy += self.fourth_coeffs[k] * \
+                        dphidy += self.FOURTH_COEFFS[k] * \
                             self.get_safe(self.phi_y, z, y + k - 2, x)
-                        dphidz += self.fourth_coeffs[k] * \
+                        dphidz += self.FOURTH_COEFFS[k] * \
                             self.get_safe(self.phi_y, z + k - 2, y, x)
 
                     dphidx /= 12.0
@@ -368,12 +372,12 @@ class PMLPartition3D(Partition3D):
                     dudy = 0.0
                     dudz = 0.0
 
-                    for k in range(len(self.fourth_coeffs)):
-                        dudx += self.fourth_coeffs[k] * \
+                    for k in range(len(self.FOURTH_COEFFS)):
+                        dudx += self.FOURTH_COEFFS[k] * \
                             self.get_safe(self.p_new, z, y, x + k - 2)
-                        dudy += self.fourth_coeffs[k] * \
+                        dudy += self.FOURTH_COEFFS[k] * \
                             self.get_safe(self.p_new, z, y + k - 2, x)
-                        dudz += self.fourth_coeffs[k] * \
+                        dudz += self.FOURTH_COEFFS[k] * \
                             self.get_safe(self.p_new, z + k - 2, y, x)
 
                     dudx /= 12.0
@@ -384,12 +388,12 @@ class PMLPartition3D(Partition3D):
                     dpsidy = 0.0
                     dpsidz = 0.0
 
-                    for k in range(len(self.fourth_coeffs)):
-                        dpsidx += self.fourth_coeffs[k] * \
+                    for k in range(len(self.FOURTH_COEFFS)):
+                        dpsidx += self.FOURTH_COEFFS[k] * \
                             self.get_safe(self.p_new, z, y, x + k - 2)
-                        dpsidy += self.fourth_coeffs[k] * \
+                        dpsidy += self.FOURTH_COEFFS[k] * \
                             self.get_safe(self.p_new, z, y + k - 2, x)
-                        dpsidz += self.fourth_coeffs[k] * \
+                        dpsidz += self.FOURTH_COEFFS[k] * \
                             self.get_safe(self.p_new, z + k - 2, y, x)
 
                     dpsidx /= 12.0
@@ -427,6 +431,7 @@ class PMLPartition3D(Partition3D):
         # Reset force
         self.new_forces = np.zeros(shape=self.new_forces.shape)
 
+    # TODO Cleanup
     # def simulate(self, t_s, normalization_factor=1):
         # based on paper; using staggered grid
     # # a possibility to split calculation of phi
@@ -658,7 +663,7 @@ class AirPartition3D(Partition3D):
                             )
                     ) ** 0.5
 
-        # TODO Semi disgusting hack. Without it, the calculation of update rule (equation 9) would crash due to division by zero
+        # Workaround. Without this, the calculation of update rule (equation 9) would crash.
         self.omega_i[0, 0, 0] = 1e-8
 
         # Update time stepping. Relates to M^(n+1) and M^n in equation 8.
@@ -685,7 +690,7 @@ class AirPartition3D(Partition3D):
         # Execute DCT for next sample
         self.forces = dctn(self.new_forces,
                            type=2,
-                           s=[  #  TODO This parameter may be unnecessary
+                           s=[ 
                                self.space_divisions_z,
                                self.space_divisions_y,
                                self.space_divisions_x

@@ -44,7 +44,7 @@ class Interface2D():
 
     def __init__(
         self, 
-        sim_params: SimulationParameters, 
+        sim_param: SimulationParameters, 
         partitions: list, 
         fdtd_order: int=2, 
         fdtd_acc: int=6
@@ -66,12 +66,10 @@ class Interface2D():
 
         self.part_data = partitions
 
-        # 2D FDTD coefficents array. Normalize FDTD coefficents with space divisions and speed of sound. 
+        # 2D FDTD coefficents calculation. Normalize FDTD coefficents with space divisions and speed of sound. 
         fdtd_coeffs_not_normalized = get_laplacian_matrix(fdtd_order, fdtd_acc)
-
-        # TODO: Unify h of partition data, atm it's hard coded to first partition
-        self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_params.c / partitions[0].h_x) ** 2)
-        self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_params.c / partitions[0].h_y) ** 2)
+        self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_x) ** 2)
+        self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_y) ** 2)
 
         # FDTD kernel size.
         self.INTERFACE_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
@@ -112,22 +110,32 @@ class Interface2D():
 
 class Interface2DLooped():
     '''
-    Version of interfaces with for loops instead of matrix mult
+    Interface for connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
+    Implementation is based on loops and is less efficient than the standard Interface3D.
     '''
 
-    def __init__(self, sim_params: SimulationParameters, part_data: Partition2D, fdtd_order=2, fdtd_acc=6):
+    def __init__(self, sim_param: SimulationParameters, partitions: list, fdtd_order=2, fdtd_acc=6):
         '''
-        TODO: Doc
+        Create an Interface for connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
+
+        Parameters
+        ----------
+        sim_param : SimulationParameters
+            Instance of simulation parameter class.
+        partitions : list
+            List of Partition objects. All partitions of the domain are collected here.
+        fdtd_order : int
+            FDTD order.
+        fdtd_acc : int
+            FDTD accuracy.
         '''
 
-        self.part_data = part_data
+        self.part_data = partitions
 
-        # 2D FDTD coefficents array. Normalize FDTD coefficents with space divisions and speed of sound. 
+        # 2D FDTD coefficents calculation. Normalize FDTD coefficents with space divisions and speed of sound. 
         fdtd_coeffs_not_normalized = get_laplacian_matrix(fdtd_order, fdtd_acc)
-
-        # TODO: Unify h of partition data, atm it's hard coded to first partition
-        self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_params.c / part_data[0].h_x) ** 2)
-        self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_params.c / part_data[0].h_y) ** 2)
+        self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_x) ** 2)
+        self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_y) ** 2)
 
         # FDTD kernel size.
         self.INTERFACE_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 

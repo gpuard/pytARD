@@ -165,7 +165,7 @@ serializer = Serializer(compress=compress_file)
 sim = ARDSimulator3D(sim_param, partitions, 1, interfaces, mics)
 sim.preprocessing()
 sim.simulation()
-# TODO check non squeared rooms
+
 # Find best peak to normalize mic signal and write mic signal to file
 if auralize:
     def find_best_peak(mics):

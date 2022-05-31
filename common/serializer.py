@@ -27,7 +27,6 @@ class Serializer():
         '''
         Generates a file name using time stamps.
         '''
-        # TODO: put reference to rooms, sizes etc.
         return f"pytard_{date.today()}_{datetime.now().time()}"
 
     def dump(self, sim_param: SimulationParameters, partitions: Partition2D, filename: str=None):
@@ -72,7 +71,6 @@ class Serializer():
         filename : str
             File path to read from.
         '''
-        # TODO: Idea -> See which suffix the file has. If xz, use lzma
         if self.compress:
             raw_bytes = lzma.open(file_path, 'rb')
         else:

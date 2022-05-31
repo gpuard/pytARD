@@ -218,7 +218,7 @@ class PMLPartition2D(Partition2D):
         # Array, which stores air pressure at each given point in time in the voxelized grid
         self.p_old = shape_template.copy()
 
-        # TODO: Who dis? -> Document
+        # Prepare pressure field
         self.pressure_field = shape_template.copy()
 
         # Array for pressure field results (auralisation and visualisation)
@@ -230,16 +230,19 @@ class PMLPartition2D(Partition2D):
         self.phi_y = shape_template.copy()
         self.phi_y_new = shape_template.copy()
 
+        # TODO Cleanup! Not parameterized in the constructor
         self.include_self_terms = False
         self.render = False
         self.type = type
 
-        self.FDTD_coeffs = [2.0, -27.0, 270.0, -490.0, 270.0, -27.0, 2.0]
-        self.fourth_coeffs = [1.0, -8.0, 0.0, 8.0, -1.0]
+        # FDTD coefficents. Constant values.
+        self.FDTD_COEFFS = [2.0, -27.0, 270.0, -490.0, 270.0, -27.0, 2.0]
+        self.FOURTH_COEFFS = [1.0, -8.0, 0.0, 8.0, -1.0]
 
         # Array for pressure field results (auralisation and visualisation)
         self.pressure_field_results = []
 
+        # Damping profile for PML.
         self.damping_profile = damping_profile
 
         if sim_param.verbose:
@@ -319,10 +322,10 @@ class PMLPartition2D(Partition2D):
                 KPx = 0.0
                 KPy = 0.0
 
-                for k in range(len(self.FDTD_coeffs)):
-                    KPx += self.FDTD_coeffs[k] * \
+                for k in range(len(self.FDTD_COEFFS)):
+                    KPx += self.FDTD_COEFFS[k] * \
                         self.get_safe(self.pressure_field, j, i + k - 3)
-                    KPy += self.FDTD_coeffs[k] * \
+                    KPy += self.FDTD_COEFFS[k] * \
                         self.get_safe(self.pressure_field, j + k - 3, i)
 
                 KPx /= 180.0
@@ -344,10 +347,10 @@ class PMLPartition2D(Partition2D):
                 dphidx = 0.0
                 dphidy = 0.0
 
-                for k in range(len(self.fourth_coeffs)):
-                    dphidx += self.fourth_coeffs[k] * \
+                for k in range(len(self.FOURTH_COEFFS)):
+                    dphidx += self.FOURTH_COEFFS[k] * \
                         self.get_safe(self.phi_x, j, i + k - 2)
-                    dphidy += self.fourth_coeffs[k] * \
+                    dphidy += self.FOURTH_COEFFS[k] * \
                         self.get_safe(self.phi_y, j + k - 2, i)
 
                 dphidx /= 12.0
@@ -365,10 +368,10 @@ class PMLPartition2D(Partition2D):
                 dudx = 0.0
                 dudy = 0.0
 
-                for k in range(len(self.fourth_coeffs)):
-                    dudx += self.fourth_coeffs[k] * \
+                for k in range(len(self.FOURTH_COEFFS)):
+                    dudx += self.FOURTH_COEFFS[k] * \
                         self.get_safe(self.p_new, j, i + k - 2)
-                    dudy += self.fourth_coeffs[k] * \
+                    dudy += self.FOURTH_COEFFS[k] * \
                         self.get_safe(self.p_new, j + k - 2, i)
 
                 dudx /= 12.0
@@ -488,7 +491,7 @@ class AirPartition2D(Partition2D):
                         )
                 ) ** 0.5
 
-        # TODO Semi disgusting hack. Without it, the calculation of update rule (equation 9) would crash due to division by zero
+        # Workaround. Without this, the calculation of update rule (equation 9) would crash.
         self.omega_i[0, 0] = 1e-8
 
         # Update time stepping. Relates to M^(n+1) and M^n in equation 8.

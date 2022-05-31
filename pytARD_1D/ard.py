@@ -47,7 +47,7 @@ class ARDSimulator1D:
         self.part_data = partitions
 
         self.interface_data = interface_data
-        self.interfaces = Interface1D(sim_param, partitions, fdtd_acc=interface_data[0].fdtd_acc) # TODO: Just first fdtd accuracy is used. Needs to be dynamic
+        self.interfaces = Interface1D(sim_param, partitions, fdtd_acc=interface_data[0].fdtd_acc)
 
         self.normalization_factor = normalization_factor
 

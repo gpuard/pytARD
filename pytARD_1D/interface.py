@@ -55,13 +55,10 @@ class Interface1D():
 
         self.part_data = partitions
 
-        # 1D FDTD coefficents array. Normalize FDTD coefficents with space divisions and speed of sound.
-        fdtd_coeffs_not_normalized = get_laplacian_matrix(fdtd_order, fdtd_acc)
-
-        # TODO: Unify h of partition data, atm it's hard coded to first partition
+        # 1D FDTD coefficents calculation. Normalize FDTD coefficents with space divisions and speed of sound.
         # TODO: In the papers it's supposed to be multiplied by *(c/h)**2
-        self.FDTD_COEFFS = fdtd_coeffs_not_normalized * \
-            (sim_param.c / partitions[0].h)
+        fdtd_coeffs_not_normalized = get_laplacian_matrix(fdtd_order, fdtd_acc)
+        self.FDTD_COEFFS = fdtd_coeffs_not_normalized * (sim_param.c / partitions[0].h)
 
         # Interface size derived from FDTD kernel size.
         # If FDTD Accuracy is for example 6, then the interface is 3 on each

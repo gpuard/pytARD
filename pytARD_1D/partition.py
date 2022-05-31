@@ -54,9 +54,6 @@ class AirPartition1D:
         self.pressure_field_results = []
 
         # Fill impulse array with impulses.
-        # TODO: Switch between different source signals via bool or enum? Also create source signal container
-
-        # Fill impulse array with impulses.
         if impulse:
             # Emit impulse into room
             self.impulses[:, int(
@@ -83,7 +80,7 @@ class AirPartition1D:
         self.omega_i = self.sim_param.c * np.pi * \
             (np.arange(0, self.space_divisions, 1) / np.max(self.dimensions))
 
-        # TODO Semi disgusting hack. Without it, the calculation of update rule (equation 9) would crash.
+        # Workaround. Without this, the calculation of update rule (equation 9) would crash.
         self.omega_i[0] = 0.1
 
         # Convert omega_i from row vector to column vector
@@ -112,8 +109,8 @@ class AirPartition1D:
         '''
         CFL = sim_param.c * sim_param.delta_t * (1 / h)
         CFL_target = np.sqrt(1/3)
-        assert(
-            CFL <= CFL_target), f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than {CFL_target}. Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length."
+        assert(CFL <= CFL_target), f"Courant-Friedrichs-Lewy number (CFL = {CFL}) is greater than {CFL_target}. \
+            Wave equation is unstable. Try using a higher sample rate or more spatial samples per wave length."
         if sim_param.verbose:
             print(f"CFL = {CFL}")
 

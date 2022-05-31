@@ -18,7 +18,6 @@ class InterfaceData3D():
         part1_index: int, 
         part2_index: int, 
         direction: Direction3D,
-        looped: bool=False
     ):
         '''
         Creates an instance of interface data between two partitions.
@@ -33,13 +32,10 @@ class InterfaceData3D():
             Passing direction of the sound wave.
         fdtd_acc : int
             FDTD accuracy.
-        looped : bool
-            Determines if the interface handling is done via looping through data. If false, matrix multiplication is used.
         '''
         self.part1_index = part1_index
         self.part2_index = part2_index
         self.direction = direction
-        self.looped = False
 
 class Interface3D():
     '''
@@ -73,7 +69,6 @@ class Interface3D():
         # 2D FDTD coefficents array. Normalize FDTD coefficents with space divisions and speed of sound. 
         fdtd_coeffs_not_normalized = get_laplacian_matrix(fdtd_order, fdtd_acc)
         
-        # TODO: Unify h of partition data, atm it's hard coded to first partition
         # Important: For each direction the sound passes through an interface, the according FDTD coeffs should be used.
         self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_x) ** 2)
         self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_y) ** 2)
@@ -127,8 +122,9 @@ class Interface3D():
             p_along_xy = p_along_xy.swapaxes(0, 2)# DO KEY
             
             new_forces_from_interface_z = np.matmul(p_along_xy, self.FDTD_COEFFS_Z)
+            # TODO Cleanup
             # # (6, 60, 60) x (6, 6) -> (6, 60, 60)
-            new_forces_from_interface_z = new_forces_from_interface_z.swapaxes(2, 0) # UNDO KEY
+            new_forces_from_interface_z = new_forces_from_interface_z.swapaxes(2, 0) 
             # new_forces_from_interface_z = np.zeros(p_along_xy.shape)
             # # new_forces_from_interface_z = np.einsum('kji,im->ikj', p_along_xy, self.FDTD_COEFFS_Z)
 
@@ -136,43 +132,12 @@ class Interface3D():
             self.part_data[interface_data.part1_index].new_forces[-self.INTERFACE_SIZE:, :, :] += new_forces_from_interface_z[:self.INTERFACE_SIZE, :, :]
             self.part_data[interface_data.part2_index].new_forces[:self.INTERFACE_SIZE, :, :] += new_forces_from_interface_z[-self.INTERFACE_SIZE:, :, :]
 
-# ───────▄██████████████████▄───────
-# ────▄███████████████████████▄─────
-# ───███████████████████████████────
-# ──█████████████████████████████───
-# ─████████████▀─────────▀████████──
-# ██████████▀───────────────▀██████─
-# ███████▀────────────────────█████▌
-# ██████───▄▀▀▀▀▄──────▄▀▀▀▀▄──█████
-# █████▀──────────────────▄▄▄───████
-# ████────▄█████▄───────▄█▀▀▀█▄──██▀
-# ████──▄█▀────▀██─────█▀────────█▀─
-# ─▀██───────────▀────────▄███▄──██─
-# ──██───▄▄██▀█▄──▀▄▄▄▀─▄██▄▀────███
-# ▄███────▀▀▀▀▀──────────────▄▄──██▐
-# █▄▀█──▀▀▀▄▄▄▀▀───────▀▀▄▄▄▀────█▌▐
-# █▐─█────────────▄───▄──────────█▌▐
-# █▐─▀───────▐──▄▀─────▀▄──▌─────██▐
-# █─▀────────▌──▀▄─────▄▀──▐─────██▀
-# ▀█─█──────▐─────▀▀▄▀▀─────▌────█──
-# ─▀█▀───────▄────────────▄──────█──
-# ───█─────▄▀──▄█████████▄─▀▄───▄█──
-# ───█────█──▄██▀░░░░░░░▀██▄─█──█───
-# ───█▄───▀▄──▀██▄█████▄██▀─▄▀─▄█───
-# ────█▄────▀───▀▀▀▀──▀▀▀──▀──▄█────
-# ─────█▄────────▄▀▀▀▀▀▄─────▄█─────
-# ──────███▄──────────────▄▄██──────
-# ─────▄█─▀█████▄▄────▄▄████▀█▄─────
-# ────▄█───────▀▀██████▀▀─────█▄────
-# ───▄█─────▄▀───────────▀▄────█▄───
-# ──▄█─────▀───────────────▀────█▄──
-# ──────────────────────────────────
-# ▐▌▐█▄█▌▐▀▀█▐▀▀▌─█▀─█▀─▐▌▐▀█▐▀█─█─█
-# ▐▌▐─▀─▌▐▀▀▀▐──▌─▀█─▀█─▐▌▐▀▄▐▀▄─█─█
-# ▐▌▐───▌▐───▐▄▄▌─▄█─▄█─▐▌▐▄█▐─█─█▄█
-
 
 class Interface3DLooped():
+    '''
+    Interface for connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
+    Implementation is based on loops and is less efficient than the standard Interface3D.
+    '''
 
     def __init__(
         self, 
@@ -181,9 +146,19 @@ class Interface3DLooped():
         fdtd_order: int=2, 
         fdtd_acc: int=6
     ):
-
         '''
-        TODO: Doc
+        Create an Interface for connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
+
+        Parameters
+        ----------
+        sim_param : SimulationParameters
+            Instance of simulation parameter class.
+        partitions : list
+            List of Partition objects. All partitions of the domain are collected here.
+        fdtd_order : int
+            FDTD order.
+        fdtd_acc : int
+            FDTD accuracy.
         '''
 
         self.part_data = partitions
@@ -191,7 +166,6 @@ class Interface3DLooped():
         # 2D FDTD coefficents array. Normalize FDTD coefficents with space divisions and speed of sound. 
         fdtd_coeffs_not_normalized = get_laplacian_matrix(fdtd_order, fdtd_acc)
         
-        # TODO: Unify h of partition data, atm it's hard coded to first partition
         # Important: For each direction the sound passes through an interface, the according FDTD coeffs should be used.
         self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_x) ** 2)
         self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_y) ** 2)
@@ -200,9 +174,14 @@ class Interface3DLooped():
         # FDTD kernel size.
         self.FDTD_KERNEL_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
 
-    def handle_interface(self, interface_data: list):
+    def handle_interface(self, interface_data: InterfaceData3D):
         '''
-        TODO: Doc
+        Handles all calculations to enable passing of sound waves between partitions through the interface.
+
+        Parameters
+        ----------
+        interface_data : InterfaceData3D
+            Contains data which two partitions are involved, and in which direction the sound will travel.
         '''
         if interface_data.direction == Direction3D.X:
             for z in range(self.part_data[interface_data.part1_index].space_divisions_z):

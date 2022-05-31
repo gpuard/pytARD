@@ -22,19 +22,6 @@ class Impulse():
         '''
         raise NotImplementedError("This method is deliberately not implemented")
 
-    @staticmethod
-    def plot_waveform():
-        '''
-        TODO: Just for testing. Clean up if done
-        if self.sim_param.visualize:
-            import matplotlib.pyplot as plt
-            plt.plot(self.impulses[:, 
-                int(self.space_divisions_z * (impulse.location[2] / dimensions[2])),
-                int(self.space_divisions_y * (impulse.location[1] / dimensions[1])), 
-                int(self.space_divisions_x * (impulse.location[0] / dimensions[0]))])
-            plt.show()
-        '''
-
 
 class Gaussian(Impulse):
     '''
@@ -46,7 +33,7 @@ class Gaussian(Impulse):
         location: np.ndarray, 
         amplitude: int, 
         width: float=70
-    ): # TODO Set width
+    ):
         '''
         Instantiation of a Gaussian impulse.
 
@@ -201,6 +188,7 @@ class Unit(Impulse):
 
         return self.amplitude * self.impulse
 
+# TODO Maybe choose between ExperimentalUnit and standard Unit, removing the other
 class ExperimentalUnit(Impulse):
     '''
     Creates and injects a unit impulse as an impulse source.
