@@ -14,7 +14,7 @@ import numpy as np
 # Room parameters
 duration = 1 # seconds
 Fs = 8000 # sample rate
-upper_frequency_limit = 300 # Hz
+upper_frequency_limit = 250 # Hz
 c = 342 # m/s
 spatial_samples_per_wave_length = 6
 

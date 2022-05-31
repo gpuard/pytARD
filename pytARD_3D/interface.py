@@ -18,6 +18,7 @@ class InterfaceData3D():
         part1_index: int, 
         part2_index: int, 
         direction: Direction3D,
+        looped: bool = False
     ):
         '''
         Creates an instance of interface data between two partitions.
@@ -32,10 +33,13 @@ class InterfaceData3D():
             Passing direction of the sound wave.
         fdtd_acc : int
             FDTD accuracy.
+        looped : bool
+            Determines if the interfacing is done iteratively instead of being based on matrix multiplication. Likely is slower.
         '''
         self.part1_index = part1_index
         self.part2_index = part2_index
         self.direction = direction
+        self.looped = looped
 
 class Interface3D():
     '''
