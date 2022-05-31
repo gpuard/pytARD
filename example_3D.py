@@ -110,7 +110,7 @@ interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
 # Initialize & position mics.
 mics = []
 mics.append(Mic(
-    0, [
+    1, [
         int(partitions[0].dimensions[0] / 2), 
         int(partitions[0].dimensions[1] / 2), 
         int(partitions[0].dimensions[2] / 2)
@@ -165,7 +165,7 @@ if write_to_file:
 # Plotting waveform
 if visualize:
     plotter = Plotter()
-    plotter.set_data_from_simulation(sim_param, partitions)
+    plotter.set_data_from_simulation(sim_param, partitions, mics)
     plot_structure = [
         # Structure: [Width of domain, height of domain, index of partition to plot on the graph]
         [2, 2, 1],
