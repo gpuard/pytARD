@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sun Apr 17 22:31:55 2022
-
-@author: smailnik@students.zhaw.ch
-"""
 
 import numpy as np
 import cupy as cp
@@ -46,11 +41,23 @@ for s in SAMPLES:
     cpu.append(np.average(times))
 
 import matplotlib.pyplot as plt
+size = 15
+plt.rc('font', size=size) #controls default text size
+plt.rc('axes', titlesize=size) #fontsize of the title
+plt.rc('axes', labelsize=size) #fontsize of the x and y labels
+plt.rc('xtick', labelsize=size) #fontsize of the x tick labels
+plt.rc('ytick', labelsize=size) #fontsize of the y tick labels
+plt.rc('legend', fontsize=size) #fontsize of the legend
 
 fig, ax = plt.subplots()
-ax.plot(samples_cases,gpu,label='gpu')
-ax.plot(samples_cases,cpu,label='cpu')
-ax.set_xlabel('number of samples')
-ax.set_ylabel('run time')
-ax.set_title(f'Average of {NUMBER_RUNS} runs')
+ax.grid()
+
+ax.plot(np.array(samples_cases)/1e6,gpu,label='GPU')
+ax.plot(np.array(samples_cases)/1e6,cpu,label='CPU')
+# ax.set_xlim(0.0)
+ax.set_xlabel(r'Anzahl Samples [$10^6$]')
+ax.set_ylabel('Laufzeit [s]')
+# ax.set_title(f'Average of {NUMBER_RUNS} runs')
 ax.legend()
+fig.tight_layout()
+plt.savefig('cupy.png', dpi=300)
