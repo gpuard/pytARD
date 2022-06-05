@@ -5,6 +5,7 @@ import cupy as cp
 from dct import dct_gpu
 from dct import dct_cpu
 import time
+from scipy.fft import dct as scipy_dct
 
 SAMPLES = [10**k for k in range(2, 8)]
 NUMBER_RUNS = 15
@@ -15,6 +16,7 @@ def generate_samples(number_samples):
 samples_cases = []
 gpu = []
 cpu = []
+s_dct = []
 # for s in SAMPLES:
 for s in SAMPLES:
     samples_cases.append(s)
@@ -40,6 +42,14 @@ for s in SAMPLES:
         times.append(tack-tick)
     cpu.append(np.average(times))
 
+    times = []
+    for t in range(NUMBER_RUNS):
+        tick = time.time()
+        scipy_dct_res = scipy_dct(x_cpu)
+        tack = time.time()
+        times.append(tack-tick)
+    s_dct.append(np.average(times))
+
 import matplotlib.pyplot as plt
 size = 15
 plt.rc('font', size=size) #controls default text size
@@ -52,8 +62,9 @@ plt.rc('legend', fontsize=size) #fontsize of the legend
 fig, ax = plt.subplots()
 ax.grid()
 
-ax.plot(np.array(samples_cases)/1e6,gpu,label='GPU')
-ax.plot(np.array(samples_cases)/1e6,cpu,label='CPU')
+ax.plot(np.array(samples_cases)/1e6,gpu,label='GPU FCT')
+ax.plot(np.array(samples_cases)/1e6,cpu,label='CPU FCT')
+ax.plot(np.array(samples_cases)/1e6,s_dct,label='SciPy DCT')
 # ax.set_xlim(0.0)
 ax.set_xlabel(r'Anzahl Samples [$10^6$]')
 ax.set_ylabel('Laufzeit [s]')
