@@ -87,24 +87,6 @@ class Partition2D():
         return h_y, h_x
 
 
-class PMLType(Enum):
-    '''
-    TODO: Is this needed?
-    '''
-    LEFT = {  # for kx
-        "Min": 0.2, "Max": 0.0
-    }
-    RIGHT = {  # for kx
-        "Min": 0.0, "Max": 0.2
-    }
-    TOP = {  # for ky
-        "Min": 0.2, "Max": 0.0
-    }
-    BOTTOM = {  # for ky
-        "Min": 0.0, "Max": 0.2
-    }
-
-
 class DampingProfile:
     '''
     Damping profile. Determines how intense the reflections of the PML partition are, or how much sound energy is absorbed.
@@ -169,7 +151,7 @@ class DampingProfile:
         return (c / L) * np.log(1 / R)
 
 
-class PMLPartition2D(Partition2D):
+class PMLPartition2D(Partition2D) :
     '''
     PML partition. Absorbs sound energy depending on the damping profile.
     '''
@@ -178,7 +160,6 @@ class PMLPartition2D(Partition2D):
         self,
         dimensions: np.ndarray,
         sim_param: SimulationParameters,
-        type: PMLType,
         damping_profile: DampingProfile
     ):
         '''
@@ -190,8 +171,6 @@ class PMLPartition2D(Partition2D):
             Size of the partition (room) in meters.
         sim_param : SimulationParameters
             Instance of simulation parameter class.
-        pml_type : PMLType
-            Type (direction) of PML partition.
         damping_profile : DampingProfile
             Damping profile of the PML partition, determines the intensity of wave absorption.
         '''
@@ -272,53 +251,14 @@ class PMLPartition2D(Partition2D):
         normalization_factor : float
             Normalization multiplier to harmonize amplitudes between partitions.
         '''
-        dx = 1.0
-        dy = 1.0
 
         for i in range(self.space_divisions_x):
-            #kx = 0.0
-            #ky = 0.0
             kx = self.damping_profile.damping_profile(
                 i, self.space_divisions_x)
-            '''
-            # TODO put both ifs together into one -> optimize
-            if self.type == PMLType.LEFT:
-                if i < 20:
-                    kx = (20 - i) * self.type.value['Min'] / 10.0
-                    ky = 0.05
-                else:
-                    kx = 0.0
-                    ky = 0.0
             
-            if self.type == PMLType.RIGHT:
-                if i > 20:
-                    kx = (i - 20) * self.type.value['Max'] / 10.0
-                    ky = 0.05
-                else:
-                    kx = 0.0
-                    ky = 0.0
-            '''
             for j in range(self.space_divisions_y):
                 ky = self.damping_profile.damping_profile(
                     j, self.space_divisions_y)
-                '''
-                if self.type == PMLType.TOP:
-                    if j < 20:
-                        ky = (20 - j) * self.type.value['Min'] / 10.0
-                        kx = 0.05
-                
-                    else:
-                        kx = 0.0
-                        ky = 0.0
-                
-                if self.type == PMLType.BOTTOM:
-                    if j > 20:
-                        ky = (j - 20) * self.type.value['Max'] / 10.0
-                        kx = 0.05
-                    else:
-                        kx = 0.0
-                        ky = 0.0
-                '''
 
                 KPx = 0.0
                 KPy = 0.0
@@ -334,12 +274,7 @@ class PMLPartition2D(Partition2D):
 
                 term1 = 2 * self.pressure_field[j, i]
                 term2 = -self.p_old[j, i]
-                # if t_s < 10:
-                #term3 = (self.sim_param.c ** 2) * (KPx + KPy + self.new_forces[j, i])
                 term3 = (self.sim_param.c ** 2) * (KPx + KPy)
-                # else:
-                #    term3 = (self.sim_param.c ** 2) * (KPx + KPy)
-                #print(f"{term3}", end="\t")
                 term4 = - \
                     (kx + ky) * (self.pressure_field[j, i] -
                                  self.p_old[j, i]) / self.sim_param.delta_t
@@ -360,7 +295,6 @@ class PMLPartition2D(Partition2D):
                 term6 = dphidx + dphidy
 
                 # Calculation of next wave
-                #self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6))
                 self.p_new[j, i] = term1 + term2 + ((self.sim_param.delta_t ** 2) * (term3 + term4 + term5 + term6)) + \
                     self.sim_param.delta_t**2 * \
                     self.new_forces[j, i] / \
@@ -387,11 +321,11 @@ class PMLPartition2D(Partition2D):
 
         self.pressure_field_results.append(self.p_new.copy())
 
-        # Swap old with new phis with the new switcheroo
+        # Swap old with new phis
         self.phi_x, self.phi_x_new = self.phi_x_new.copy(), self.phi_x.copy()
         self.phi_y, self.phi_y_new = self.phi_y_new.copy(), self.phi_y.copy()
 
-        # Do the ol' switcheroo
+        # Swap old and new pressure field
         temp = self.p_old.copy()
         self.p_old = self.pressure_field.copy()
         self.pressure_field = self.p_new.copy()
@@ -421,8 +355,8 @@ class AirPartition2D(Partition2D):
             Size of the partition (room) in meters.
         sim_param : SimulationParameters
             Instance of simulation parameter class.
-        impulse : Impulse
-            Determines if the impulse is generated on this partition, and which kind of impulse. 
+        impulse : Impulse, optional
+            If an Impulse object is passed, the according impulse is generated on this partition. 
         '''
         self.dimensions = dimensions
         self.sim_param = sim_param
@@ -503,8 +437,7 @@ class AirPartition2D(Partition2D):
         self.M_next = None
 
         if self.sim_param.verbose:
-            print(
-                f"Preprocessing started.\nShape of omega_i: {self.omega_i.shape}\nShape of pressure field: {self.pressure_field.shape}\n")
+            print(f"Preprocessing started.\nShape of omega_i: {self.omega_i.shape}\nShape of pressure field: {self.pressure_field.shape}\n")
 
     def simulate(self, t_s: int = 0, normalization_factor: float = 1):
         '''
@@ -512,9 +445,9 @@ class AirPartition2D(Partition2D):
 
         Parameters
         ----------
-        t_s : int
-            Current time step.
-        normalization_factor : float
+        t_s : int, optional
+            Starting/current time step.
+        normalization_factor : float, optional
             Normalization multiplier to harmonize amplitudes between partitions.
         '''
 

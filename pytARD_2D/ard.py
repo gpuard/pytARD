@@ -29,11 +29,11 @@ class ARDSimulator2D:
             Instance of simulation parameter class.
         partitions : list
             List of Partition objects. All partitions of the domain are collected here.
-        normalization_factor : float
+        normalization_factor : float, optional
             Normalization multiplier to harmonize amplitudes between partitions.
-        interface_data : list
+        interface_data : list, optional
             List of Interface objects. All interfaces of the domain are collected here.
-        mics : list
+        mics : list, optional
             List of Microphone objects. All microphones placed within the domain are collected here.
         '''
 

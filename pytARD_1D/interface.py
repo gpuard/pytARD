@@ -18,7 +18,7 @@ class InterfaceData1D():
             Index of first partition (index of PartitionData list)
         part2_index : int 
             Index of first partition (index of PartitionData list)
-        fdtd_acc : int
+        fdtd_acc : int, optional
             FDTD accuracy.
         '''
         self.part1_index = part1_index
@@ -47,9 +47,9 @@ class Interface1D():
             Instance of simulation parameter class.
         partitions : list
             List of Partition objects. All partitions of the domain are collected here.
-        fdtd_order : int
+        fdtd_order : int, optional
             FDTD order.
-        fdtd_acc : int
+        fdtd_acc : int, optional
             FDTD accuracy.
         '''
 

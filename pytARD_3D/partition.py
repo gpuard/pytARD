@@ -292,9 +292,9 @@ class PMLPartition3D(Partition3D):
         normalization_factor : float
             Normalization multiplier to harmonize amplitudes between partitions.
         '''
-        dx = 1.0
-        dy = 1.0
-        dz = 1.0
+        d_x = 1.0
+        d_y = 1.0
+        d_z = 1.0
 
         for x in range(self.space_divisions_x):
             #kx = 0.0

@@ -23,8 +23,8 @@ class AirPartition1D:
             Size of the partition (room) in meters. 
         sim_param : SimulationParameters
             Instance of simulation parameter class.
-        do_impulse : bool
-            Determines if the impulse is generated on this partition. Impulse location is hard coded here.
+        impulse : Impulse, optional
+            If an Impulse object is passed, the according impulse is generated on this partition. 
         '''
         self.dimensions = dimensions
         self.sim_param = sim_param

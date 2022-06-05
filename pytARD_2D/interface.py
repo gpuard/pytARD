@@ -30,7 +30,7 @@ class InterfaceData2D():
             Index of first partition (index of PartitionData list)
         direction : Direction2D
             Passing direction of the sound wave.
-        fdtd_acc : int
+        fdtd_acc : int, optional
             FDTD accuracy.
         '''
 
@@ -60,9 +60,9 @@ class Interface2D():
             Instance of simulation parameter class.
         partitions : list
             List of Partition objects. All partitions of the domain are collected here.
-        fdtd_order : int
+        fdtd_order : int, optional
             FDTD order.
-        fdtd_acc : int
+        fdtd_acc : int, optional
             FDTD accuracy.
         '''
 
@@ -127,9 +127,9 @@ class Interface2DLooped():
             Instance of simulation parameter class.
         partitions : list
             List of Partition objects. All partitions of the domain are collected here.
-        fdtd_order : int
+        fdtd_order : int, optional
             FDTD order.
-        fdtd_acc : int
+        fdtd_acc : int, optional
             FDTD accuracy.
         '''
 

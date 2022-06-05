@@ -10,6 +10,10 @@ from common.microphone import Microphone as Mic
 
 import numpy as np
 from datetime import date, datetime
+from pycallgraph import PyCallGraph
+from pycallgraph.output import GraphvizOutput
+from pycallgraph import GlobbingFilter
+from pycallgraph import Config
 
 
 # Simulation parameters
@@ -84,9 +88,23 @@ if auralize:
 serializer = Serializer()
 
 # Instantiating and executing simulation
-sim = ARDSimulator2D(sim_param, partitions, 1, interfaces, mics)
-sim.preprocessing()
-sim.simulation()
+config = Config()
+config.trace_filter = GlobbingFilter(exclude=[
+    'tqdm.*',
+    '*.tqdm',
+    'tqdm',
+    'pycallgraph.*',
+    '*.secret_function',
+    'multiprocessing',
+    '*.multiprocessing',
+    'multiprocessing.*'
+])
+
+with PyCallGraph(output=GraphvizOutput(), config=config):
+
+    sim = ARDSimulator2D(sim_param, partitions, 1, interfaces, mics)
+    sim.preprocessing()
+    sim.simulation()
 
 # Find best peak to normalize mic signal and write mic signal to file
 if auralize:
