@@ -9,6 +9,8 @@ from numpy import pi, exp
 from numpy.fft import fft as cpu_fft
 import cupy as cp
 from cupy.fft import fft as gpu_fft
+from scipy.fft import dct as scipy_dct
+
 
 def dct_cpu(x):
     v = np.zeros_like(x)
@@ -51,14 +53,21 @@ import time
 class TestDCT(unittest.TestCase):
     # @staticmethod
     def test_dct_results(self):
-        samples = 10000
+        samples = 1000000
         t = np.arange(samples)
-        x_cpu = np.sin(t)*np.cos(t) # signal
+        #x_cpu = np.sin(t)*np.cos(t) # signal
+        x_cpu = np.random.rand(samples) # signal
         x_gpu = cp.asarray(x_cpu)
+        s_dct = []
         R=10
         print(f'average time from {R} runs with {samples} samples:')
+        
+        gpu_res = None
+        cpu_res = None
+        scipy_dct_res = None
+        
         times = []
-        for t in range(R):
+        # for t in range(R):
             tick = time.time()
             gpu_res = cp.asnumpy(dct_gpu(x_gpu))
             tack = time.time()
@@ -72,9 +81,24 @@ class TestDCT(unittest.TestCase):
             tack = time.time()
             times.append(tack-tick)
         print('cpu:',np.average(times))
-        
-        np.testing.assert_almost_equal(cpu_res, gpu_res)
 
+
+        times = []
+        for t in range(R):
+            tick = time.time()
+            scipy_dct_res = scipy_dct(x_cpu)
+            tack = time.time()
+            times.append(tack-tick)
+        print('scipy:',np.average(times))
+
+        
+        np.testing.assert_almost_equal(scipy_dct_res, gpu_res, decimal=10)
+        np.testing.assert_almost_equal(scipy_dct_res, cpu_res, decimal=10)
+        np.testing.assert_almost_equal(cpu_res, gpu_res, decimal=10)
+
+        print(gpu_res[:10])
+        print(cpu_res[:10])
+        print(scipy_dct_res[:10])
 
 # use conda
 #  python -m unittest dct.py
