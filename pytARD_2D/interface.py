@@ -3,7 +3,7 @@ import numpy as np
 import enum
 
 from common.parameters import SimulationParameters
-from common.finite_differences import get_laplacian_matrix
+from common.finite_differences import FiniteDifferences
 from pytARD_2D.partition import Partition2D
 
 class Direction2D(enum.Enum):
@@ -70,7 +70,7 @@ class Interface2D():
         self.fdtd_acc = fdtd_acc
 
         # 2D FDTD coefficents calculation. Normalize FDTD coefficents with space divisions and speed of sound. 
-        fdtd_coeffs_not_normalized = get_laplacian_matrix(fdtd_order, fdtd_acc)
+        fdtd_coeffs_not_normalized = FiniteDifferences.get_laplacian_matrix(fdtd_order, fdtd_acc)
         self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_x) ** 2)
         self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_y) ** 2)
 
@@ -136,7 +136,7 @@ class Interface2DLooped():
         self.part_data = partitions
 
         # 2D FDTD coefficents calculation. Normalize FDTD coefficents with space divisions and speed of sound. 
-        fdtd_coeffs_not_normalized = get_laplacian_matrix(fdtd_order, fdtd_acc)
+        fdtd_coeffs_not_normalized = FiniteDifferences.get_laplacian_matrix(fdtd_order, fdtd_acc)
         self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_x) ** 2)
         self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_y) ** 2)
 

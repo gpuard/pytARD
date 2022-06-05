@@ -238,16 +238,13 @@ class PMLPartition3D(Partition3D):
         # Array for pressure field results (auralisation and visualisation)
         self.p_new = shape_template.copy()
 
-        # See paper TODO: Make better documentation
+        # Phi and Psi, see paper for more info
         self.phi_x = shape_template.copy()
         self.phi_x_new = shape_template.copy()
         self.phi_y = shape_template.copy()
         self.phi_y_new = shape_template.copy()
         self.phi_z = shape_template.copy()
         self.phi_z_new = shape_template.copy()
-
-        # staggered in time
-        # TODO: WHat is this? Please elaborate
         self.psi = shape_template.copy()
         self.psi_new = shape_template.copy()
 
@@ -432,120 +429,6 @@ class PMLPartition3D(Partition3D):
         # Reset force
         self.new_forces = np.zeros(shape=self.new_forces.shape)
 
-    # TODO Cleanup
-    # def simulate(self, t_s, normalization_factor=1):
-        # based on paper; using staggered grid
-    # # a possibility to split calculation of phi
-    #     dx = 1.0
-    #     dy = 1.0
-    #     dz = 1.0
-    #     for x in range(self.space_divisions_x)[1:-1]:
-    #         #kx = 0.0
-    #         #ky = 0.0
-    #         kx = self.damping_profile.damping_profile(x, self.space_divisions_x)
-
-    #         for y in range(self.space_divisions_y)[1:-1]:
-    #             ky = self.damping_profile.damping_profile(y, self.space_divisions_y)
-
-    #             for z in range(self.space_divisions_z)[1:-1]:
-    #                 kz = self.damping_profile.damping_profile(z, self.space_divisions_z)
-    #                 # kx = 40
-    #                 # ky = 40
-    #                 # kz = 40
-
-    #                 # UPDATE RULE(the extrapolation scheme): P @ time n+1
-
-    #                 term1 = (1 / self.sim_param.delta_t**2 + (kx + ky + kz) * 1 /self.sim_param.delta_t)
-    #                 term2 = (kx + ky + kz) * self.p_old[z, y, x] / (2*self.sim_param.delta_t)
-    #                 term3 = - (kx * ky + ky * kz + kz * ky) * self.pressure_field[z,y,x]
-
-    #                 # TODO: You may want to get the once and store as self.fd_coefs
-    #                 # think of x as an anchor
-    #                 h_nbr_pts = int(len(FD.get_fd_coefficients(2,2))/2)
-    #                 # TODO: it smells here of matrix
-    #                 dpdx = np.dot(self.pressure_field[z,y,x-h_nbr_pts:x+h_nbr_pts+1],FD.get_fd_coefficients(2,2))
-    #                 dpdy = np.dot(self.pressure_field[z,y-h_nbr_pts:y+h_nbr_pts+1,x],FD.get_fd_coefficients(2,2))
-    #                 dpdz = np.dot(self.pressure_field[z-h_nbr_pts:z+h_nbr_pts+1,y,x],FD.get_fd_coefficients(2,2))
-
-    #                 term4 = (dpdx + dpdy + dpdz) * self.sim_param.c**2
-
-    #                 # (self.phi_x[z-1:z+2,y-1,x+1:x+2] - self.phi_x[z-1:z+2,y-1,x+1:x+2])[1,:]=0
-    #                 # (self.phi_x[z-1:z+2,y-1,x+1:x+2] - self.phi_x[z-1:z+2,y-1,x+1:x+2])[:,1]=0
-    #                 # np.sum()
-    #                 # dphidx = 0.25 / self.self.h_x * (   self.phi_x[z-1,y-1,x+1] + self.phi_x[z+1,y-1,x+1] + self.phi_x[z-1,y+1,x+1] + self.phi_x[z+1,y+1,x+1]
-    #                 #                                   - self.phi_x[z-1,y-1,x-1] - self.phi_x[z+1,y-1,x-1] - self.phi_x[z-1,y+1,x-1] - self.phi_x[z+1,y+1,x-1])
-
-    #                 # dphidy = 0.25 / self.self.h_y * (   self.phi_y[z-1,y+1,x-1] + self.phi_y[z+1,y+1,x-1] + self.phi_y[z-1,y+1,x+1] + self.phi_y[z+1,y+1,x+1]
-    #                 #                                   - self.phi_y[z-1,y-1,x-1] - self.phi_y[z+1,y-1,x-1] - self.phi_y[z-1,y-1,x+1] - self.phi_y[z+1,y-1,x+1])
-
-    #                 # dphidz = 0.25 / self.self.h_z * (   self.phi_z[z+1,y-1,x-1] + self.phi_z[z+1,y+1,x-1] + self.phi_z[z+1,y-1,x+1] + self.phi_z[z+1,y+1,x+1]
-    #                 #                                   - self.phi_z[z-1,y-1,x-1] - self.phi_z[z-1,y+1,x-1] - self.phi_z[z-1,y-1,x+1] - self.phi_z[z-1,y+1,x+1])
-
-    #                 dphidx = 0.25 / self.h_x * (   self.phi_x[z-1,y-1,x+1] + self.phi_x[z+1,y-1,x+1] + self.phi_x[z-1,y+1,x+1] + self.phi_x[z+1,y+1,x+1]
-    #                                                   - self.phi_x[z-1,y-1,x-1] - self.phi_x[z+1,y-1,x-1] - self.phi_x[z-1,y+1,x-1] - self.phi_x[z+1,y+1,x-1])
-
-    #                 dphidy = 0.25 / self.h_y * (   self.phi_y[z-1,y+1,x-1] + self.phi_y[z+1,y+1,x-1] + self.phi_y[z-1,y+1,x+1] + self.phi_y[z+1,y+1,x+1]
-    #                                                   - self.phi_y[z-1,y-1,x-1] - self.phi_y[z+1,y-1,x-1] - self.phi_y[z-1,y-1,x+1] - self.phi_y[z+1,y-1,x+1])
-
-    #                 dphidz = 0.25 / self.h_z * (   self.phi_z[z+1,y-1,x-1] + self.phi_z[z+1,y+1,x-1] + self.phi_z[z+1,y-1,x+1] + self.phi_z[z+1,y+1,x+1]
-    #                                                   - self.phi_z[z-1,y-1,x-1] - self.phi_z[z-1,y+1,x-1] - self.phi_z[z-1,y-1,x+1] - self.phi_z[z-1,y+1,x+1])
-
-    #                 term5 = dphidx  + dphidy + dphidz
-
-    #                 term6 = -kx * ky * kz * self.pressure_field[z, y, x]
-
-    #                 self.p_new[z, y, x] = (term2 + term3 * term4 + term5 + term6 + self.new_forces[z,y,x]) / term1 # NOTE: adde forcing field
-
-    #                 # UPDATE RULE: phi
-    #                 avg_p = lambda k,j,i: self.pressure_field[k,j,i] + self.pressure_field[k+1,j,i] + self.pressure_field[k,j+1,i] + self.pressure_field[k+1,j+1,i]
-    #                 avg_pn = lambda k,j,i: self.p_new[k,j,i] + self.p_new[k+1,j,i] + self.p_new[k,j+1,i] + self.p_new[k+1,j+1,i]
-    #                 avg_psi = lambda k,j,i: self.psi[k,j,i] + self.psi[k+1,j,i] + self.psi[k,j+1,i] + self.psi[k+1,j+1,i]
-
-    #                 term1 = (1/self.sim_param.delta_t + kx/2)
-    #                 term2 = self.phi_x[z+1,y+1,x+1]/self.sim_param.delta_t - kx*self.phi_x[z+1,y+1,x+1]/2
-    #                 term3 = self.sim_param.c**2 * (ky+kz-kx) * 0.5 / self.h_x * (avg_pn(z,y,x+1)-avg_pn(z,y,x)+avg_p(z,y,x+1)-avg_p(z,y,x))
-    #                 term4 = self.sim_param.c**2 * ky*kz/self.h_x * 0.25 * (avg_psi(z,y,x+1) - avg_psi(z,y,x))
-
-    #                 self.phi_x_new[z, y, x]  = 1/term1 * (term2 + term3 + term4)
-
-    #                 avg_p = lambda k,j,i: self.pressure_field[k,j,i] + self.pressure_field[k+1,j,i] + self.pressure_field[k,j,i+1] + self.pressure_field[k+1,j,i+1]
-    #                 avg_pn = lambda k,j,i: self.p_new[k,j,i] + self.p_new[k+1,j,i] + self.p_new[k,j,i+1] + self.p_new[k+1,j,i+1]
-    #                 avg_psi = lambda k,j,i: self.psi[k,j,i] + self.psi[k+1,j,i] + self.psi[k,j,i+1] + self.psi[k+1,j,i+1]
-    #                 term1 = (1/self.sim_param.delta_t + ky/2)
-    #                 term2 = self.phi_x[z+1,y+1,x+1]/self.sim_param.delta_t - kx*self.phi_x[z+1,y+1,x+1]/2
-    #                 term3 = self.sim_param.c**2 * (kz+kx-ky) * 0.5 / self.h_x * (avg_pn(z,y+1,x)-avg_pn(z,y,x)+avg_p(z,y+1,x)-avg_p(z,y,x))
-    #                 term4 = self.sim_param.c**2 * kz*kx/self.h_x * 0.25 * (avg_psi(z,y+1,x) - avg_psi(z,y,x))
-
-    #                 self.phi_y_new[z, y, x]  = 1/term1 * (term2 + term3 + term4)
-
-    #                 avg_p = lambda k,j,i: self.pressure_field[k,j,i] + self.pressure_field[k,j,i+1] + self.pressure_field[k,j+1,i] + self.pressure_field[k,j+1,i+1]
-    #                 avg_pn = lambda k,j,i: self.p_new[k,j,i] + self.p_new[k,j+1,i] + self.p_new[k,j,i+1] + self.p_new[k,j+1,i+1]
-    #                 avg_psi = lambda k,j,i: self.psi[k,j,i] + self.psi[k,j+1,i] + self.psi[k,j,i+1] + self.psi[k,j+1,i+1]
-    #                 term1 = (1/self.sim_param.delta_t + kz/2)
-    #                 term2 = self.phi_x[z+1,y+1,x+1]/self.sim_param.delta_t- kx*self.phi_x[z+1,y+1,x+1]/2
-    #                 term3 = self.sim_param.c**2 * (kx+ky-kz) * 0.5 / self.h_x * (avg_pn(z+1,y,x)-avg_pn(z,y,x)+avg_p(z+1,y,x)-avg_p(z,y,x))
-    #                 term4 = self.sim_param.c**2 * kx*ky/self.h_x * 0.25 * (avg_psi(z+1,y,x) - avg_psi(z,y,x))
-
-    #                 self.phi_z_new[z, y, x]  = 1/term1 * (term2 + term3 + term4)
-
-    #                 self.psi_new[z, y, x]  = self.sim_param.delta_t * self.p_new[z,y,x] - self.psi[z, y, x]
-
-    #     self.pressure_field_results.append(self.p_new.copy())
-
-    #     self.phi_x = self.phi_x_new.copy()
-    #     self.phi_y = self.phi_y_new.copy()
-    #     self.phi_z = self.phi_z_new.copy()
-    #     self.psi = self.psi_new.copy()
-
-    #     # Do the ol' switcheroo
-    #     temp = self.p_old.copy()
-    #     self.p_old = self.pressure_field.copy()
-    #     self.pressure_field = self.p_new.copy()
-    #     self.p_new = temp
-
-    #     # Reset force
-    #     self.new_forces = np.zeros(shape=self.new_forces.shape)
-
 
 class AirPartition3D(Partition3D):
     '''
@@ -721,7 +604,7 @@ class AirPartition3D(Partition3D):
                 self.space_divisions_y,
                 self.space_divisions_x
             ), type=2,
-            s=[  #  TODO This parameter may be unnecessary
+            s=[ 
                 self.space_divisions_z,
                 self.space_divisions_y,
                 self.space_divisions_x

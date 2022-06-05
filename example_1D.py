@@ -18,7 +18,7 @@ c = 342 # m/s
 spatial_samples_per_wave_length = 6
 
 # Procedure parameters
-auralize = True
+auralize = False
 verbose = True
 visualize = True
 
@@ -39,8 +39,8 @@ impulse_location = np.array([[int((c) / 4)]])
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want
 #impulse = Gaussian(sim_param, impulse_location, 10000)
 #impulse = Unit(sim_param, impulse_location, 1, cutoff_frequency=upper_frequency_limit)
-impulse = ExperimentalUnit(sim_param, impulse_location, 1, cutoff_frequency=upper_frequency_limit)
-#impulse = WaveFile(sim_param, impulse_location, 'clap_8000.wav', 1000)
+#impulse = ExperimentalUnit(sim_param, impulse_location, 1, cutoff_frequency=upper_frequency_limit)
+impulse = WaveFile(sim_param, impulse_location, 'common/impulse_files/clap_8000.wav', 1000)
 
 partitions = []
 partitions.append(AirPartition1D(np.array([c / 2]), sim_param, impulse))
@@ -64,7 +64,7 @@ if auralize:
 
 
 # Instantiating and executing simulation
-sim = ARDSimulator1D(sim_param, partitions, 1, interfaces, mics)
+sim = ARDSimulator1D(sim_param, partitions, 1, interfaces)
 sim.preprocessing()
 sim.simulation()
 

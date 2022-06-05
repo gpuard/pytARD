@@ -70,40 +70,9 @@ partitions.append(AirPartition3D(np.array([
     [room_width]  # Z, height
 ]), sim_param))
 
-'''
-partitions.append(PMLPartition3D(np.array([
-    [1.5], # X, width
-    [room_width], # Y, depth
-    [room_width]  # Z, height
-]), sim_param, PMLType.LEFT, dp))
-
-partitions.append(PMLPartition3D(np.array([
-    [1.5], # X, width
-    [room_width], # Y, depth
-    [room_width]  # Z, height
-]), sim_param, PMLType.LEFT, dp))
-
-partitions.append(PMLPartition3D(np.array([
-    [room_width], # X, width
-    [1.5], # Y, depth
-    [room_width]  # Z, height
-]), sim_param, PMLType.LEFT, dp))
-
-partitions.append(PMLPartition3D(np.array([
-    [room_width], # X, width
-    [1.5], # Y, depth
-    [room_width]  # Z, height
-]), sim_param, PMLType.LEFT, dp))
-'''
-
-
 # Interfaces of the room. Interfaces connect the room together
-
 interfaces = []
 interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
-#interfaces.append(InterfaceData3D(0, 2, Direction3D.X))
-#interfaces.append(InterfaceData3D(3, 0, Direction3D.Y))
-#interfaces.append(InterfaceData3D(4, 0, Direction3D.Y))
 
 # Initialize & position mics.
 mics = []
@@ -113,21 +82,7 @@ mics.append(Mic(
         int(partitions[0].dimensions[1] / 2), 
         int(partitions[0].dimensions[2] / 2)
     ], sim_param, "left"))
-'''
 
-mics.append(Mic(
-    1, [
-        int(partitions[1].dimensions[0] / 2), 
-        int(partitions[1].dimensions[1] / 2), 
-        int(partitions[1].dimensions[2] / 2)
-    ], sim_param, "right"))
-mics.append(Mic(
-    2, [
-        int(partitions[2].dimensions[0] / 2), 
-        int(partitions[2].dimensions[1] / 2), 
-        int(partitions[2].dimensions[2] / 2)
-    ], sim_param, "bottom"))
-'''
 # Instantiation serializer for reading and writing simulation state data
 serializer = Serializer()
 

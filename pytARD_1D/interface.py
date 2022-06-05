@@ -1,5 +1,5 @@
 import numpy as np
-from common.finite_differences import get_laplacian_matrix
+from common.finite_differences import FiniteDifferences
 from common.parameters import SimulationParameters
 
 
@@ -57,8 +57,7 @@ class Interface1D():
         self.fdtd_acc = fdtd_acc
 
         # 1D FDTD coefficents calculation. Normalize FDTD coefficents with space divisions and speed of sound.
-        # TODO: In the papers it's supposed to be multiplied by *(c/h)**2
-        fdtd_coeffs_not_normalized = get_laplacian_matrix(fdtd_order, fdtd_acc)
+        fdtd_coeffs_not_normalized = FiniteDifferences.get_laplacian_matrix(fdtd_order, fdtd_acc)
         self.FDTD_COEFFS = fdtd_coeffs_not_normalized * (sim_param.c / partitions[0].h)
 
         # Interface size derived from FDTD kernel size.

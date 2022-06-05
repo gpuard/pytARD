@@ -3,8 +3,11 @@ from common.finite_differences import FiniteDifferences
 import matplotlib.pyplot as plt
 import numpy as np
 
-plt.close('all')
+'''
+Verifies and plots the FDTD first order and laplacian matrix.
+'''
 
+plt.close('all')
 
 fig, ax = plt.subplots(ncols=2, nrows=2, sharex=True,
                        sharey=True, figsize=(10, 5))

@@ -2,7 +2,6 @@ from common.parameters import SimulationParameters
 
 import string
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.io.wavfile import read
 from scipy.signal import firwin, freqz, lfilter
 
@@ -182,13 +181,7 @@ class Unit(Impulse):
         ndarray
             Impulse over time.
         '''
-        if self.sim_param.visualize_source:
-            plt.plot(self.impulse)
-            plt.show()
-
         return self.amplitude * self.impulse
-
-# TODO Maybe choose between ExperimentalUnit and standard Unit, removing the other
 
 
 class ExperimentalUnit(Impulse):
@@ -225,11 +218,10 @@ class ExperimentalUnit(Impulse):
         self.filter_coeffs = firwin(
             filter_order, cutoff_frequency, fs=sim_param.Fs)
 
-        uno_numberinos = int(self.sim_param.Fs / (cutoff_frequency * 2))
-        self.impulse[0: uno_numberinos] = 1
-        self.impulse[uno_numberinos + 1: 2 * uno_numberinos] = -1
+        high_signal = int(self.sim_param.Fs / (cutoff_frequency * 2))
+        self.impulse[0: high_signal] = 1
+        self.impulse[high_signal + 1: 2 * high_signal] = -1
 
-        #self.impulse = lfilter(self.filter_coeffs, [1], self.impulse)
 
     def get(self):
         '''
@@ -240,8 +232,5 @@ class ExperimentalUnit(Impulse):
         ndarray
             Impulse over time.
         '''
-        if self.sim_param.visualize:
-            plt.plot(self.impulse)
-            plt.show()
 
         return self.amplitude * self.impulse

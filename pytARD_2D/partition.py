@@ -521,7 +521,7 @@ class AirPartition2D(Partition2D):
         # Execute DCT for next sample
         self.forces = dctn(self.new_forces,
                            type=2,
-                           s=[  #  TODO This parameter may be unnecessary
+                           s=[ 
                                self.space_divisions_y,
                                self.space_divisions_x
                            ])
@@ -546,7 +546,7 @@ class AirPartition2D(Partition2D):
             self.space_divisions_y,
             self.space_divisions_x),
             type=2,
-            s=[  #  TODO This parameter may be unnecessary
+            s=[ 
                 self.space_divisions_y,
                 self.space_divisions_x
         ])

@@ -6,7 +6,8 @@ from pytARD_3D.interface import InterfaceData3D, Direction3D
 from common.parameters import SimulationParameters
 from common.impulse import Gaussian, Unit, WaveFile
 from common.serializer import Serializer
-from common.plotter import Plotter, AnimationPlotter
+from common.plotter import Plotter
+from common.animation_plotter import AnimationPlotter
 from common.microphone import Microphone as Mic
 
 import numpy as np
@@ -24,7 +25,6 @@ verbose = True
 auralize = False
 visualize = True
 write_to_file = False
-compress_file = True
 
 # Compilation of room parameters into parameter class (don't change this)
 sim_param = SimulationParameters(
@@ -122,7 +122,7 @@ elif TEST_KIND == 'all':
 mics = []
 
 # Instantiation serializer for reading and writing simulation state data
-serializer = Serializer(compress=compress_file)
+serializer = Serializer()
 
 # Instantiating and executing simulation (don't change this)
 sim = ARDSimulator3D(sim_param, partitions, 1, interfaces, mics)
@@ -174,7 +174,7 @@ if visualize:
                                           sim_param,
                                           title,
                                           interval=1000 / fps,  # in ms
-                                          zyx=partitions[0].src_grid_loc,
+                                          source_zyx=partitions[0].src_grid_loc,
                                           direction='z')
         # zyx=partitions[1].src_grid_loc)
         # plt.show() # To be able to display animations in PyCharm

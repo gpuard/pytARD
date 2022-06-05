@@ -1,5 +1,5 @@
 from common.parameters import SimulationParameters
-from common.finite_differences import get_laplacian_matrix
+from common.finite_differences import FiniteDifferences
 
 import numpy as np
 import enum
@@ -71,7 +71,7 @@ class Interface3D():
         self.part_data = partitions
 
         # 2D FDTD coefficents array. Normalize FDTD coefficents with space divisions and speed of sound. 
-        fdtd_coeffs_not_normalized = get_laplacian_matrix(fdtd_order, fdtd_acc)
+        fdtd_coeffs_not_normalized = FiniteDifferences.get_laplacian_matrix(fdtd_order, fdtd_acc)
         
         # Important: For each direction the sound passes through an interface, the according FDTD coeffs should be used.
         self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_x) ** 2)
@@ -122,15 +122,9 @@ class Interface3D():
 
             # Calculate new forces transmitted into room
             p_along_xy = np.concatenate((p_z0, p_z1),axis=0)
-            
-            p_along_xy = p_along_xy.swapaxes(0, 2)# DO KEY
-            
+            p_along_xy = p_along_xy.swapaxes(0, 2)
             new_forces_from_interface_z = np.matmul(p_along_xy, self.FDTD_COEFFS_Z)
-            # TODO Cleanup
-            # # (6, 60, 60) x (6, 6) -> (6, 60, 60)
             new_forces_from_interface_z = new_forces_from_interface_z.swapaxes(2, 0) 
-            # new_forces_from_interface_z = np.zeros(p_along_xy.shape)
-            # # new_forces_from_interface_z = np.einsum('kji,im->ikj', p_along_xy, self.FDTD_COEFFS_Z)
 
             # Add everything together
             self.part_data[interface_data.part1_index].new_forces[-self.INTERFACE_SIZE:, :, :] += new_forces_from_interface_z[:self.INTERFACE_SIZE, :, :]
@@ -168,7 +162,7 @@ class Interface3DLooped():
         self.part_data = partitions
 
         # 2D FDTD coefficents array. Normalize FDTD coefficents with space divisions and speed of sound. 
-        fdtd_coeffs_not_normalized = get_laplacian_matrix(fdtd_order, fdtd_acc)
+        fdtd_coeffs_not_normalized = FiniteDifferences.get_laplacian_matrix(fdtd_order, fdtd_acc)
         
         # Important: For each direction the sound passes through an interface, the according FDTD coeffs should be used.
         self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_x) ** 2)
