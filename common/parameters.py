@@ -29,25 +29,25 @@ class SimulationParameters:
             Uppermost frequency of simulation. Can be dialed in lower to enhance performance.
         T : float
             Simulation time [s].
-        spatial_samples_per_wave_length : int
-            Number of spatial samples per wave length. Usually 2 to 4. Lower values decrease 
+        spatial_samples_per_wave_length : int, optional
+            Number of spatial samples per wave length. Usually 2 to 6. Lower values decrease 
             resolution but enhances performance.
-        c : float
+        c : float, optional
             Speed of sound [m/s]. Depends on air temperature, pressure and humidity. 
-        Fs : int
+        Fs : int, optional
             Sampling rate. The higher, the more fidelity and higher maximum frequency but at the expense of performance.
-        normalization_constant : float
+        normalization_constant : float, optional
             Normalization multiplier to equalize amplitude across entire domain.
-        auralize : ndarray
+        auralize : ndarray, optional
             Auralizes the room (= makes hearable) by creating an impulse response (IR).
             Format is a list with mic positions. If microphone array is empty, no auralization is being made.
-        verbose : bool
+        verbose : bool, optional
             Prints information on the terminal for debugging and status purposes.
-        visualize : bool
+        visualize : bool, optional
             Visualizes wave propagation in the plot.
-        visualize_source : bool
+        visualize_source : bool, optional
             Visualizes impulse source in the plot.
-        benchmark : bool
+        benchmark : bool, optional
             Enables performance benchmarking for comparing different accuracies.
         '''
 

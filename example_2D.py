@@ -53,16 +53,16 @@ partitions = []
 # Also, you may provide impulse in the partition(s) of your choosing.
 partitions.append(AirPartition2D(np.array([[4.0], [4.0]]), sim_param, impulse=impulse))
 partitions.append(PMLPartition2D(np.array([[1.0], [4.0]]), sim_param, dp))
-#partitions.append(PMLPartition2D(np.array([[1.0], [4.0]]), sim_param, dp))
-#partitions.append(PMLPartition2D(np.array([[4.0], [1.0]]), sim_param, dp))
-#partitions.append(PMLPartition2D(np.array([[4.0], [1.0]]), sim_param, dp))
+partitions.append(PMLPartition2D(np.array([[1.0], [4.0]]), sim_param, dp))
+partitions.append(PMLPartition2D(np.array([[4.0], [1.0]]), sim_param, dp))
+partitions.append(PMLPartition2D(np.array([[4.0], [1.0]]), sim_param, dp))
 
 # Interfaces of the room. Interfaces connect the partitions together
 interfaces = []
 interfaces.append(InterfaceData2D(1, 0, Direction2D.X))
-#interfaces.append(InterfaceData2D(2, 0, Direction2D.X))
-#interfaces.append(InterfaceData2D(3, 0, Direction2D.Y))
-#interfaces.append(InterfaceData2D(4, 0, Direction2D.Y))
+interfaces.append(InterfaceData2D(2, 0, Direction2D.X))
+interfaces.append(InterfaceData2D(3, 0, Direction2D.Y))
+interfaces.append(InterfaceData2D(4, 0, Direction2D.Y))
 
 # Microphones. Add and remove microphones here by copying or deleting mic objects.
 # Only gets used if the auralization option is enabled.

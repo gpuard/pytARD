@@ -91,24 +91,6 @@ class Partition3D():
         return h_z, h_y, h_x
 
 
-class PMLType(Enum):
-    '''
-    TODO: Is this needed?
-    '''
-    LEFT = {  # for kx
-        "Min": 0.2, "Max": 0.0
-    }
-    RIGHT = {  # for kx
-        "Min": 0.0, "Max": 0.2
-    }
-    TOP = {  # for ky
-        "Min": 0.2, "Max": 0.0
-    }
-    BOTTOM = {  # for ky
-        "Min": 0.0, "Max": 0.2
-    }
-
-
 class DampingProfile:
     '''
     Damping profile. Determines how intense the reflections of the PML partition are, or how much sound energy is absorbed.
@@ -181,7 +163,6 @@ class PMLPartition3D(Partition3D):
         self,
         dimensions: np.ndarray,
         sim_param: SimulationParameters,
-        pml_type: PMLType,
         damping_profile: DampingProfile
     ):
         '''
@@ -193,8 +174,6 @@ class PMLPartition3D(Partition3D):
             Size of the partition (room) in meters.
         sim_param : SimulationParameters
             Instance of simulation parameter class.
-        pml_type : PMLType
-            Type (direction) of PML partition.
         damping_profile : DampingProfile
             Damping profile of the PML partition, determines the intensity of wave absorption.
         '''
