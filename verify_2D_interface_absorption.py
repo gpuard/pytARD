@@ -8,7 +8,7 @@ from common.serializer import Serializer
 from common.plotter import Plotter
 from common.microphone import Microphone as Mic
 
-from wavdiff import wav_diff, visualize_multiple_waveforms 
+from utility_wavdiff import wav_diff, visualize_multiple_waveforms
 
 import numpy as np
 
@@ -21,9 +21,9 @@ A plot is drawn illustrating the differences between both impulse response files
 
 # Room parameters
 Fs = 8000  # sample rate
-upper_frequency_limit = 300 # Hz
+upper_frequency_limit = 300  # Hz
 c = 342  # m/s
-duration = 0.2 #  seconds
+duration = 0.2  #  seconds
 spatial_samples_per_wave_length = 6
 
 # Procedure parameters
@@ -46,7 +46,8 @@ sim_param = SIMP(
 
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want
 impulse_location = np.array([[0.5], [0.5]])
-impulse = ExperimentalUnit(sim_param, impulse_location, 1, upper_frequency_limit)
+impulse = ExperimentalUnit(
+    sim_param, impulse_location, 1, upper_frequency_limit)
 #impulse = WaveFile(sim_param, impulse_location, 'clap_8000.wav', 1000)
 #impulse = Gaussian(sim_param, impulse_location, 10000)
 
@@ -65,32 +66,32 @@ test_room = [test_room_left, test_room_right]
 interfaces = []
 interfaces.append(InterfaceData2D(1, 0, Direction2D.X))
 
-# Microphonesfilename + "_" + 
+# Microphonesfilename + "_" +
 long_room_mic1 = Mic(
-    0, # Parition number
+    0,  # Parition number
     # Position
-    [0.5, 0.5], 
-    sim_param, 
-    filename + "_" + "roomA_mic1" # Name of resulting wave file
+    [0.5, 0.5],
+    sim_param,
+    filename + "_" + "roomA_mic1"  # Name of resulting wave file
 )
 long_room_mic2 = Mic(
-    0, # Parition number
+    0,  # Parition number
     # Position
-    [1.5, 0.5], 
-    sim_param, 
-    filename + "_" + "roomA_mic2" # Name of resulting wave file
+    [1.5, 0.5],
+    sim_param,
+    filename + "_" + "roomA_mic2"  # Name of resulting wave file
 )
 
 short_room_mic1 = Mic(
-    0, 
-    [0.5, 0.5], 
-    sim_param, 
+    0,
+    [0.5, 0.5],
+    sim_param,
     filename + "_" + "roomB_mic1"
 )
 short_room_mic2 = Mic(
     1,
-    [0.5, 0.5], 
-    sim_param, 
+    [0.5, 0.5],
+    sim_param,
     filename + "_" + "roomB_mic2"
 )
 
@@ -103,16 +104,19 @@ test_mics = [short_room_mic1, short_room_mic2]
 serializer = Serializer()
 plotter = Plotter()
 
+
 def write_and_plot(room):
     # Write partitions and state data to disk
     if write_to_file:
         if verbose:
             print("Writing state data to disk. Please wait...")
-        serializer.dump(sim_param, room, mics=[], plot_structure=[], filename=filename,)
+        serializer.dump(sim_param, room, mics=[],
+                        plot_structure=[], filename=filename,)
 
     # Plotting waveform
     #plotter.set_data_from_simulation(sim_params, room)
-    #plotter.plot_2D()
+    # plotter.plot_2D()
+
 
 # Instantiating and executing control simulation
 control_sim = ARDS(sim_param, control_room, .25, mics=control_mics)
@@ -128,20 +132,24 @@ test_sim.simulation()
 
 # Find best peak to normalize mic signal and write mic signal to file
 
+
 def find_best_peak(mics):
     peaks = []
     for i in range(len(mics)):
         peaks.append(np.max(mics[i].signal))
     return np.max(peaks)
 
+
 both_mic_peaks = []
 both_mic_peaks.append(find_best_peak(control_mics))
 both_mic_peaks.append(find_best_peak(test_mics))
 best_peak = np.max(both_mic_peaks)
 
+
 def write_mic_files(mics, peak):
     for i in range(len(mics)):
         mics[i].write_to_file(peak, upper_frequency_limit)
+
 
 write_mic_files(control_mics, best_peak)
 write_mic_files(test_mics, best_peak)
@@ -150,20 +158,20 @@ write_mic_files(test_mics, best_peak)
 write_and_plot(test_room)
 
 wav_diff(
-    filename + "_" + "roomA_mic1.wav", 
-    filename + "_" + "roomB_mic1.wav", 
+    filename + "_" + "roomA_mic1.wav",
+    filename + "_" + "roomB_mic1.wav",
     filename + "_" + "mic1_diff.wav"
 )
 wav_diff(
-    filename + "_" + "roomA_mic2.wav", 
-    filename + "_" + "roomB_mic2.wav", 
+    filename + "_" + "roomA_mic2.wav",
+    filename + "_" + "roomB_mic2.wav",
     filename + "_" + "mic2_diff.wav"
 )
 visualize_multiple_waveforms([
-    filename + "_" + "roomA_mic1.wav", 
-    filename + "_" + "roomB_mic1.wav", 
+    filename + "_" + "roomA_mic1.wav",
+    filename + "_" + "roomB_mic1.wav",
     filename + "_" + "mic1_diff.wav",
-    filename + "_" + "roomA_mic2.wav", 
-    filename + "_" + "roomB_mic2.wav", 
+    filename + "_" + "roomA_mic2.wav",
+    filename + "_" + "roomB_mic2.wav",
     filename + "_" + "mic2_diff.wav"
 ], dB=False)

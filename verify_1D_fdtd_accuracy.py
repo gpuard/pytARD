@@ -7,10 +7,7 @@ from pytARD_1D.partition import AirPartition1D as PARTD
 from pytARD_1D.interface import InterfaceData1D
 
 import numpy as np
-import time
-from matplotlib import pyplot as plt
 import csv
-from matplotlib import ft2font
 
 '''
 Measures average calculation time for each FDTD accuracy (4, 6 and 10).

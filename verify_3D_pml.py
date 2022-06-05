@@ -11,57 +11,41 @@ from common.microphone import Microphone as Mic
 
 import numpy as np
 
-# # To be able to display animations in PyCharm
-# import matplotlib.pyplot as plt
-# import matplotlib; matplotlib.use("TkAgg")
 
-if False:# SUPER FAST
-    # Room parameters
-    # duration = 1.5 # seconds
-    duration = 0.5 # seconds
-    Fs = 630 # sample rate
-    upper_frequency_limit = 60 # Hz
-    # c = 342 # m/s
-    c = 4 # m/s
-    spatial_samples_per_wave_length = 1
-else:
-    # Room parameters
-    # duration = 1.5 # seconds
-    duration = 0.5 # seconds
-    Fs = 630 # sample rate
-    upper_frequency_limit = 60 # Hz
-    # c = 342 # m/s
-    c = 4 # m/s
-    spatial_samples_per_wave_length = 2
+# Room parameters
+# duration = 1.5 # seconds
+duration = 0.5  #  seconds
+Fs = 630  # sample rate
+upper_frequency_limit = 60  # Hz
+# c = 342 # m/s
+c = 4  # m/s
+spatial_samples_per_wave_length = 2
 
 # Procedure parameters
 verbose = True
-auralize= False
+auralize = False
 visualize = True
 write_to_file = False
 compress_file = True
 
-# For Debug
-# np.seterr(all='raise')
-
 # Compilation of room parameters into parameter class (don't change this)
 sim_param = SimulationParameters(
-    upper_frequency_limit, 
-    duration, 
-    c=c, 
+    upper_frequency_limit,
+    duration,
+    c=c,
     Fs=Fs,
-    spatial_samples_per_wave_length=spatial_samples_per_wave_length, 
+    spatial_samples_per_wave_length=spatial_samples_per_wave_length,
     verbose=verbose,
     visualize=visualize,
-    visualize_source = False
+    visualize_source=False
 )
 
-SCALE = 150 # Scale of room. Gets calculated by speed of sound divided by SCALE
+SCALE = 150  # Scale of room. Gets calculated by speed of sound divided by SCALE
 
 # Define impulse location
 impulse_location = np.array([
-    [int(1)], # X, width
-    [int(1)], # Y, depth
+    [int(1)],  # X, width
+    [int(1)],  # Y, depth
     [int(1)]  # Z, height
 ])
 
@@ -79,63 +63,41 @@ dp = DampingProfile(room_width, c, 1e-3)
 partitions = []
 
 partitions.append(AirPartition3D(np.array([
-    [room_width], # X, width
-    [room_width], # Y, depth
+    [room_width],  # X, width
+    [room_width],  # Y, depth
     [room_width]  # Z, height
 ]), sim_param, impulse))
 # ]), sim_param))
 
 partitions.append(PMLPartition3D(np.array([
     [1.5],        # X, width
-    [room_width], # Y, depth
+    [room_width],  # Y, depth
     [room_width]  # Z, height
 ]), sim_param, PMLType.RIGHT, dp))
 
 # ]), sim_param, impulse))
- 
+
 # Interfaces of the room. Interfaces connect the room together
 interfaces = []
 
-title=''
-TEST_KIND = ['X','Y','Z','all'][0]
+title = ''
+TEST_KIND = ['X', 'Y', 'Z', 'all'][0]
 if TEST_KIND == 'X':
-    axis=2
+    axis = 2
     interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
     title = 'YZ-PML-WALL'
 elif TEST_KIND == 'Y':
-    axis=1
+    axis = 1
     interfaces.append(InterfaceData3D(0, 1, Direction3D.Y))
     title = 'XZ-PML-WALL'
 elif TEST_KIND == 'Z':
-    axis=0
+    axis = 0
     interfaces.append(InterfaceData3D(0, 1, Direction3D.Z))
     title = 'XY-PML-WALL'
-elif TEST_KIND == 'all':
-    pass
 
 # Initialize & position mics.
 mics = []
-# mics.append(Mic(
-#     0, [
-#         int(partitions[0].dimensions[0] / 2), 
-#         int(partitions[0].dimensions[1] / 2), 
-#         int(partitions[0].dimensions[2] / 2)
-#     ], sim_param, "left"))
-'''
 
-mics.append(Mic(
-    1, [
-        int(partitions[1].dimensions[0] / 2), 
-        int(partitions[1].dimensions[1] / 2), 
-        int(partitions[1].dimensions[2] / 2)
-    ], sim_param, "right"))
-mics.append(Mic(
-    2, [
-        int(partitions[2].dimensions[0] / 2), 
-        int(partitions[2].dimensions[1] / 2), 
-        int(partitions[2].dimensions[2] / 2)
-    ], sim_param, "bottom"))
-'''
 # Instantiation serializer for reading and writing simulation state data
 serializer = Serializer(compress=compress_file)
 
@@ -171,26 +133,26 @@ if write_to_file:
 
 # Plotting waveform
 if visualize:
-    a=0
+    a = 0
     if a == 0:
         pfX0 = partitions[0].pressure_field_results
         pfX1 = partitions[1].pressure_field_results
-        
-        #AXIS
+
+        # AXIS
         # 0 Z
         # 1 y
         # 2 X
-        
-        pf_t = [np.concatenate((pfX0[t],pfX1[t]),axis=axis) for t in range(sim_param.number_of_samples)]
-        
-        fps=30
-        anim = AnimationPlotter().plot_3D(pf_t, 
+
+        pf_t = [np.concatenate((pfX0[t], pfX1[t]), axis=axis)
+                for t in range(sim_param.number_of_samples)]
+
+        fps = 30
+        anim = AnimationPlotter().plot_3D(pf_t,
                                           sim_param,
                                           title,
-                                          interval = 1000 / fps, # in ms
-                                           zyx=partitions[0].src_grid_loc)
-                                          # zyx=partitions[1].src_grid_loc)
-        # plt.show() # To be able to display animations in PyCharm
+                                          interval=1000 / fps,  # in ms
+                                          zyx=partitions[0].src_grid_loc)
+        # zyx=partitions[1].src_grid_loc)
     else:
         plotter = Plotter()
         plotter.set_data_from_simulation(sim_param, partitions)

@@ -6,7 +6,7 @@ from pytARD_1D.ard import ARDSimulator1D as ARDS
 from pytARD_1D.partition import AirPartition1D as PARTD
 from pytARD_1D.interface import InterfaceData1D
 
-from wavdiff import wav_diff, visualize_multiple_waveforms 
+from utility_wavdiff import wav_diff, visualize_multiple_waveforms 
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -95,38 +95,7 @@ def write_mic_files(mics, peak=1):
 
 write_mic_files(control_mics, best_peak)
 write_mic_files(test_mics, best_peak)
+
 wav_diff(filename + "_" +"roomA_mic1.wav", filename + "_" +"roomB_mic1.wav", filename + "_" +"mic1_diff.wav")
 wav_diff(filename + "_" +"roomA_mic2.wav", filename + "_" +"roomB_mic2.wav", filename + "_" +"mic2_diff.wav")
 visualize_multiple_waveforms([filename + "_" +"roomA_mic1.wav", filename + "_" +"roomB_mic1.wav", filename + "_" +"mic1_diff.wav", filename + "_" +"roomA_mic2.wav", filename + "_" +"roomB_mic2.wav", filename + "_" +"mic2_diff.wav"], dB=True)
-
-'''
-# Plotting waveform
-if visualize:
-    room_dims = np.linspace(0., test_partition_1.dimensions[0], len(test_partition_1.pressure_field_results[0]))
-    ytop = np.max(test_partition_1.pressure_field_results)
-    ybtm = np.min(test_partition_1.pressure_field_results)
-
-    plt.figure()
-    for i in range(0, len(test_partition_1.pressure_field_results), 50):
-        plt.clf()
-        plt.title(f"ARD 1D (t = {(sim_param.T * (i / sim_param.number_of_samples)):.4f}s)")
-        plt.subplot(1, 2, 1)
-        plt.plot(room_dims, test_partition_1.pressure_field_results[i], 'r', linewidth=1)
-        plt.ylim(top=ytop)
-        plt.ylim(bottom=ybtm)
-        plt.vlines(np.min(room_dims), ybtm, ytop, color='gray')
-        plt.vlines(np.max(room_dims), ybtm, ytop, color='gray')
-        plt.subplot(1, 2, 2)
-        plt.plot(room_dims, test_partition_2.pressure_field_results[i], 'b', linewidth=1)
-        plt.xlabel("Position [m]")
-        plt.ylabel("Displacement")
-        plt.ylim(top=ytop)
-        plt.ylim(bottom=ybtm)
-        plt.vlines(np.min(room_dims), ybtm, ytop, color='gray')
-        plt.vlines(np.max(room_dims), ybtm, ytop, color='gray')
-        plt.grid()
-        plt.pause(0.001)
-
-    plot_step = 100
-'''
-

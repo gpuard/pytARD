@@ -7,8 +7,6 @@ from pytARD_1D.ard import ARDSimulator1D as ARDS
 from pytARD_1D.partition import AirPartition1D as PARTD
 from pytARD_1D.interface import InterfaceData1D
 
-import numpy as np
-import time
 from matplotlib import pyplot as plt
 
 '''

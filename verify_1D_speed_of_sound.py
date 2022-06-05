@@ -15,11 +15,11 @@ Goal is to make sure the speed of sound (c) is accurate.
 '''
 
 sim_param = SimulationParameters(
-    max_simulation_frequency=500, 
-    T=1, 
-    c=342, 
+    max_simulation_frequency=500,
+    T=1,
+    c=342,
     Fs=8000,
-    spatial_samples_per_wave_length=6, 
+    spatial_samples_per_wave_length=6,
     verbose=True,
     visualize=True
 )
@@ -41,22 +41,24 @@ sim.simulation()
 
 # Plotting waveform
 if sim_param.visualize:
-    room_dims = np.linspace(0., c_partition.dimensions[0], len(c_partition.pressure_field_results[0]))
+    room_dims = np.linspace(0., c_partition.dimensions[0], len(
+        c_partition.pressure_field_results[0]))
     ytop = np.max(c_partition.pressure_field_results)
     ybtm = np.min(c_partition.pressure_field_results)
 
     plt.figure()
     sizerino = 18
-    plt.rc('font', size=sizerino) #controls default text size
-    plt.rc('axes', titlesize=sizerino) #fontsize of the title
-    plt.rc('axes', labelsize=sizerino) #fontsize of the x and y labels
-    plt.rc('xtick', labelsize=sizerino) #fontsize of the x tick labels
-    plt.rc('ytick', labelsize=sizerino) #fontsize of the y tick labels
-    plt.rc('legend', fontsize=sizerino) #fontsize of the legend
+    plt.rc('font', size=sizerino)  # controls default text size
+    plt.rc('axes', titlesize=sizerino)  # fontsize of the title
+    plt.rc('axes', labelsize=sizerino)  # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=sizerino)  # fontsize of the x tick labels
+    plt.rc('ytick', labelsize=sizerino)  # fontsize of the y tick labels
+    plt.rc('legend', fontsize=sizerino)  # fontsize of the legend
 
     # T = 0
     plt.subplot(1, 3, 1)
-    plt.plot(room_dims, c_partition.pressure_field_results[10], 'r', linewidth=3)
+    plt.plot(
+        room_dims, c_partition.pressure_field_results[10], 'r', linewidth=3)
     plt.xlabel("Ort [m]")
     plt.ylabel("Amplitude")
     plt.ylim(top=ytop)
@@ -70,7 +72,8 @@ if sim_param.visualize:
 
     # T = 0.5
     plt.subplot(1, 3, 2)
-    plt.plot(room_dims, c_partition.pressure_field_results[int(len(c_partition.pressure_field_results)/2)], 'r', linewidth=3)
+    plt.plot(room_dims, c_partition.pressure_field_results[int(
+        len(c_partition.pressure_field_results)/2)], 'r', linewidth=3)
     plt.xlabel("Ort [m]")
     plt.ylabel("Amplitude")
     plt.ylim(top=ytop)
@@ -84,7 +87,8 @@ if sim_param.visualize:
 
     # T = 1
     plt.subplot(1, 3, 3)
-    plt.plot(room_dims, c_partition.pressure_field_results[-10], 'r', linewidth=3)
+    plt.plot(
+        room_dims, c_partition.pressure_field_results[-10], 'r', linewidth=3)
     plt.xlabel("Ort [m]")
     plt.ylabel("Amplitude")
     plt.ylim(top=ytop)
@@ -97,5 +101,3 @@ if sim_param.visualize:
     plt.tight_layout()
 
     plt.show()
-    
-
