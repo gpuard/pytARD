@@ -64,23 +64,6 @@ class ARDSimulator3D:
         for i in range(len(self.part_data)):
             self.part_data[i].preprocessing()
 
-
-    def record_to_mic(self, mic: Microphone, t_s: int):
-        '''
-        Records a given position in the domain to a given microphone.
-
-        Parameters
-        ----------
-        mic : Microphone
-            Microphone object instance which is placed inside the domain.
-        t_s : float
-            Current time step of the ARD simulation.
-        '''
-        pressure_field_z = int(self.part_data[mic.partition_number].space_divisions_z * (mic.location[2] / self.part_data[mic.partition_number].dimensions[2]))
-        pressure_field_y = int(self.part_data[mic.partition_number].space_divisions_y * (mic.location[1] / self.part_data[mic.partition_number].dimensions[1]))
-        pressure_field_x = int(self.part_data[mic.partition_number].space_divisions_x * (mic.location[0] / self.part_data[mic.partition_number].dimensions[0]))
-        mic.record(self.part_data[mic.partition_number].pressure_field[pressure_field_z][pressure_field_y][pressure_field_x], t_s)
-
         
     def simulation(self):
         '''
