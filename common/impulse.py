@@ -100,7 +100,13 @@ class WaveFile(Impulse):
     Creates and injects a wave file on disk as an impulse source.
     '''
 
-    def __init__(self, sim_param: SimulationParameters, location: np.ndarray, path_to_file: string, amplitude: int):
+    def __init__(
+            self, 
+            sim_param: SimulationParameters, 
+            location: np.ndarray, 
+            path_to_file: string, 
+            amplitude: int
+        ):
         '''
         Instantiation of a wave file impulse.
 
@@ -141,7 +147,13 @@ class Unit(Impulse):
     '''
 
     def __init__(
-            self, sim_param: SimulationParameters, location: np.ndarray, amplitude: int, cutoff_frequency: int = None, filter_order: int = 41):
+            self, 
+            sim_param: SimulationParameters, 
+            location: np.ndarray, 
+            amplitude: int, 
+            cutoff_frequency: int = None, 
+            filter_order: int = 41
+        ):
         '''
         Instantiation of an unit impulse.
 
@@ -166,11 +178,9 @@ class Unit(Impulse):
         if cutoff_frequency is None:
             cutoff_frequency = sim_param.Fs / 2
 
-        self.filter_coeffs = firwin(
-            filter_order, (cutoff_frequency / 2) * 0.95, fs=sim_param.Fs)
+        self.filter_coeffs = firwin(filter_order, (cutoff_frequency / 2) * 0.95, fs=sim_param.Fs)
         self.impulse[0: len(self.filter_coeffs)] = self.filter_coeffs
-        self.impulse[len(self.filter_coeffs): 2 *
-                     len(self.filter_coeffs)] = -self.filter_coeffs
+        self.impulse[len(self.filter_coeffs): 2 * len(self.filter_coeffs)] = -self.filter_coeffs
 
     def get(self):
         '''
@@ -182,46 +192,6 @@ class Unit(Impulse):
             Impulse over time.
         '''
         return self.amplitude * self.impulse
-
-
-class ExperimentalUnit(Impulse):
-    '''
-    Creates and injects a unit impulse as an impulse source.
-    '''
-
-    def __init__(
-            self, sim_param: SimulationParameters, location: np.ndarray, amplitude: int, cutoff_frequency: int = None, filter_order: int = 41):
-        '''
-        Instantiation of an unit impulse.
-
-        Parameters
-        ----------
-        sim_param : SimulationParameters
-            Parameters of ARD Simulation
-        location : ndarray
-            Location in which the impulse gets injected
-        amplitude : int
-            Determines the amplitude; "loudness" of impulse 
-        cutoff_frequency : int
-            Determines the frequency which will get lowpassed (high frequency are cut off).
-        filter_order : int
-            Determines the order of the lowpass filter.
-        '''
-        self.sim_param = sim_param
-        self.location = location
-        self.amplitude = amplitude
-        self.impulse = np.zeros(self.sim_param.number_of_samples)
-
-        if cutoff_frequency is None:
-            cutoff_frequency = sim_param.Fs / 2
-
-        self.filter_coeffs = firwin(
-            filter_order, cutoff_frequency, fs=sim_param.Fs)
-
-        high_signal = int(self.sim_param.Fs / (cutoff_frequency * 2))
-        self.impulse[0: high_signal] = 1
-        self.impulse[high_signal + 1: 2 * high_signal] = -1
-
 
     def get(self):
         '''

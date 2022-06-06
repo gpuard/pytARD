@@ -39,7 +39,6 @@ impulse_location = np.array([[int((c) / 4)]])
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want
 #impulse = Gaussian(sim_param, impulse_location, 10000)
 #impulse = Unit(sim_param, impulse_location, 1, cutoff_frequency=upper_frequency_limit)
-#impulse = ExperimentalUnit(sim_param, impulse_location, 1, cutoff_frequency=upper_frequency_limit)
 impulse = WaveFile(sim_param, impulse_location, 'common/impulse_files/clap_8000.wav', 1000)
 
 partitions = []
