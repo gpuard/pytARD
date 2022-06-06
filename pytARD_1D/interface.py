@@ -57,8 +57,8 @@ class Interface1D():
         self.fdtd_acc = fdtd_acc
 
         # 1D FDTD coefficents calculation. Normalize FDTD coefficents with space divisions and speed of sound.
-        fdtd_coeffs_not_normalized = FiniteDifferences.get_laplacian_matrix(fdtd_order, fdtd_acc)
-        self.FDTD_COEFFS = fdtd_coeffs_not_normalized * (sim_param.c / partitions[0].h)
+        fdtd_coeffs_not_normalized: np.ndarray = FiniteDifferences.get_laplacian_matrix(fdtd_order, fdtd_acc)
+        self.FDTD_COEFFS: np.ndarray = fdtd_coeffs_not_normalized * (sim_param.c / partitions[0].h)
 
         # Interface size derived from FDTD kernel size.
         # If FDTD Accuracy is for example 6, then the interface is 3 on each

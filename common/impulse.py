@@ -101,12 +101,12 @@ class WaveFile(Impulse):
     '''
 
     def __init__(
-            self, 
-            sim_param: SimulationParameters, 
-            location: np.ndarray, 
-            path_to_file: string, 
-            amplitude: int
-        ):
+        self, 
+        sim_param: SimulationParameters, 
+        location: np.ndarray, 
+        path_to_file: string, 
+        amplitude: int
+    ):
         '''
         Instantiation of a wave file impulse.
 
@@ -147,13 +147,13 @@ class Unit(Impulse):
     '''
 
     def __init__(
-            self, 
-            sim_param: SimulationParameters, 
-            location: np.ndarray, 
-            amplitude: int, 
-            cutoff_frequency: int = None, 
-            filter_order: int = 41
-        ):
+        self, 
+        sim_param: SimulationParameters, 
+        location: np.ndarray, 
+        amplitude: int, 
+        cutoff_frequency: int = None, 
+        filter_order: int = 41
+    ):
         '''
         Instantiation of an unit impulse.
 

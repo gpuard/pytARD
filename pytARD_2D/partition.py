@@ -111,7 +111,7 @@ class DampingProfile:
             Reflection coefficient R. Determines how intense the reflections of the PML partition are.
         '''
 
-        self.zetta_i = DampingProfile.calculate_zetta(
+        self.zetta_i: float = DampingProfile.calculate_zetta(
             room_length, c, reflection_coefficient)
 
     def damping_profile(self, x: int, width: float):
@@ -145,6 +145,11 @@ class DampingProfile:
             Speed of sound
         R : float
             Reflection coefficient, ranging from 0 to 1.
+
+        Returns
+        -------
+        float
+            Zetta_i value.
         '''
         assert(R < 1), "Reflection coefficient should be smaller than 1."
         assert(R > 0), "Reflection coefficient should be bigger than 0."
@@ -176,10 +181,12 @@ class PMLPartition2D(Partition2D) :
         '''
 
         self.dimensions = dimensions
-        self.sim_param = sim_param
+        self.sim_param: SimulationParameters = sim_param
         self.impulse = False # Needed for plotting
 
         # Voxel grid spacing. Changes automatically according to frequency
+        self.h_x: float
+        self.h_y: float
         self.h_y, self.h_x = Partition2D.calculate_h_x_y(sim_param)
 
         # Check stability of wave equation
@@ -210,24 +217,18 @@ class PMLPartition2D(Partition2D) :
         self.phi_y = shape_template.copy()
         self.phi_y_new = shape_template.copy()
 
-        # TODO Cleanup! Not parameterized in the constructor
-        self.include_self_terms = False
-        self.render = False
-        self.type = type
-
         # FDTD coefficents. Constant values.
         self.FDTD_COEFFS = [2.0, -27.0, 270.0, -490.0, 270.0, -27.0, 2.0]
         self.FOURTH_COEFFS = [1.0, -8.0, 0.0, 8.0, -1.0]
 
         # Array for pressure field results (auralisation and visualisation)
-        self.pressure_field_results = []
+        self.pressure_field_results: np.ndarray = []
 
         # Damping profile for PML.
-        self.damping_profile = damping_profile
+        self.damping_profile: DampingProfile = damping_profile
 
         if sim_param.verbose:
-            print(
-                f"Created PML partition with dimensions {self.dimensions[0]}x{self.dimensions[1]} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions (y): {self.space_divisions_y} (x): {self.space_divisions_x} | Zetta_i: {self.damping_profile.zetta_i}")
+            print(f"Created PML partition with dimensions {self.dimensions[0]}x{self.dimensions[1]} m\nℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions (y): {self.space_divisions_y} (x): {self.space_divisions_x} | Zetta_i: {self.damping_profile.zetta_i}")
 
     def preprocessing(self):
         '''
@@ -359,10 +360,12 @@ class AirPartition2D(Partition2D):
             If an Impulse object is passed, the according impulse is generated on this partition. 
         '''
         self.dimensions = dimensions
-        self.sim_param = sim_param
+        self.sim_param: SimulationParameters = sim_param
         self.impulse = impulse
 
         # Voxel grid spacing. Changes automatically according to frequency
+        self.h_y: float
+        self.h_x: float
         self.h_y, self.h_x = Partition2D.calculate_h_x_y(sim_param)
 
         # Check stability of wave equation

@@ -17,7 +17,7 @@ class ARDSimulator1D:
     def __init__(
         self,
         sim_param: SimulationParameters,
-        partitions: AirPartition1D,
+        partitions: list,
         normalization_factor: float = 1,
         interface_data: list = [],
         mics: list = []
@@ -40,13 +40,13 @@ class ARDSimulator1D:
         '''
 
         # Parameter class instance (SimulationParameters)
-        self.sim_param = sim_param
+        self.sim_param: SimulationParameters = sim_param
 
         # List of partition data (PartitionData objects)
-        self.partitions = partitions
+        self.partitions: list = partitions
 
         self.interface_data = interface_data
-        self.interfaces = None
+        self.interfaces: Interface1D = None
         if self.interface_data:
             self.interfaces = Interface1D(
                 sim_param, partitions, fdtd_acc=self.interface_data[0].fdtd_acc)

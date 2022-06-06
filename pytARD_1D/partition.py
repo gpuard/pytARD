@@ -27,31 +27,31 @@ class AirPartition1D:
             If an Impulse object is passed, the according impulse is generated on this partition. 
         '''
         self.dimensions = dimensions
-        self.sim_param = sim_param
+        self.sim_param: SimulationParameters = sim_param
 
         # Voxel grid spacing. Changes automatically according to frequency
-        self.h = AirPartition1D.calculate_h(self.sim_param)
+        self.h: float = AirPartition1D.calculate_h(self.sim_param)
         AirPartition1D.check_CFL(self.sim_param, self.h)
 
         # Longest room dimension length dividied by H (voxel grid spacing).
         self.space_divisions = int(dimensions[0] / self.h)
 
         # Instantiate forces array, which corresponds to F in update rule (results of DCT computation). TODO: Elaborate more
-        self.forces = None
+        self.forces: np.ndarray = None
 
         # Instantiate updated forces array. Combination of impulse and/or contribution of the interface.
         # DCT of new_forces will be written into forces. TODO: Is that correct?
-        self.new_forces = None
+        self.new_forces: np.ndarray = None
 
         # Impulse array which keeps track of impulses in space over time.
-        self.impulses = np.zeros(
+        self.impulses: np.ndarray = np.zeros(
             shape=[self.sim_param.number_of_samples, self.space_divisions])
 
         # Array, which stores air pressure at each given point in time in the voxelized grid
         self.pressure_field = None
 
         # Array for pressure field results (auralisation and visualisation)
-        self.pressure_field_results = []
+        self.pressure_field_results: list = []
 
         # Fill impulse array with impulses.
         if impulse:
@@ -77,7 +77,7 @@ class AirPartition1D:
         # Relates to equation 5 and 8 of "An efficient GPU-based time domain solver for the
         # acoustic wave equation" paper.
         # For reference, see https://www.microsoft.com/en-us/research/wp-content/uploads/2016/10/4.pdf.
-        self.omega_i = self.sim_param.c * np.pi * \
+        self.omega_i: np.ndarray = self.sim_param.c * np.pi * \
             (np.arange(0, self.space_divisions, 1) / np.max(self.dimensions))
 
         # Workaround. Without this, the calculation of update rule (equation 9) would crash.

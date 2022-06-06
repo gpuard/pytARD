@@ -4,7 +4,6 @@ import enum
 
 from common.parameters import SimulationParameters
 from common.finite_differences import FiniteDifferences
-from pytARD_2D.partition import Partition2D
 
 class Direction2D(enum.Enum):
     '''
@@ -18,7 +17,13 @@ class InterfaceData2D():
     Supporting data structure for interfaces.
     '''
     
-    def __init__(self, part1_index: int, part2_index: int, direction: Direction2D, fdtd_acc: int = 6):
+    def __init__(
+        self, 
+        part1_index: int, 
+        part2_index: int, 
+        direction: Direction2D, 
+        fdtd_acc: int = 6
+    ):
         '''
         Creates an instance of interface data between two partitions.
 
@@ -34,10 +39,10 @@ class InterfaceData2D():
             FDTD accuracy.
         '''
 
-        self.part1_index = part1_index
-        self.part2_index = part2_index
-        self.direction = direction
-        self.fdtd_acc = fdtd_acc
+        self.part1_index: int = part1_index
+        self.part2_index: int = part2_index
+        self.direction: Direction2D = direction
+        self.fdtd_acc: int = fdtd_acc
 
 class Interface2D():
     '''
@@ -47,9 +52,9 @@ class Interface2D():
     def __init__(
         self, 
         sim_param: SimulationParameters, 
-        partitions: list, 
-        fdtd_order: int=2, 
-        fdtd_acc: int=6
+        partitions: list,
+        fdtd_order: int = 2,
+        fdtd_acc: int = 6
     ):
         '''
         Create an Interface for connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
@@ -71,11 +76,11 @@ class Interface2D():
 
         # 2D FDTD coefficents calculation. Normalize FDTD coefficents with space divisions and speed of sound. 
         fdtd_coeffs_not_normalized = FiniteDifferences.get_laplacian_matrix(fdtd_order, fdtd_acc)
-        self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_x) ** 2)
-        self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_y) ** 2)
+        self.FDTD_COEFFS_X: np.ndarray = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_x) ** 2)
+        self.FDTD_COEFFS_Y: np.ndarray = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_y) ** 2)
 
         # FDTD kernel size.
-        self.INTERFACE_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
+        self.INTERFACE_SIZE: int = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
 
     def handle_interface(self, interface_data: InterfaceData2D):
         '''
@@ -117,7 +122,13 @@ class Interface2DLooped():
     Implementation is based on loops and is less efficient than the standard Interface3D.
     '''
 
-    def __init__(self, sim_param: SimulationParameters, partitions: list, fdtd_order=2, fdtd_acc=6):
+    def __init__(
+        self, 
+        sim_param: SimulationParameters, 
+        partitions: list,
+        fdtd_order: int = 2,
+        fdtd_acc: int = 6
+    ):
         '''
         Create an Interface for connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
 
@@ -136,9 +147,9 @@ class Interface2DLooped():
         self.part_data = partitions
 
         # 2D FDTD coefficents calculation. Normalize FDTD coefficents with space divisions and speed of sound. 
-        fdtd_coeffs_not_normalized = FiniteDifferences.get_laplacian_matrix(fdtd_order, fdtd_acc)
-        self.FDTD_COEFFS_X = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_x) ** 2)
-        self.FDTD_COEFFS_Y = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_y) ** 2)
+        fdtd_coeffs_not_normalized: np.ndarray = FiniteDifferences.get_laplacian_matrix(fdtd_order, fdtd_acc)
+        self.FDTD_COEFFS_X: np.ndarray = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_x) ** 2)
+        self.FDTD_COEFFS_Y: np.ndarray = fdtd_coeffs_not_normalized * ((sim_param.c / partitions[0].h_y) ** 2)
 
         # FDTD kernel size.
         self.INTERFACE_SIZE = int((len(fdtd_coeffs_not_normalized[0])) / 2) 
