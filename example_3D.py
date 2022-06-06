@@ -89,7 +89,7 @@ if auralize:
             int(partitions[0].dimensions[2] / 2)
         ], sim_param, 
         # Name of resulting wave file
-        f"pytARD_2D_{date.today()}_{datetime.now().time()}"
+        f"pytARD_3D_{date.today()}_{datetime.now().time()}"
     ))
 
 # Instantiation serializer for reading and writing simulation state data

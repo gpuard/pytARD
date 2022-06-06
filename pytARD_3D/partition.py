@@ -109,7 +109,7 @@ class DampingProfile:
         reflection_coefficient : float
             Reflection coefficient R. Determines how intense the reflections of the PML partition are.
         '''
-        self.zetta_i = DampingProfile.calculate_zetta(
+        self.zetta_i: float = DampingProfile.calculate_zetta(
             room_length, c, reflection_coefficient)
 
     def damping_profile(self, x, width):
@@ -183,29 +183,25 @@ class PMLPartition3D(Partition3D):
         self.impulse = False # Needed for plotting
 
         # Voxel grid spacing. Changes automatically according to frequency
+        self.h_x: float
+        self.h_y: float
+        self.h_z: float
         self.h_z, self.h_y, self.h_x = Partition3D.calculate_h_x_y_z(sim_param)
 
         # Check stability of wave equation
         Partition3D.check_CFL(self.sim_param, self.h_x, self.h_y, self.h_z)
 
         # Longest room dimension length dividied by H (voxel grid spacing).
-        # self.space_divisions_z = int(dimensions[2] / self.h_z)
-        # self.space_divisions_y = int(dimensions[1] / self.h_y)
-        # self.space_divisions_x = int(dimensions[0] / self.h_x)
         self.space_divisions_z = int(dimensions[2] / self.h_z)
         self.space_divisions_y = int(dimensions[1] / self.h_y)
-        if pml_type == PMLType.RIGHT or pml_type == PMLType.LEFT:
-            self.space_divisions_x = 7
-        else:
-            self.space_divisions_x = int(dimensions[0] / self.h_x)
+        self.space_divisions_x = int(dimensions[0] / self.h_x)
 
-        self.grid_shape = (self.space_divisions_x,
-                           self.space_divisions_y, self.space_divisions_z)
+        self.grid_shape = (self.space_divisions_x, self.space_divisions_y, self.space_divisions_z)
 
         shape_template = np.zeros(
             shape=[self.space_divisions_z, self.space_divisions_y, self.space_divisions_x])
 
-        # Instantiate force f to spectral domain array, which corresponds to 𝑓~. TODO: Elaborate more
+        # Instantiate force f to spectral domain array, which corresponds to 𝑓~. 
         self.new_forces = shape_template.copy()
 
         # Array, which stores air pressure at each given point in time in the voxelized grid
@@ -227,20 +223,15 @@ class PMLPartition3D(Partition3D):
         self.psi = shape_template.copy()
         self.psi_new = shape_template.copy()
 
-        # TODO Cleanup! Not parameterized in the constructor
-        self.include_self_terms = False
-        self.render = False
-        self.pml_type = pml_type
-
         # FDTD coefficents. Constant values.
-        self.FDTD_COEFFS = [2.0, -27.0, 270.0, -490.0, 270.0, -27.0, 2.0]
-        self.FOURTH_COEFFS = [1.0, -8.0, 0.0, 8.0, -1.0]
+        self.FDTD_COEFFS: list = [2.0, -27.0, 270.0, -490.0, 270.0, -27.0, 2.0]
+        self.FOURTH_COEFFS: list = [1.0, -8.0, 0.0, 8.0, -1.0]
 
         # Array for pressure field results (auralisation and visualisation)
         self.pressure_field_results = []
 
         # Damping profile for PML.
-        self.damping_profile = damping_profile
+        self.damping_profile: DampingProfile = damping_profile
 
         if sim_param.verbose:
             print(
@@ -276,8 +267,6 @@ class PMLPartition3D(Partition3D):
         d_z = 1.0
 
         for x in range(self.space_divisions_x):
-            #kx = 0.0
-            #ky = 0.0
             kx = self.damping_profile.damping_profile(
                 x, self.space_divisions_x)
 
@@ -304,13 +293,6 @@ class PMLPartition3D(Partition3D):
                     KPx /= 180.0
                     KPy /= 180.0
                     KPz /= 180.0
-
-                    # mirrors the wave
-                    # kx = 1000
-                    # breaks simulation
-                    # kx = 1000
-                    # ky = 10000
-                    # kz = 10000
 
                     term1 = 2 * self.pressure_field[z, y, x]
                     term2 = -self.p_old[z, y, x]
@@ -473,16 +455,16 @@ class AirPartition3D(Partition3D):
         # Fill impulse array with impulses.
         if impulse:
             # Emit impulse into room
-            self.src_grid_loc = (int(self.space_divisions_z * (impulse.location[2] / dimensions[2])),
-                                 int(self.space_divisions_y *
-                                     (impulse.location[1] / dimensions[1])),
-                                 int(self.space_divisions_x * (impulse.location[0] / dimensions[0])))
-            self.impulses[:,
-                          int(self.space_divisions_z *
-                              (impulse.location[2] / dimensions[2])),
-                          int(self.space_divisions_y *
-                              (impulse.location[1] / dimensions[1])),
-                          int(self.space_divisions_x * (impulse.location[0] / dimensions[0]))] = impulse.get()
+            self.src_grid_loc: np.ndarray = (
+                int(self.space_divisions_z * (impulse.location[2] / dimensions[2])),
+                int(self.space_divisions_y * (impulse.location[1] / dimensions[1])),
+                int(self.space_divisions_x * (impulse.location[0] / dimensions[0]))
+            )
+            self.impulses[:,        
+                int(self.space_divisions_z * (impulse.location[2] / dimensions[2])),
+                int(self.space_divisions_y * (impulse.location[1] / dimensions[1])),
+                int(self.space_divisions_x * (impulse.location[0] / dimensions[0]))
+            ] = impulse.get()
         if sim_param.verbose:
             print(
                 f"Created partition with dimensions {self.dimensions[0]}x{self.dimensions[1]}x{self.dimensions[2]} m\nℎ (z): {self.h_z}, ℎ (y): {self.h_y}, ℎ (x): {self.h_x} | Space divisions: {self.space_divisions_y} | CFL = {CFL}")
