@@ -1,5 +1,4 @@
-from matplotlib import ft2font
-from common.impulse import ExperimentalUnit, Gaussian
+from common.impulse import Gaussian
 from common.parameters import SimulationParameters as SIMP
 from common.microphone import Microphone as Mic
 
@@ -46,27 +45,19 @@ sim_param = SIMP(
 impulse = Gaussian(sim_param, [0], 10000)
 
 for accuracy in [4, 6, 10]:
-    # Define test  rooms
     test_partition_1 = PARTD(np.array([c]), sim_param, impulse)
     test_partition_2 = PARTD(np.array([c]), sim_param)
     test_room = [test_partition_1, test_partition_2]
-
-    # Define Interfaces
     interfaces = []
     interfaces.append(InterfaceData1D(0, 1, fdtd_acc=accuracy))
 
-    # Define and position mics
-
-    # Initialize & position mics. 
     mic = Mic(0, int(c / 2), sim_param, filename + "_" +"mic")
     test_mics = [mic]
 
-    # Instantiating and executing simulation
     test_sim = ARDS(sim_param, test_room, 1, interface_data=interfaces, mics=test_mics)
     test_sim.preprocessing()
     test_sim.simulation()
 
-    # Normalizing + writing recorded mic tracks
     def find_best_peak(mics):
         peaks = []
         for i in range(len(mics)):
@@ -100,12 +91,12 @@ for accuracy in [4, 6, 10]:
         plt.rc('xtick', labelsize=sizerino) #fontsize of the x tick labels
         plt.rc('ytick', labelsize=sizerino) #fontsize of the y tick labels
         plt.rc('legend', fontsize=sizerino) #fontsize of the legend
-        plt.plot(t, y, label=f"FDTD-Genauigkeit = {accuracy}")
-        plt.xlabel('Zeit s')
+        plt.plot(t, y, label=f"FDTD accuracy = {accuracy}")
+        plt.xlabel('Time s')
         plt.ylabel('Amplitude dBA')
         plt.ylim(top=-45, bottom=-47.5)
         plt.xlim(left=1.53, right=1.6)
-        print(f"Peak bei FDTD-Genauigkeit = {accuracy}: {np.max(y[int(1.53*Fs) : int(1.6*Fs)])}")
+        print(f"Peak at FDTD accuracy = {accuracy}: {np.max(y[int(1.53*Fs) : int(1.6*Fs)])}")
         plt.grid()
 
     visualize_ripple(filename + "_" +"mic.wav")

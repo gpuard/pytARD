@@ -1,7 +1,7 @@
 from common.parameters import SimulationParameters
 from common.notification import Notification
 
-from pytARD_2D.interface import Interface2D
+from pytARD_2D.interface import Interface2DStandard, Interface2DLooped
 
 from tqdm import tqdm
 
@@ -29,25 +29,27 @@ class ARDSimulator2D:
             Instance of simulation parameter class.
         partitions : list
             List of Partition objects. All partitions of the domain are collected here.
-        normalization_factor : float
+        normalization_factor : float, optional
             Normalization multiplier to harmonize amplitudes between partitions.
-        interface_data : list
+        interface_data : list, optional
             List of Interface objects. All interfaces of the domain are collected here.
-        mics : list
+        mics : list, optional
             List of Microphone objects. All microphones placed within the domain are collected here.
         '''
 
         # Parameter class instance (SimulationParameters)
         self.sim_param = sim_param
 
-        # List of partition data (PartitionData objects)
-        self.part_data = partitions
+        # List of partition data (Partition2D objects)
+        self.partitions = partitions
 
         # List of interfaces (InterfaceData objects)
         self.interface_data = interface_data
-        self.interfaces = None
-        if self.interface_data:
-            self.interfaces = Interface2D(sim_param, partitions, fdtd_acc=self.interface_data[0].fdtd_acc)
+
+        if interface_data[0].looped:
+            self.interfaces = Interface2DLooped(sim_param, partitions)
+        else:
+            self.interfaces = Interface2DStandard(sim_param, partitions)
 
         # Initialize & position mics.
         self.mics = mics
@@ -59,8 +61,8 @@ class ARDSimulator2D:
         Preprocessing stage. Refers to Step 1 in the paper.
         '''
 
-        for i in range(len(self.part_data)):
-            self.part_data[i].preprocessing()
+        for i in range(len(self.partitions)):
+            self.partitions[i].preprocessing()
 
     def simulation(self):
         '''
@@ -77,21 +79,21 @@ class ARDSimulator2D:
                 self.interfaces.handle_interface(interface)
 
             # Calling all interfaces to simulate wave propagation locally
-            for i in range(len(self.part_data)):
-                self.part_data[i].simulate(t_s, self.normalization_factor)
+            for i in range(len(self.partitions)):
+                self.partitions[i].simulate(t_s, self.normalization_factor)
 
                 # Per-partition microphone handling
                 for m_i in range(len(self.mics)):
                     p_num = self.mics[m_i].partition_number
-                    pressure_field_y = int(self.part_data[p_num].space_divisions_y * (
-                        self.mics[m_i].location[1] / self.part_data[p_num].dimensions[1]))
-                    pressure_field_x = int(self.part_data[p_num].space_divisions_x * (
-                        self.mics[m_i].location[0] / self.part_data[p_num].dimensions[0]))
+                    pressure_field_y = int(self.partitions[p_num].space_divisions_y * (
+                        self.mics[m_i].location[1] / self.partitions[p_num].dimensions[1]))
+                    pressure_field_x = int(self.partitions[p_num].space_divisions_x * (
+                        self.mics[m_i].location[0] / self.partitions[p_num].dimensions[0]))
 
                     # Recording sound data at given location
-                    self.mics[m_i].record(self.part_data[p_num].pressure_field.copy().reshape([
-                        self.part_data[p_num].space_divisions_y, 
-                        self.part_data[p_num].space_divisions_x, 1]
+                    self.mics[m_i].record(self.partitions[p_num].pressure_field.copy().reshape([
+                        self.partitions[p_num].space_divisions_y, 
+                        self.partitions[p_num].space_divisions_x, 1]
                     )[pressure_field_y][pressure_field_x], t_s)
 
         if self.sim_param.verbose:

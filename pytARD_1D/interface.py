@@ -1,7 +1,7 @@
-import numpy as np
-from common.finite_differences import get_laplacian_matrix
+from common.finite_differences import FiniteDifferences
 from common.parameters import SimulationParameters
 
+import numpy as np
 
 class InterfaceData1D():
     '''
@@ -15,10 +15,10 @@ class InterfaceData1D():
         Parameters
         ----------
         part1_index : int, 
-            Index of first partition (index of PartitionData list)
+            Index of first partition (index of Partition1D list)
         part2_index : int 
-            Index of first partition (index of PartitionData list)
-        fdtd_acc : int
+            Index of first partition (index of Partition1D list)
+        fdtd_acc : int, optional
             FDTD accuracy.
         '''
         self.part1_index = part1_index
@@ -47,19 +47,18 @@ class Interface1D():
             Instance of simulation parameter class.
         partitions : list
             List of Partition objects. All partitions of the domain are collected here.
-        fdtd_order : int
+        fdtd_order : int, optional
             FDTD order.
-        fdtd_acc : int
+        fdtd_acc : int, optional
             FDTD accuracy.
         '''
 
-        self.part_data = partitions
+        self.partitions = partitions
         self.fdtd_acc = fdtd_acc
 
         # 1D FDTD coefficents calculation. Normalize FDTD coefficents with space divisions and speed of sound.
-        # TODO: In the papers it's supposed to be multiplied by *(c/h)**2
-        fdtd_coeffs_not_normalized = get_laplacian_matrix(fdtd_order, fdtd_acc)
-        self.FDTD_COEFFS = fdtd_coeffs_not_normalized * (sim_param.c / partitions[0].h)
+        fdtd_coeffs_not_normalized: np.ndarray = FiniteDifferences.get_laplacian_matrix(fdtd_order, fdtd_acc)
+        self.FDTD_COEFFS: np.ndarray = fdtd_coeffs_not_normalized * (sim_param.c / partitions[0].h)
 
         # Interface size derived from FDTD kernel size.
         # If FDTD Accuracy is for example 6, then the interface is 3 on each
@@ -80,18 +79,18 @@ class Interface1D():
             shape=[2 * self.INTERFACE_SIZE])
 
         # Left rod
-        pressure_field_around_interface[0: self.INTERFACE_SIZE] = self.part_data[
+        pressure_field_around_interface[0: self.INTERFACE_SIZE] = self.partitions[
             interface_data.part1_index].pressure_field[-self.INTERFACE_SIZE:].copy()
 
         # Right rod
         pressure_field_around_interface[self.INTERFACE_SIZE: 2 *
-                                        self.INTERFACE_SIZE] = self.part_data[interface_data.part2_index].pressure_field[0: self.INTERFACE_SIZE].copy()
+                                        self.INTERFACE_SIZE] = self.partitions[interface_data.part2_index].pressure_field[0: self.INTERFACE_SIZE].copy()
 
         new_forces_from_interface = np.matmul(
             pressure_field_around_interface, self.FDTD_COEFFS)
 
         # Add everything together
-        self.part_data[interface_data.part1_index].new_forces[-self.INTERFACE_SIZE:
+        self.partitions[interface_data.part1_index].new_forces[-self.INTERFACE_SIZE:
                                                               ] += new_forces_from_interface[0:self.INTERFACE_SIZE]
-        self.part_data[interface_data.part2_index].new_forces[:
+        self.partitions[interface_data.part2_index].new_forces[:
                                                               self.INTERFACE_SIZE] += new_forces_from_interface[self.INTERFACE_SIZE: self.INTERFACE_SIZE * 2]

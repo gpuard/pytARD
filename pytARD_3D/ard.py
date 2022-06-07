@@ -1,8 +1,7 @@
-from common.microphone import Microphone
 from common.notification import Notification
 from common.parameters import SimulationParameters
 
-from pytARD_3D.interface import Interface3DLooped, Interface3D
+from pytARD_3D.interface import Interface3DLooped, Interface3DStandard
 
 from tqdm import tqdm
 
@@ -40,8 +39,8 @@ class ARDSimulator3D:
         # Parameter class instance (SimulationParameters)
         self.sim_param = sim_param
 
-        # List of partition data (PartitionData objects)
-        self.part_data = partitions
+        # List of partition data (Partition3D objects)
+        self.partitions = partitions
 
         # List of interfaces (InterfaceData objects)
         self.interface_data = interface_data
@@ -49,7 +48,7 @@ class ARDSimulator3D:
         if interface_data[0].looped:
             self.interfaces = Interface3DLooped(sim_param, partitions)
         else:
-            self.interfaces = Interface3D(sim_param, partitions)
+            self.interfaces = Interface3DStandard(sim_param, partitions)
 
         # Initialize & position mics.
         self.mics = mics
@@ -61,25 +60,8 @@ class ARDSimulator3D:
         Preprocessing stage. Refers to Step 1 in the paper.
         '''
 
-        for i in range(len(self.part_data)):
-            self.part_data[i].preprocessing()
-
-
-    def record_to_mic(self, mic: Microphone, t_s: int):
-        '''
-        Records a given position in the domain to a given microphone.
-
-        Parameters
-        ----------
-        mic : Microphone
-            Microphone object instance which is placed inside the domain.
-        t_s : float
-            Current time step of the ARD simulation.
-        '''
-        pressure_field_z = int(self.part_data[mic.partition_number].space_divisions_z * (mic.location[2] / self.part_data[mic.partition_number].dimensions[2]))
-        pressure_field_y = int(self.part_data[mic.partition_number].space_divisions_y * (mic.location[1] / self.part_data[mic.partition_number].dimensions[1]))
-        pressure_field_x = int(self.part_data[mic.partition_number].space_divisions_x * (mic.location[0] / self.part_data[mic.partition_number].dimensions[0]))
-        mic.record(self.part_data[mic.partition_number].pressure_field[pressure_field_z][pressure_field_y][pressure_field_x], t_s)
+        for i in range(len(self.partitions)):
+            self.partitions[i].preprocessing()
 
         
     def simulation(self):
@@ -97,24 +79,24 @@ class ARDSimulator3D:
                 self.interfaces.handle_interface(interface)
 
             # Reverberation generation sensation
-            for i in range(len(self.part_data)):
-                self.part_data[i].simulate(t_s, self.normalization_factor)
+            for i in range(len(self.partitions)):
+                self.partitions[i].simulate(t_s, self.normalization_factor)
 
                 # Microphone handling
                 for m_i in range(len(self.mics)):
                     p_num = self.mics[m_i].partition_number
-                    pressure_field_z = int(self.part_data[p_num].space_divisions_z * (
-                        self.mics[m_i].location[2] / self.part_data[p_num].dimensions[2]))
-                    pressure_field_y = int(self.part_data[p_num].space_divisions_y * (
-                        self.mics[m_i].location[1] / self.part_data[p_num].dimensions[1]))
-                    pressure_field_x = int(self.part_data[p_num].space_divisions_x * (
-                        self.mics[m_i].location[0] / self.part_data[p_num].dimensions[0]))
+                    pressure_field_z = int(self.partitions[p_num].space_divisions_z * (
+                        self.mics[m_i].location[2] / self.partitions[p_num].dimensions[2]))
+                    pressure_field_y = int(self.partitions[p_num].space_divisions_y * (
+                        self.mics[m_i].location[1] / self.partitions[p_num].dimensions[1]))
+                    pressure_field_x = int(self.partitions[p_num].space_divisions_x * (
+                        self.mics[m_i].location[0] / self.partitions[p_num].dimensions[0]))
 
-                    self.mics[m_i].record(self.part_data[p_num].pressure_field.copy().reshape(
+                    self.mics[m_i].record(self.partitions[p_num].pressure_field.copy().reshape(
                         [
-                            self.part_data[p_num].space_divisions_z, 
-                            self.part_data[p_num].space_divisions_y, 
-                            self.part_data[p_num].space_divisions_x, 1
+                            self.partitions[p_num].space_divisions_z, 
+                            self.partitions[p_num].space_divisions_y, 
+                            self.partitions[p_num].space_divisions_x, 1
                         ])[pressure_field_z][pressure_field_y][pressure_field_x], t_s)
 
         if self.sim_param.verbose:

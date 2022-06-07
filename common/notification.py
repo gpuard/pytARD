@@ -1,6 +1,7 @@
 import os
 import platform
 
+
 class Notification:
     '''
     Notifies the user of action the software is currently doing via desktop notification. Supports Linux and macOS.
@@ -26,11 +27,11 @@ class Notification:
 
         '''
         plt = platform.system()
-        if plt=='Darwin':
+        if plt == 'Darwin':
             command = f'''
             osascript -e 'display notification "{text}" with title "{title}"'
             '''
-        if plt=='Linux':
+        if plt == 'Linux':
             command = f'''
             notify-send "{text}" "{title}"
             '''

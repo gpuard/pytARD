@@ -1,15 +1,16 @@
+from common.parameters import SimulationParameters
+
 import string
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.io.wavfile import read
-from scipy.signal import firwin, freqz, lfilter
+from scipy.signal import firwin
 
-from common.parameters import SimulationParameters
 
 class Impulse():
     '''
     Abstract impulse class. Has no implementation
     '''
+
     def __init__(self):
         '''
         This method is deliberately not implemented
@@ -20,19 +21,21 @@ class Impulse():
         '''
         This method is deliberately not implemented
         '''
-        raise NotImplementedError("This method is deliberately not implemented")
+        raise NotImplementedError(
+            "This method is deliberately not implemented")
 
 
 class Gaussian(Impulse):
     '''
     Creates and injects a Gaussian impulse as an impulse source.
     '''
+
     def __init__(
-        self, 
-        sim_param: SimulationParameters, 
-        location: np.ndarray, 
-        amplitude: int, 
-        width: float=70
+        self,
+        sim_param: SimulationParameters,
+        location: np.ndarray,
+        amplitude: int,
+        width: float = 70
     ):
         '''
         Instantiation of a Gaussian impulse.
@@ -50,7 +53,8 @@ class Gaussian(Impulse):
         '''
         self.sim_param = sim_param
         self.location = location
-        self.time_sample_indices = np.arange(0, self.sim_param.number_of_samples, 1)
+        self.time_sample_indices = np.arange(
+            0, self.sim_param.number_of_samples, 1)
         self.amplitude = amplitude
         self.width = width
 
@@ -88,10 +92,6 @@ class Gaussian(Impulse):
         impulse = self.amplitude * Gaussian.create_gaussian_impulse(
             self.time_sample_indices, 80 * 4, 80) - self.amplitude * self.create_gaussian_impulse(self.time_sample_indices, 80 * 4 * 2, 80)
 
-        if self.sim_param.visualize:
-            plt.plot(impulse)
-            plt.show()
-            
         return impulse
 
 
@@ -99,7 +99,14 @@ class WaveFile(Impulse):
     '''
     Creates and injects a wave file on disk as an impulse source.
     '''
-    def __init__(self, sim_param: SimulationParameters, location: np.ndarray, path_to_file: string, amplitude: int):
+
+    def __init__(
+        self, 
+        sim_param: SimulationParameters, 
+        location: np.ndarray, 
+        path_to_file: string, 
+        amplitude: int
+    ):
         '''
         Instantiation of a wave file impulse.
 
@@ -130,7 +137,7 @@ class WaveFile(Impulse):
         ndarray
             Impulse over time.
         '''
-    
+
         return self.amplitude * self.wav[0:self.sim_param.number_of_samples]
 
 
@@ -138,8 +145,15 @@ class Unit(Impulse):
     '''
     Creates and injects a unit impulse as an impulse source.
     '''
+
     def __init__(
-        self, sim_param: SimulationParameters, location: np.ndarray, amplitude: int, cutoff_frequency: int=None, filter_order: int=41):
+        self, 
+        sim_param: SimulationParameters, 
+        location: np.ndarray, 
+        amplitude: int, 
+        cutoff_frequency: int = None, 
+        filter_order: int = 41
+    ):
         '''
         Instantiation of an unit impulse.
 
@@ -165,14 +179,9 @@ class Unit(Impulse):
             cutoff_frequency = sim_param.Fs / 2
 
         self.filter_coeffs = firwin(filter_order, (cutoff_frequency / 2) * 0.95, fs=sim_param.Fs)
-        self.impulse[0 : len(self.filter_coeffs)] = self.filter_coeffs
-        self.impulse[len(self.filter_coeffs) : 2 * len(self.filter_coeffs)] = -self.filter_coeffs
+        self.impulse[0: len(self.filter_coeffs)] = self.filter_coeffs
+        self.impulse[len(self.filter_coeffs): 2 * len(self.filter_coeffs)] = -self.filter_coeffs
 
-        if self.sim_param.visualize_source:
-            [f, H] = freqz(self.filter_coeffs, [1], fs=sim_param.Fs)
-            plt.plot(f, np.abs(H))
-            plt.show()
-        
     def get(self):
         '''
         Injects unit impulse defined by parameters which were defined on impulse instantiation.
@@ -182,52 +191,8 @@ class Unit(Impulse):
         ndarray
             Impulse over time.
         '''
-        if self.sim_param.visualize_source:
-            plt.plot(self.impulse)
-            plt.show()
-
         return self.amplitude * self.impulse
 
-# TODO Maybe choose between ExperimentalUnit and standard Unit, removing the other
-class ExperimentalUnit(Impulse):
-    '''
-    Creates and injects a unit impulse as an impulse source.
-    '''
-    def __init__(
-        self, sim_param: SimulationParameters, location: np.ndarray, amplitude: int, cutoff_frequency: int=None, filter_order: int=41):
-        '''
-        Instantiation of an unit impulse.
-
-        Parameters
-        ----------
-        sim_param : SimulationParameters
-            Parameters of ARD Simulation
-        location : ndarray
-            Location in which the impulse gets injected
-        amplitude : int
-            Determines the amplitude; "loudness" of impulse 
-        cutoff_frequency : int
-            Determines the frequency which will get lowpassed (high frequency are cut off).
-        filter_order : int
-            Determines the order of the lowpass filter.
-        '''
-        self.sim_param = sim_param
-        self.location = location
-        self.amplitude = amplitude
-        self.impulse = np.zeros(self.sim_param.number_of_samples)
-
-        if cutoff_frequency is None:
-            cutoff_frequency = sim_param.Fs / 2
-
-        self.filter_coeffs = firwin(filter_order, cutoff_frequency, fs=sim_param.Fs)
-
-        uno_numberinos = int(self.sim_param.Fs / (cutoff_frequency * 2))
-        self.impulse[0 : uno_numberinos] = 1
-        self.impulse[uno_numberinos + 1 : 2 * uno_numberinos] = -1
-
-        #self.impulse = lfilter(self.filter_coeffs, [1], self.impulse)
-
-        
     def get(self):
         '''
         Injects unit impulse defined by parameters which were defined on impulse instantiation.
@@ -237,8 +202,5 @@ class ExperimentalUnit(Impulse):
         ndarray
             Impulse over time.
         '''
-        if self.sim_param.visualize:
-            plt.plot(self.impulse)
-            plt.show()
 
         return self.amplitude * self.impulse

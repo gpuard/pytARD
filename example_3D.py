@@ -1,5 +1,5 @@
 from pytARD_3D.ard import ARDSimulator3D
-from pytARD_3D.partition import AirPartition3D, PMLPartition3D, DampingProfile, PMLType
+from pytARD_3D.partition import AirPartition3D, PMLPartition3D, DampingProfile
 from pytARD_3D.interface import InterfaceData3D, Direction3D
 
 from common.parameters import SimulationParameters
@@ -9,6 +9,8 @@ from common.plotter import Plotter
 from common.microphone import Microphone as Mic
 
 import numpy as np
+from datetime import date, datetime
+
 
 # Room parameters
 duration = 1 # seconds
@@ -57,12 +59,15 @@ room_width = int(c / SCALE)
 dp = DampingProfile(room_width, c, 1e-3)
 
 partitions = []
-
+# Paritions of the room. Can be 1..n. Add or remove partitions here.
+# This example is two air partitions connected by an interface.
+# Also, you may provide impulse in the partition(s) of your choosing 
+# as the last, optinal parameter.
 partitions.append(AirPartition3D(np.array([
     [room_width], # X, width
     [room_width], # Y, depth
     [room_width]  # Z, height
-]), sim_param, impulse))
+]), sim_param, impulse=impulse))
 
 partitions.append(AirPartition3D(np.array([
     [room_width], # X, width
@@ -70,64 +75,23 @@ partitions.append(AirPartition3D(np.array([
     [room_width]  # Z, height
 ]), sim_param))
 
-'''
-partitions.append(PMLPartition3D(np.array([
-    [1.5], # X, width
-    [room_width], # Y, depth
-    [room_width]  # Z, height
-]), sim_param, PMLType.LEFT, dp))
-
-partitions.append(PMLPartition3D(np.array([
-    [1.5], # X, width
-    [room_width], # Y, depth
-    [room_width]  # Z, height
-]), sim_param, PMLType.LEFT, dp))
-
-partitions.append(PMLPartition3D(np.array([
-    [room_width], # X, width
-    [1.5], # Y, depth
-    [room_width]  # Z, height
-]), sim_param, PMLType.LEFT, dp))
-
-partitions.append(PMLPartition3D(np.array([
-    [room_width], # X, width
-    [1.5], # Y, depth
-    [room_width]  # Z, height
-]), sim_param, PMLType.LEFT, dp))
-'''
-
-
 # Interfaces of the room. Interfaces connect the room together
-
 interfaces = []
 interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
-#interfaces.append(InterfaceData3D(0, 2, Direction3D.X))
-#interfaces.append(InterfaceData3D(3, 0, Direction3D.Y))
-#interfaces.append(InterfaceData3D(4, 0, Direction3D.Y))
 
 # Initialize & position mics.
 mics = []
-mics.append(Mic(
-    1, [
-        int(partitions[0].dimensions[0] / 2), 
-        int(partitions[0].dimensions[1] / 2), 
-        int(partitions[0].dimensions[2] / 2)
-    ], sim_param, "left"))
-'''
+if auralize:
+    mics.append(Mic(
+        1, [
+            int(partitions[0].dimensions[0] / 2), 
+            int(partitions[0].dimensions[1] / 2), 
+            int(partitions[0].dimensions[2] / 2)
+        ], sim_param, 
+        # Name of resulting wave file
+        f"pytARD_3D_{date.today()}_{datetime.now().time()}"
+    ))
 
-mics.append(Mic(
-    1, [
-        int(partitions[1].dimensions[0] / 2), 
-        int(partitions[1].dimensions[1] / 2), 
-        int(partitions[1].dimensions[2] / 2)
-    ], sim_param, "right"))
-mics.append(Mic(
-    2, [
-        int(partitions[2].dimensions[0] / 2), 
-        int(partitions[2].dimensions[1] / 2), 
-        int(partitions[2].dimensions[2] / 2)
-    ], sim_param, "bottom"))
-'''
 # Instantiation serializer for reading and writing simulation state data
 serializer = Serializer()
 
