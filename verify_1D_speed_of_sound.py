@@ -1,10 +1,8 @@
 from pytARD_1D.ard import ARDSimulator1D
 from pytARD_1D.partition import AirPartition1D
-from pytARD_1D.interface import InterfaceData1D
 
 from common.parameters import SimulationParameters
-from common.impulse import Gaussian, Unit, WaveFile, ExperimentalUnit
-from common.microphone import Microphone
+from common.impulse import Unit
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,21 +23,14 @@ sim_param = SimulationParameters(
 )
 
 impulse_location = np.array([[0]])
-
-#impulse = Gaussian(sim_param, impulse_location, 10000)
-#impulse = Unit(sim_param, impulse_location, 1, cutoff_frequency=upper_frequency_limit)
-impulse = ExperimentalUnit(sim_param, impulse_location, 1, cutoff_frequency=sim_param.max_simulation_frequency)
-#impulse = WaveFile(sim_param, impulse_location, 'clap_8000.wav', 1000)
-
+impulse = Unit(sim_param, impulse_location, 1, cutoff_frequency=500)
 c_partition = AirPartition1D(np.array([sim_param.c]), sim_param, impulse)
 partitions = [c_partition]
 
-# Instantiating and executing simulation
 sim = ARDSimulator1D(sim_param, partitions, 1)
 sim.preprocessing()
 sim.simulation()
 
-# Plotting waveform
 if sim_param.visualize:
     room_dims = np.linspace(0., c_partition.dimensions[0], len(
         c_partition.pressure_field_results[0]))
@@ -59,7 +50,7 @@ if sim_param.visualize:
     plt.subplot(1, 3, 1)
     plt.plot(
         room_dims, c_partition.pressure_field_results[10], 'r', linewidth=3)
-    plt.xlabel("Ort [m]")
+    plt.xlabel("Location [m]")
     plt.ylabel("Amplitude")
     plt.ylim(top=ytop)
     plt.ylim(bottom=ybtm)
@@ -74,7 +65,7 @@ if sim_param.visualize:
     plt.subplot(1, 3, 2)
     plt.plot(room_dims, c_partition.pressure_field_results[int(
         len(c_partition.pressure_field_results)/2)], 'r', linewidth=3)
-    plt.xlabel("Ort [m]")
+    plt.xlabel("Location [m]")
     plt.ylabel("Amplitude")
     plt.ylim(top=ytop)
     plt.ylim(bottom=ybtm)
@@ -89,7 +80,7 @@ if sim_param.visualize:
     plt.subplot(1, 3, 3)
     plt.plot(
         room_dims, c_partition.pressure_field_results[-10], 'r', linewidth=3)
-    plt.xlabel("Ort [m]")
+    plt.xlabel("Location [m]")
     plt.ylabel("Amplitude")
     plt.ylim(top=ytop)
     plt.ylim(bottom=ybtm)

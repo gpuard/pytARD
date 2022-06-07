@@ -3,7 +3,7 @@ from pytARD_2D.partition import AirPartition2D as PARTD
 from pytARD_2D.interface import InterfaceData2D, Direction2D
 
 from common.parameters import SimulationParameters as SIMP
-from common.impulse import ExperimentalUnit, Gaussian, Unit, WaveFile
+from common.impulse import Gaussian
 from common.serializer import Serializer
 from common.plotter import Plotter
 from common.microphone import Microphone as Mic
@@ -26,13 +26,11 @@ c = 342  # m/s
 duration = 0.2  #  seconds
 spatial_samples_per_wave_length = 6
 
-# Procedure parameters
 verbose = True
 visualize = False
 write_to_file = True
 filename = "verify_2D_interface_absorption"
 
-# Compilation of room parameters into parameter class
 sim_param = SIMP(
     upper_frequency_limit,
     duration,
@@ -44,29 +42,18 @@ sim_param = SIMP(
     visualize=visualize
 )
 
-# Define impulse that gets emitted into the room. Uncomment which kind of impulse you want
 impulse_location = np.array([[0.5], [0.5]])
-impulse = ExperimentalUnit(
-    sim_param, impulse_location, 1, upper_frequency_limit)
-#impulse = WaveFile(sim_param, impulse_location, 'clap_8000.wav', 1000)
-#impulse = Gaussian(sim_param, impulse_location, 10000)
+impulse = Gaussian(sim_param, impulse_location, 10000)
 
-# Paritions of long room
 control_room = PARTD(np.array([2, 1]), sim_param, impulse)
-
-# Paritions of two concatenated small rooms
 test_room_left = PARTD(np.array([1, 1]), sim_param, impulse)
 test_room_right = PARTD(np.array([1, 1]), sim_param)
-
-# Compilation of all partitions into one part_data object. Add or remove rooms here. TODO change to obj.append()
 control_room = [control_room]
 test_room = [test_room_left, test_room_right]
 
-# Interfaces of the concatenated room.
 interfaces = []
 interfaces.append(InterfaceData2D(1, 0, Direction2D.X))
 
-# Microphonesfilename + "_" +
 long_room_mic1 = Mic(
     0,  # Parition number
     # Position
@@ -95,43 +82,26 @@ short_room_mic2 = Mic(
     filename + "_" + "roomB_mic2"
 )
 
-# Compilation of all microphones into one mics object. Add or remove mics here. TODO change to obj.append()
 control_mics = [long_room_mic1, long_room_mic2]
 test_mics = [short_room_mic1, short_room_mic2]
 
-
-# Instantiation serializer for reading and writing simulation state data
 serializer = Serializer()
 plotter = Plotter()
 
-
 def write_and_plot(room):
-    # Write partitions and state data to disk
     if write_to_file:
         if verbose:
             print("Writing state data to disk. Please wait...")
         serializer.dump(sim_param, room, mics=[],
                         plot_structure=[], filename=filename,)
 
-    # Plotting waveform
-    #plotter.set_data_from_simulation(sim_params, room)
-    # plotter.plot_2D()
-
-
-# Instantiating and executing control simulation
 control_sim = ARDS(sim_param, control_room, .25, mics=control_mics)
 control_sim.preprocessing()
 control_sim.simulation()
 
-# write_and_plot(control_room)
-
-# Instantiating and executing test simulation
 test_sim = ARDS(sim_param, test_room, 1, interfaces, mics=test_mics)
 test_sim.preprocessing()
 test_sim.simulation()
-
-# Find best peak to normalize mic signal and write mic signal to file
-
 
 def find_best_peak(mics):
     peaks = []
@@ -154,7 +124,6 @@ def write_mic_files(mics, peak):
 write_mic_files(control_mics, best_peak)
 write_mic_files(test_mics, best_peak)
 
-# Call to plot concatenated room
 write_and_plot(test_room)
 
 wav_diff(

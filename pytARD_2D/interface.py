@@ -71,7 +71,7 @@ class Interface2D():
             FDTD accuracy.
         '''
 
-        self.part_data = partitions
+        self.partitions = partitions
         self.fdtd_acc = fdtd_acc
 
         # 2D FDTD coefficents calculation. Normalize FDTD coefficents with space divisions and speed of sound. 
@@ -92,28 +92,28 @@ class Interface2D():
             InterfaceData instance. Determines which two partitions pass sound waves to each other.
         '''
         if interface_data.direction == Direction2D.X:
-            p_left = self.part_data[interface_data.part1_index].pressure_field[:, -self.INTERFACE_SIZE:]
-            p_right = self.part_data[interface_data.part2_index].pressure_field[:, :self.INTERFACE_SIZE]
+            p_left = self.partitions[interface_data.part1_index].pressure_field[:, -self.INTERFACE_SIZE:]
+            p_right = self.partitions[interface_data.part2_index].pressure_field[:, :self.INTERFACE_SIZE]
 
             # Calculate new forces transmitted into room
             pressures_along_y = np.hstack((p_left, p_right))
             new_forces_from_interface_y = np.matmul(pressures_along_y, self.FDTD_COEFFS_Y)
 
             # Add everything together
-            self.part_data[interface_data.part1_index].new_forces[:, -self.INTERFACE_SIZE:] += new_forces_from_interface_y[:, :self.INTERFACE_SIZE]
-            self.part_data[interface_data.part2_index].new_forces[:, :self.INTERFACE_SIZE] += new_forces_from_interface_y[:, -self.INTERFACE_SIZE:]
+            self.partitions[interface_data.part1_index].new_forces[:, -self.INTERFACE_SIZE:] += new_forces_from_interface_y[:, :self.INTERFACE_SIZE]
+            self.partitions[interface_data.part2_index].new_forces[:, :self.INTERFACE_SIZE] += new_forces_from_interface_y[:, -self.INTERFACE_SIZE:]
 
         elif interface_data.direction == Direction2D.Y:
-            p_top = self.part_data[interface_data.part1_index].pressure_field[-self.INTERFACE_SIZE:, :]
-            p_bot = self.part_data[interface_data.part2_index].pressure_field[:self.INTERFACE_SIZE, :]
+            p_top = self.partitions[interface_data.part1_index].pressure_field[-self.INTERFACE_SIZE:, :]
+            p_bot = self.partitions[interface_data.part2_index].pressure_field[:self.INTERFACE_SIZE, :]
 
             # Calculate new forces transmitted into room
             pressures_along_x = np.vstack((p_top, p_bot))
             new_forces_from_interface_x = np.matmul(self.FDTD_COEFFS_X, pressures_along_x)
 
             # Add everything together
-            self.part_data[interface_data.part1_index].new_forces[-self.INTERFACE_SIZE:, :] += new_forces_from_interface_x[:self.INTERFACE_SIZE, :]
-            self.part_data[interface_data.part2_index].new_forces[:self.INTERFACE_SIZE, :] += new_forces_from_interface_x[-self.INTERFACE_SIZE:, :]
+            self.partitions[interface_data.part1_index].new_forces[-self.INTERFACE_SIZE:, :] += new_forces_from_interface_x[:self.INTERFACE_SIZE, :]
+            self.partitions[interface_data.part2_index].new_forces[:self.INTERFACE_SIZE, :] += new_forces_from_interface_x[-self.INTERFACE_SIZE:, :]
 
 
 class Interface2DLooped():
@@ -144,7 +144,7 @@ class Interface2DLooped():
             FDTD accuracy.
         '''
 
-        self.part_data = partitions
+        self.partitions = partitions
 
         # 2D FDTD coefficents calculation. Normalize FDTD coefficents with space divisions and speed of sound. 
         fdtd_coeffs_not_normalized: np.ndarray = FiniteDifferences.get_laplacian_matrix(fdtd_order, fdtd_acc)
@@ -164,28 +164,28 @@ class Interface2DLooped():
             Contains data which two partitions are involved, and in which direction the sound will travel.
         '''
         if interface_data.direction == Direction2D.X:
-            for y in range(self.part_data[interface_data.part1_index].space_divisions_y):
+            for y in range(self.partitions[interface_data.part1_index].space_divisions_y):
                 pressure_field_around_interface_y = np.zeros(shape=[2 * self.INTERFACE_SIZE])
-                pressure_field_around_interface_y[0 : self.INTERFACE_SIZE] = self.part_data[interface_data.part1_index].pressure_field[y, -self.INTERFACE_SIZE : ].copy()
-                pressure_field_around_interface_y[self.INTERFACE_SIZE : 2 * self.INTERFACE_SIZE] = self.part_data[interface_data.part2_index].pressure_field[y, 0 : self.INTERFACE_SIZE].copy()
+                pressure_field_around_interface_y[0 : self.INTERFACE_SIZE] = self.partitions[interface_data.part1_index].pressure_field[y, -self.INTERFACE_SIZE : ].copy()
+                pressure_field_around_interface_y[self.INTERFACE_SIZE : 2 * self.INTERFACE_SIZE] = self.partitions[interface_data.part2_index].pressure_field[y, 0 : self.INTERFACE_SIZE].copy()
 
                 # Calculate new forces transmitted into room
                 new_forces_from_interface_y = np.matmul(pressure_field_around_interface_y, self.FDTD_COEFFS_Y)
 
                 # Add everything together
-                self.part_data[interface_data.part1_index].new_forces[y, -self.INTERFACE_SIZE:] += new_forces_from_interface_y[0:self.INTERFACE_SIZE]
-                self.part_data[interface_data.part2_index].new_forces[y, :self.INTERFACE_SIZE] += new_forces_from_interface_y[self.INTERFACE_SIZE : self.INTERFACE_SIZE * 2]
+                self.partitions[interface_data.part1_index].new_forces[y, -self.INTERFACE_SIZE:] += new_forces_from_interface_y[0:self.INTERFACE_SIZE]
+                self.partitions[interface_data.part2_index].new_forces[y, :self.INTERFACE_SIZE] += new_forces_from_interface_y[self.INTERFACE_SIZE : self.INTERFACE_SIZE * 2]
     
 
         elif interface_data.direction == Direction2D.Y:
-            for x in range(self.part_data[interface_data.part1_index].space_divisions_x):
+            for x in range(self.partitions[interface_data.part1_index].space_divisions_x):
                 pressure_field_around_interface_x = np.zeros(shape=[2 * self.INTERFACE_SIZE])
-                pressure_field_around_interface_x[0 : self.INTERFACE_SIZE] = self.part_data[interface_data.part1_index].pressure_field[-self.INTERFACE_SIZE : , x].copy()
-                pressure_field_around_interface_x[self.INTERFACE_SIZE : 2 * self.INTERFACE_SIZE] = self.part_data[interface_data.part2_index].pressure_field[0 : self.INTERFACE_SIZE, x].copy()
+                pressure_field_around_interface_x[0 : self.INTERFACE_SIZE] = self.partitions[interface_data.part1_index].pressure_field[-self.INTERFACE_SIZE : , x].copy()
+                pressure_field_around_interface_x[self.INTERFACE_SIZE : 2 * self.INTERFACE_SIZE] = self.partitions[interface_data.part2_index].pressure_field[0 : self.INTERFACE_SIZE, x].copy()
 
                 # Calculate new forces transmitted into room
                 new_forces_from_interface_x = np.matmul(pressure_field_around_interface_x, self.FDTD_COEFFS_X)
 
                 # Add everything together
-                self.part_data[interface_data.part1_index].new_forces[-self.INTERFACE_SIZE:, x] += new_forces_from_interface_x[0:self.INTERFACE_SIZE]
-                self.part_data[interface_data.part2_index].new_forces[:self.INTERFACE_SIZE, x] += new_forces_from_interface_x[self.INTERFACE_SIZE : self.INTERFACE_SIZE * 2]
+                self.partitions[interface_data.part1_index].new_forces[-self.INTERFACE_SIZE:, x] += new_forces_from_interface_x[0:self.INTERFACE_SIZE]
+                self.partitions[interface_data.part2_index].new_forces[:self.INTERFACE_SIZE, x] += new_forces_from_interface_x[self.INTERFACE_SIZE : self.INTERFACE_SIZE * 2]

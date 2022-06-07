@@ -3,7 +3,7 @@ from pytARD_1D.partition import AirPartition1D
 from pytARD_1D.interface import InterfaceData1D
 
 from common.parameters import SimulationParameters
-from common.impulse import Gaussian, Unit, WaveFile, ExperimentalUnit
+from common.impulse import Gaussian, Unit, WaveFile
 from common.microphone import Microphone
 from common.plotter import Plotter
 

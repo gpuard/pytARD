@@ -1,4 +1,4 @@
-from common.impulse import ExperimentalUnit, Gaussian
+from common.impulse import Gaussian
 from common.parameters import SimulationParameters as SIMP
 from common.microphone import Microphone as Mic
 
@@ -8,7 +8,6 @@ from pytARD_1D.interface import InterfaceData1D
 
 from utility_wavdiff import wav_diff, visualize_multiple_waveforms 
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 '''

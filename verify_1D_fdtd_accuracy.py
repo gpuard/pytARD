@@ -1,4 +1,4 @@
-from common.impulse import ExperimentalUnit, Gaussian
+from common.impulse import Gaussian
 from common.parameters import SimulationParameters as SIMP
 from common.microphone import Microphone as Mic
 
@@ -14,7 +14,6 @@ Measures average calculation time for each FDTD accuracy (4, 6 and 10).
 For each accuracy, a csv file is generated with seperate iteration time results.
 '''
 
-# Room parameters
 src_pos = [0] # m
 duration = 2 # seconds
 Fs = 8000 # sample rate
@@ -22,13 +21,11 @@ upper_frequency_limit = 300 # Hz
 c = 342 # m/s
 spatial_samples_per_wave_length = 6
 
-# Procedure parameters
 auralize = False
 verbose = False
 visualize = True
 filename = "verify_1D_interface_reflection"
 
-# Compilation of room parameters into parameter class
 sim_param = SIMP(
     upper_frequency_limit, 
     duration, 
@@ -48,22 +45,16 @@ result_time_10 = []
 
 for accuracy in [4, 6, 10]:
     for i in range(10):
-        # Define test  rooms
         test_partition_1 = PARTD(np.array([c]), sim_param, impulse)
         test_partition_2 = PARTD(np.array([c]), sim_param)
         test_room = [test_partition_1, test_partition_2]
 
-        # Define Interfaces
         interfaces = []
         interfaces.append(InterfaceData1D(0, 1, fdtd_acc=accuracy))
 
-        # Define and position mics
-
-        # Initialize & position mics. 
         mic = Mic(0, int(c / 2), sim_param, filename + "_" +"mic")
         test_mics = [mic]
 
-        # Instantiating and executing simulation
         test_sim = ARDS(sim_param, test_room, 1, interface_data=interfaces, mics=test_mics)
         test_sim.preprocessing()
         if accuracy == 4:

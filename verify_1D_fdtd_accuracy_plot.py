@@ -1,12 +1,3 @@
-from matplotlib import ft2font
-from common.impulse import ExperimentalUnit, Gaussian
-from common.parameters import SimulationParameters as SIMP
-from common.microphone import Microphone as Mic
-
-from pytARD_1D.ard import ARDSimulator1D as ARDS
-from pytARD_1D.partition import AirPartition1D as PARTD
-from pytARD_1D.interface import InterfaceData1D
-
 from matplotlib import pyplot as plt
 
 '''

@@ -53,7 +53,7 @@ class Interface1D():
             FDTD accuracy.
         '''
 
-        self.part_data = partitions
+        self.partitions = partitions
         self.fdtd_acc = fdtd_acc
 
         # 1D FDTD coefficents calculation. Normalize FDTD coefficents with space divisions and speed of sound.
@@ -79,18 +79,18 @@ class Interface1D():
             shape=[2 * self.INTERFACE_SIZE])
 
         # Left rod
-        pressure_field_around_interface[0: self.INTERFACE_SIZE] = self.part_data[
+        pressure_field_around_interface[0: self.INTERFACE_SIZE] = self.partitions[
             interface_data.part1_index].pressure_field[-self.INTERFACE_SIZE:].copy()
 
         # Right rod
         pressure_field_around_interface[self.INTERFACE_SIZE: 2 *
-                                        self.INTERFACE_SIZE] = self.part_data[interface_data.part2_index].pressure_field[0: self.INTERFACE_SIZE].copy()
+                                        self.INTERFACE_SIZE] = self.partitions[interface_data.part2_index].pressure_field[0: self.INTERFACE_SIZE].copy()
 
         new_forces_from_interface = np.matmul(
             pressure_field_around_interface, self.FDTD_COEFFS)
 
         # Add everything together
-        self.part_data[interface_data.part1_index].new_forces[-self.INTERFACE_SIZE:
+        self.partitions[interface_data.part1_index].new_forces[-self.INTERFACE_SIZE:
                                                               ] += new_forces_from_interface[0:self.INTERFACE_SIZE]
-        self.part_data[interface_data.part2_index].new_forces[:
+        self.partitions[interface_data.part2_index].new_forces[:
                                                               self.INTERFACE_SIZE] += new_forces_from_interface[self.INTERFACE_SIZE: self.INTERFACE_SIZE * 2]
