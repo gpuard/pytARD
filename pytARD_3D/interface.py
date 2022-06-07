@@ -33,7 +33,7 @@ class InterfaceData3D():
             Passing direction of the sound wave.
         fdtd_acc : int
             FDTD accuracy.
-        looped : bool
+        looped : bool, optional
             Determines if the interfacing is done iteratively instead of being based on matrix multiplication. Likely is slower.
         '''
         self.part1_index = part1_index
@@ -42,6 +42,45 @@ class InterfaceData3D():
         self.looped = looped
 
 class Interface3D():
+    '''
+    Abstract class for Interface, connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
+    '''
+
+    def __init__(
+        self, 
+        sim_param: SimulationParameters, 
+        partitions: list,
+        fdtd_order: int = 2,
+        fdtd_acc: int = 6
+    ):
+        '''
+        No implementation.
+
+        Parameters
+        ----------
+        sim_param : SimulationParameters
+            Instance of simulation parameter class.
+        partitions : list
+            List of Partition objects. All partitions of the domain are collected here.
+        fdtd_order : int, optional
+            FDTD order.
+        fdtd_acc : int, optional
+            FDTD accuracy.
+        '''
+        pass
+    
+    def handle_interface(self, interface_data: InterfaceData3D):
+        '''
+        No implementation.
+
+        Parameters
+        ----------
+        interface_data : InterfaceData3D
+            InterfaceData instance. Determines which two partitions pass sound waves to each other.
+        '''
+        pass
+
+class Interface3DStandard(Interface3D):
     '''
     Interface for connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
     '''
@@ -129,7 +168,7 @@ class Interface3D():
             self.partitions[interface_data.part2_index].new_forces[:self.INTERFACE_SIZE, :, :] += new_forces_from_interface_z[-self.INTERFACE_SIZE:, :, :]
 
 
-class Interface3DLooped():
+class Interface3DLooped(Interface3D):
     '''
     Interface for connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
     Implementation is based on loops and is less efficient than the standard Interface3D.

@@ -2,7 +2,6 @@ from common.parameters import SimulationParameters
 from common.impulse import Impulse
 
 import numpy as np
-from enum import Enum
 from scipy.fft import idctn, dctn
 
 

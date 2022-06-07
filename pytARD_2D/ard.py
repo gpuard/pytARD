@@ -1,7 +1,7 @@
 from common.parameters import SimulationParameters
 from common.notification import Notification
 
-from pytARD_2D.interface import Interface2D
+from pytARD_2D.interface import Interface2DStandard, Interface2DLooped
 
 from tqdm import tqdm
 
@@ -45,9 +45,11 @@ class ARDSimulator2D:
 
         # List of interfaces (InterfaceData objects)
         self.interface_data = interface_data
-        self.interfaces = None
-        if self.interface_data:
-            self.interfaces = Interface2D(sim_param, partitions, fdtd_acc=self.interface_data[0].fdtd_acc)
+
+        if interface_data[0].looped:
+            self.interfaces = Interface2DLooped(sim_param, partitions)
+        else:
+            self.interfaces = Interface2DStandard(sim_param, partitions)
 
         # Initialize & position mics.
         self.mics = mics

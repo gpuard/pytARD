@@ -72,8 +72,8 @@ if auralize:
         0,  # Parition number
         # Position
         [
-            int(partitions[0].dimensions[0] / 1.5),
-            int(partitions[0].dimensions[1] / 1.5)
+            int(1),
+            int(1)
         ],
         sim_param,
         # Name of resulting wave file

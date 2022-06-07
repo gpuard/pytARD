@@ -22,7 +22,8 @@ class InterfaceData2D():
         part1_index: int, 
         part2_index: int, 
         direction: Direction2D, 
-        fdtd_acc: int = 6
+        fdtd_acc: int = 6,
+        looped: bool = False
     ):
         '''
         Creates an instance of interface data between two partitions.
@@ -37,14 +38,56 @@ class InterfaceData2D():
             Passing direction of the sound wave.
         fdtd_acc : int, optional
             FDTD accuracy.
+        looped : bool, optional
+            Determines if the interfacing is done iteratively instead of being based on matrix multiplication. Likely is slower.
         '''
 
         self.part1_index: int = part1_index
         self.part2_index: int = part2_index
         self.direction: Direction2D = direction
         self.fdtd_acc: int = fdtd_acc
+        self.looped = looped
 
 class Interface2D():
+    '''
+    Abstract class for Interface, connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
+    '''
+
+    def __init__(
+        self, 
+        sim_param: SimulationParameters, 
+        partitions: list,
+        fdtd_order: int = 2,
+        fdtd_acc: int = 6
+    ):
+        '''
+        No implementation.
+
+        Parameters
+        ----------
+        sim_param : SimulationParameters
+            Instance of simulation parameter class.
+        partitions : list
+            List of Partition objects. All partitions of the domain are collected here.
+        fdtd_order : int, optional
+            FDTD order.
+        fdtd_acc : int, optional
+            FDTD accuracy.
+        '''
+        pass
+    
+    def handle_interface(self, interface_data: InterfaceData2D):
+        '''
+        No implementation.
+
+        Parameters
+        ----------
+        interface_data : InterfaceData2D
+            InterfaceData instance. Determines which two partitions pass sound waves to each other.
+        '''
+        pass
+
+class Interface2DStandard(Interface2D):
     '''
     Interface for connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
     '''
@@ -116,7 +159,7 @@ class Interface2D():
             self.partitions[interface_data.part2_index].new_forces[:self.INTERFACE_SIZE, :] += new_forces_from_interface_x[-self.INTERFACE_SIZE:, :]
 
 
-class Interface2DLooped():
+class Interface2DLooped(Interface2D):
     '''
     Interface for connecting partitions with each other. Interfaces allow for the passing of sound waves between two partitions.
     Implementation is based on loops and is less efficient than the standard Interface3D.
