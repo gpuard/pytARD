@@ -30,7 +30,7 @@ class ARDSimulator1D:
         sim_param : SimulationParameters
             Instance of simulation parameter class.
         partitions : list
-            List of PartitionData objects. All partitions of the domain are collected here.
+            List of Partition objects. All partitions of the domain are collected here.
         normalization_factor : float
             Normalization multiplier to harmonize amplitudes between partitions.
         interface_data : list, optional
@@ -42,7 +42,7 @@ class ARDSimulator1D:
         # Parameter class instance (SimulationParameters)
         self.sim_param: SimulationParameters = sim_param
 
-        # List of partition data (PartitionData objects)
+        # List of partition data (Partition objects)
         self.partitions: list = partitions
 
         self.interface_data = interface_data

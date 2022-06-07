@@ -22,7 +22,7 @@ class SimulationParameters:
         Parameters
         ----------
         partitions : ndarray
-            Collection of 1D, 2D or 3D partitions (rooms). Array of PartitionData objects.
+            Collection of 1D, 2D or 3D partitions (rooms). Array of Partition objects.
         src_pos : ndarray
             Location of signal source inside the room. Can be 1D, 2D or 3D.
         max_simulation_frequency : float

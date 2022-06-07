@@ -26,9 +26,9 @@ class InterfaceData3D():
         Parameters
         ----------
         part1_index : int, 
-            Index of first partition (index of PartitionData list)
+            Index of first partition (index of Partition3D list)
         part2_index : int 
-            Index of first partition (index of PartitionData list)
+            Index of first partition (index of Partition3D list)
         direction : Direction3D
             Passing direction of the sound wave.
         fdtd_acc : int

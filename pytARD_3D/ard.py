@@ -39,7 +39,7 @@ class ARDSimulator3D:
         # Parameter class instance (SimulationParameters)
         self.sim_param = sim_param
 
-        # List of partition data (PartitionData objects)
+        # List of partition data (Partition3D objects)
         self.partitions = partitions
 
         # List of interfaces (InterfaceData objects)

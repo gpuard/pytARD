@@ -15,9 +15,9 @@ class InterfaceData1D():
         Parameters
         ----------
         part1_index : int, 
-            Index of first partition (index of PartitionData list)
+            Index of first partition (index of Partition1D list)
         part2_index : int 
-            Index of first partition (index of PartitionData list)
+            Index of first partition (index of Partition1D list)
         fdtd_acc : int, optional
             FDTD accuracy.
         '''
