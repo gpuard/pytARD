@@ -3,7 +3,7 @@ from common.parameters import SimulationParameters
 import string
 import numpy as np
 from scipy.io.wavfile import read
-from scipy.signal import firwin, freqz, lfilter
+from scipy.signal import firwin
 
 
 class Impulse():

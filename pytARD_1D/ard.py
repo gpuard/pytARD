@@ -1,7 +1,6 @@
 from common.parameters import SimulationParameters
 
 from pytARD_1D.interface import Interface1D
-from pytARD_1D.partition import AirPartition1D
 
 import numpy as np
 from scipy.fftpack import idct, dct

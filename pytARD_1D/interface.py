@@ -1,7 +1,7 @@
-import numpy as np
 from common.finite_differences import FiniteDifferences
 from common.parameters import SimulationParameters
 
+import numpy as np
 
 class InterfaceData1D():
     '''

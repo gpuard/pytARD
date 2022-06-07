@@ -3,7 +3,6 @@ from common.impulse import Impulse
 
 import numpy as np
 
-
 class AirPartition1D:
     '''
     Air partition. Resembles an empty space in which sound can travel through.

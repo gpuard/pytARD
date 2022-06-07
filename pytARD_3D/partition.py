@@ -1,7 +1,6 @@
 from common.parameters import SimulationParameters
 
 import numpy as np
-from enum import Enum
 from scipy.fft import idctn, dctn
 
 

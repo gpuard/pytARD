@@ -1,4 +1,3 @@
-from turtle import fd
 import numpy as np
 import enum
 
