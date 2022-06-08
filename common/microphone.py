@@ -70,3 +70,63 @@ class Microphone():
 
         # Write to file
         write(self.name, self.sim_param.Fs, normalized_signal.astype(np.float))
+
+    @staticmethod
+    def find_peak_multiple_mics(mics: list):
+        '''
+        Finds peak (largest amplitude) of all tracks the microphones recorded in the domain.
+
+        Parameters
+        ----------
+        mics : list
+            List of Microphone objects.
+
+        Returns
+        -------
+        float
+            Biggest peak of all recorded microphone tracks.
+        '''
+
+        def find_biggest_amplitude(mics):
+            '''
+            Inner helper function to find the biggest peak of all mics.
+
+            Parameters
+            ----------
+            mics : list
+                List of Microphone objects.
+
+            Returns
+            -------
+            float
+                Biggest peak of all recorded microphone tracks.
+            '''
+            peaks = []
+            for i in range(len(mics)):
+                peaks.append(np.max(mics[i].signal))
+            return np.max(peaks)
+
+        all_mic_peaks = []
+        all_mic_peaks.append(find_biggest_amplitude(mics))
+        return(np.max(all_mic_peaks))
+
+    @staticmethod
+    def write_mic_files(mics: list, upper_frequency_limit: int, normalize: bool = False):
+        '''
+        Writes the sound data of collection of Microphone objects to disk.
+
+        Parameters
+        ----------
+        mics : list
+            List of Microphone objects.
+        upper_frequency_limit : int
+            Upper frequency limit, maximum frequency of audible spectrum.
+        normalize : bool
+            If True, automatically normalizes the written sound files to the largest peak the
+            program can find in all recorded tracks.
+        '''
+        peak = 1
+        if normalize:
+            peak = Microphone.find_peak_multiple_mics(mics)
+        for i in range(len(mics)):
+            mics[i].write_to_file(peak, upper_frequency_limit)

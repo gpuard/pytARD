@@ -102,21 +102,7 @@ sim.simulation()
 
 # Find best peak to normalize mic signal and write mic signal to file
 if auralize:
-    def find_best_peak(mics):
-        peaks = []
-        for i in range(len(mics)):
-            peaks.append(np.max(mics[i].signal))
-        return np.max(peaks)
-
-    all_mic_peaks = []
-    all_mic_peaks.append(find_best_peak(mics))
-    best_peak = np.max(all_mic_peaks)
-
-    def write_mic_files(mics, peak):
-        for i in range(len(mics)):
-            mics[i].write_to_file(peak, upper_frequency_limit)
-
-    write_mic_files(mics, best_peak)
+    Mic.write_mic_files(mics, upper_frequency_limit, normalize=True)
 
 # Structure of plot graph. Optional, only for visualization.
 plot_structure = [

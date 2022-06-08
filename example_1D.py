@@ -4,7 +4,7 @@ from pytARD_1D.interface import InterfaceData1D
 
 from common.parameters import SimulationParameters
 from common.impulse import Gaussian, Unit, WaveFile
-from common.microphone import Microphone
+from common.microphone import Microphone as Mic
 from common.plotter import Plotter
 
 import numpy as np
@@ -38,8 +38,8 @@ impulse_location = np.array([[int((c) / 4)]])
 
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want
 #impulse = Gaussian(sim_param, impulse_location, 10000)
-#impulse = Unit(sim_param, impulse_location, 1, cutoff_frequency=upper_frequency_limit)
-impulse = WaveFile(sim_param, impulse_location, 'common/impulse_files/clap_8000.wav', 1000)
+impulse = Unit(sim_param, impulse_location, 1, cutoff_frequency=upper_frequency_limit)
+#impulse = WaveFile(sim_param, impulse_location, 'common/impulse_files/clap_8000.wav', 1000)
 
 partitions = []
 partitions.append(AirPartition1D(np.array([c / 2]), sim_param, impulse))
@@ -53,7 +53,7 @@ interfaces.append(InterfaceData1D(0, 1))
 # Only gets used if the auralization option is enabled.
 if auralize:
     mics = []
-    mics.append(Microphone(
+    mics.append(Mic(
         0, # Parition number
         # Position
         [int(partitions[0].dimensions[0] / 2)], 
@@ -69,21 +69,7 @@ sim.simulation()
 
 # Find best peak to normalize mic signal and write mic signal to file
 if auralize:
-    def find_best_peak(mics):
-        peaks = []
-        for i in range(len(mics)):
-            peaks.append(np.max(mics[i].signal))
-        return np.max(peaks)
-
-    all_mic_peaks = []
-    all_mic_peaks.append(find_best_peak(mics))
-    best_peak = np.max(all_mic_peaks)
-
-    def write_mic_files(mics, peak):
-        for i in range(len(mics)):
-            mics[i].write_to_file(peak, upper_frequency_limit)
-
-    write_mic_files(mics, best_peak)
+    Mic.write_mic_files(mics, upper_frequency_limit, normalize=True)
 
 # Plotting waveform
 if visualize:
