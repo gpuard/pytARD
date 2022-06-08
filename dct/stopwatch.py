@@ -10,10 +10,10 @@ from cupy.fft.config import get_plan_cache
 import cupy
 mempool = cupy.get_default_memory_pool()
 
-# SAMPLES = np.linspace(1, 10**7, num=25, dtype=np.dtype(np.int32), endpoint=True)
+SAMPLES = np.linspace(10, 10**7, num=7, dtype=np.dtype(np.int32), endpoint=True)
 # SAMPLES += 1
-# SAMPLES = np.arange(1,10**7,10**5)
-SAMPLES = [10**k for k in range(2, 8)]
+# SAMPLES = np.arange(1,10**8,10**5)
+# SAMPLES = [10**k for k in range(1, 8)]
 # NUMBER_RUNS = 15
 NUMBER_RUNS = 15
 
@@ -26,7 +26,7 @@ gpu = []
 cpu = []
 s_dct = []
 # for s in SAMPLES:
-for s in SAMPLES:
+for s in SAMPLES[:-1]:
     print(s)
     samples_cases.append(s)
     x_cpu = generate_samples(s) # signal
@@ -94,22 +94,38 @@ fig, ax = plt.subplots()
 ax.grid()
 # ax.set_xscale('log')
 
+scale=1e6
+ax.plot(np.array(samples_cases)/scale,gpu,':')
+ax.scatter(np.array(samples_cases)/scale,gpu,marker='x',label='GPU FCT')
+ax.plot(np.array(samples_cases)/scale,cpu,':')
+ax.scatter(np.array(samples_cases)/scale,cpu,marker='x',label='CPU FCT')
+ax.plot(np.array(samples_cases)/scale,s_dct,':')
+ax.scatter(np.array(samples_cases)/scale,s_dct,marker='x',label='SciPy DCT')
 # ax.plot(np.array(samples_cases),gpu,':')
 # ax.scatter(np.array(samples_cases),gpu,marker='x',label='GPU FCT')
 # ax.plot(np.array(samples_cases),cpu,':')
 # ax.scatter(np.array(samples_cases),cpu,marker='x',label='CPU FCT')
 # ax.plot(np.array(samples_cases),s_dct,':')
 # ax.scatter(np.array(samples_cases),s_dct,marker='x',label='SciPy DCT')
-ax.plot(np.array(samples_cases)/1e6,gpu,':')
-ax.scatter(np.array(samples_cases)/1e6,gpu,marker='x',label='GPU FCT')
-ax.plot(np.array(samples_cases)/1e6,cpu,':')
-ax.scatter(np.array(samples_cases)/1e6,cpu,marker='x',label='CPU FCT')
-ax.plot(np.array(samples_cases)/1e6,s_dct,':')
-ax.scatter(np.array(samples_cases)/1e6,s_dct,marker='x',label='SciPy DCT')
 
-ax.set_xlabel(r'Anzahl Samples [$10^6$]')
+# ax.plot(np.array(samples_cases)/1e6,gpu,':')
+# ax.scatter(np.array(samples_cases)/1e6,gpu,marker='x',label='GPU FCT')
+# ax.plot(np.array(samples_cases)/1e6,cpu,':')
+# ax.scatter(np.array(samples_cases)/1e6,cpu,marker='x',label='CPU FCT')
+# ax.plot(np.array(samples_cases)/1e6,s_dct,':')
+# ax.scatter(np.array(samples_cases)/1e6,s_dct,marker='x',label='SciPy DCT')
+
+# ax.set_xlabel(r'Anzahl Samples')
+ax.set_xlabel(r'Anzahl Samples [x$10^6$]')
 ax.set_ylabel('Laufzeit [s]')
 # ax.set_title(f'Average of {NUMBER_RUNS} runs')
 ax.legend()
 fig.tight_layout()
-plt.savefig('cupy_25.png', dpi=300)
+plt.savefig('cupy_dpi150_equi.png', dpi=150)
+
+# 10
+# 1666675
+# 3333340
+# 5000005
+# 6666670
+# 8333335

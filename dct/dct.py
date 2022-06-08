@@ -68,10 +68,10 @@ class TestDCT(unittest.TestCase):
         
         times = []
         # for t in range(R):
-            tick = time.time()
-            gpu_res = cp.asnumpy(dct_gpu(x_gpu))
-            tack = time.time()
-            times.append(tack-tick)
+        tick = time.time()
+        gpu_res = cp.asnumpy(dct_gpu(x_gpu))
+        tack = time.time()
+        times.append(tack-tick)
         print('gpu:',np.average(times))
         
         times = []
