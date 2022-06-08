@@ -108,7 +108,7 @@ if auralize:
 
 # Structure of plot graph. Optional, only for visualization.
 plot_structure = [
-    # Structure: [Width of domain, height of domain, index of partition to plot on the graph (min: 1, max: width*height)]
+    # Structure: [Height of domain, width of domain, index of partition to plot on the graph (min: 1, max: width*height)]
     [3, 3, 5],
     [3, 3, 4],
     [3, 3, 6],
