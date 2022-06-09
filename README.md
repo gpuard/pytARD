@@ -8,15 +8,13 @@
  - **Python:** Python 3 required. Developed and tested on version 3.8.2 and 3.9.2. Older as well as newer versions should run with no problems.
 - **Required Python packages**: For core functionality, matplotlib 3.3.4, numpy 1.20.1, scipy 1.6.2 and 4.64.0 needs to be installed.
 ## Installation
-You can use `git pull` to pull this repository on your hard drive, alternative download this repository as a .zip file.
+You can use `git clone` to pull this repository on your hard drive, alternative download this repository as a .zip file.
 ## License
-This software is subject to the [GNocchi Alfredo AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.en.html). This software comes with no warranty.
+This software is subject to the [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.en.html). This software comes with no warranty.
 ## Acknowledgements
 If you find this software helpful, feel free to cite us.
 
-> [1] Corrodi, O., Fürbringer & S., Smailov, N. pytARD: A free and open
-> source Python room impulse response generator using Adaptive
-> Rectangular Decomposition (ARD).
+> [1] Corrodi, O., Fürbringer & S., Smailov, N.: GPU-based Time Domain Solver for Acoustic Wave Equation.
 
     @thesis{pytard2022,
         author = {Fürbringer, Severin and Corrodi, Oliver and Smailov, Nikita},
@@ -27,18 +25,18 @@ If you find this software helpful, feel free to cite us.
         type = {Bachelor's Thesis}
     }
 # Documentation
-pytARD comes with three different implementation to simulate 1D, 2D and 3D spaces.
+pytARD comes with three different implementations to simulate 1D, 2D and 3D spaces. For quick reference how to use the software, see `example_1D.py`, `example_2D.py` and `example_3D.py`.
 ## SimulationParameters
 Data container for defining simulation parameters.
 ```
 sim_param = SimulationParameters(
 	max_simulation_frequency=250,		# Highest frequency
-	T=1,								# Simulation duration
+	T=1,					# Simulation duration
 	spatial_samples_per_wave_length=6	# Discrete points per single wave length
-	c=343,								# Speed of sound
-	Fs=8000,							# Sample rate
-	verbose=True						# Console output
-	visualize=True						# Visualization of wave distribution
+	c=343,					# Speed of sound
+	Fs=8000,				# Sample rate
+	verbose=True				# Console output
+	visualize=True				# Visualization of wave distribution
 )
 ```
 ## Impulses
@@ -67,27 +65,29 @@ partition = AirPartition1D(room_width, sim_param, impulse)
 ```
 air_partition = AirPartition2D(
 	np.array([[4.0], [4.0]]), 	# Room width and height
-	sim_param, 					# SimulationParameters object
-	impulse=impulse)			# Impulse object
+	sim_param, 			# SimulationParameters object
+	impulse=impulse)		# Impulse object
 )
 ```
 #### 3D example
 ```
-air_partition = AirPartition3D(np.array([
-		[4], 		# X, width of partition
-		[4], 		# Y, depth of partition
-		[2] 		# Z, height of partition
+air_partition = AirPartition3D(
+	np.array([
+		[4], 	# X, width of partition
+		[4], 	# Y, depth of partition
+		[2] 	# Z, height of partition
 	]), 
-	sim_param,		# SimulationParameters object
+	sim_param,	# SimulationParameters object
 	impulse=impulse	# Impulse object
 )
 ```
 ### PML Partitions
 Perfectly Matched Layer (PML) partitions absorb sound energy depending on the damping profile and its reflection coefficient.
+**Important:** Please note that at this time, only 2D PML partitions are working. We're glad to have any kind of contribution.
 ```
 pml_partition = PMLPartition2D(
-	np.array([[1.0], [4.0]]), 	# Partition width and height
-	sim_param, 					# SimulationParameters object
+	np.array([[1.0], [4.0]]), # Partition width and height
+	sim_param, 		  # SimulationParameters object
 	dp)
 )
 ```
@@ -133,13 +133,13 @@ mic = Mic(
 Room Impulse Responses (RIRs) simulation using the Adaptive Rectangular Decomposition (ARD). For further details see [\[1\]](#Acknowledgements).
 ```
 sim = ARDSimulator3D(			# Can also be 2D and 1D 
-	sim_param, 					# SimulationParameters object
-	partitions, 				# List of Partition objects
+	sim_param, 			# SimulationParameters object
+	partitions, 			# List of Partition objects
 	interface_data=interfaces, 	# List of Interface objects
-	mics=mics 					# List of Microphone objects
+	mics=mics 			# List of Microphone objects
 )
-sim.preprocessing()				# Start preprocessing
-sim.simulation()				# Start the simulation
+sim.preprocessing()			# Start preprocessing
+sim.simulation()			# Start the simulation
 ```
 ## Plotter
 To visualize the wave distribution, a `Plotter` class is provided. 
