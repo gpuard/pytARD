@@ -1,6 +1,8 @@
 from pytARD_2D.ard import ARDSimulator2D
 from pytARD_2D.partition import AirPartition2D, PMLPartition2D, DampingProfile
-from pytARD_2D.interface import InterfaceData2D, Direction2D
+from pytARD_2D.interface import InterfaceData2D as Interface
+from pytARD_2D.interface import Direction2D as Direction
+
 
 from common.parameters import SimulationParameters
 from common.impulse import Gaussian, Unit, WaveFile
@@ -59,21 +61,21 @@ partitions.append(PMLPartition2D(np.array([[4.0], [1.0]]), sim_param, dp))
 
 # Interfaces of the room. Interfaces connect the partitions together
 interfaces = []
-interfaces.append(InterfaceData2D(1, 0, Direction2D.X))
-interfaces.append(InterfaceData2D(2, 0, Direction2D.X))
-interfaces.append(InterfaceData2D(3, 0, Direction2D.Y))
-interfaces.append(InterfaceData2D(4, 0, Direction2D.Y))
+interfaces.append(Interface(1, 0, Direction.X))
+interfaces.append(Interface(2, 0, Direction.X))
+interfaces.append(Interface(3, 0, Direction.Y))
+interfaces.append(Interface(4, 0, Direction.Y))
 
 # Microphones. Add and remove microphones here by copying or deleting mic objects.
 # Only gets used if the auralization option is enabled.
-if auralize:
-    mics = []
+mics = []
+if auralize:    
     mics.append(Mic(
         0,  # Parition number
         # Position
         [
-            int(1),
-            int(1)
+            1,
+            1
         ],
         sim_param,
         # Name of resulting wave file
@@ -84,7 +86,13 @@ if auralize:
 serializer = Serializer()
 
 # Instantiating and executing simulation
-sim = ARDSimulator2D(sim_param, partitions, 1, interfaces, mics)
+sim = ARDSimulator2D(
+    sim_param, 
+    partitions, 
+    normalization_factor=1, 
+    interface_data=interfaces, 
+    mics=mics
+)
 sim.preprocessing()
 sim.simulation()
 

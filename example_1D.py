@@ -1,6 +1,6 @@
 from pytARD_1D.ard import ARDSimulator1D
 from pytARD_1D.partition import AirPartition1D
-from pytARD_1D.interface import InterfaceData1D
+from pytARD_1D.interface import InterfaceData1D as Interface
 
 from common.parameters import SimulationParameters
 from common.impulse import Gaussian, Unit, WaveFile
@@ -19,7 +19,7 @@ c = 342 # m/s
 spatial_samples_per_wave_length = 6
 
 # Procedure parameters
-auralize = False
+auralize = True
 verbose = True
 visualize = True
 
@@ -47,13 +47,13 @@ partitions.append(AirPartition1D(np.array([c / 2]), sim_param, impulse))
 partitions.append(AirPartition1D(np.array([c / 2]), sim_param))
 
 interfaces = []
-interfaces.append(InterfaceData1D(0, 1))
+interfaces.append(Interface(0, 1))
 
 
 # Microphones. Add and remove microphones here by copying or deleting mic objects. 
 # Only gets used if the auralization option is enabled.
+mics = []
 if auralize:
-    mics = []
     mics.append(Mic(
         0, # Parition number
         # Position
@@ -64,7 +64,13 @@ if auralize:
 
 
 # Instantiating and executing simulation
-sim = ARDSimulator1D(sim_param, partitions, 1, interfaces)
+sim = ARDSimulator1D(
+    sim_param,
+    partitions,
+    normalization_factor=1,
+    interface_data=interfaces, 
+    mics=mics
+)
 sim.preprocessing()
 sim.simulation()
 

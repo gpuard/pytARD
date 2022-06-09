@@ -1,6 +1,8 @@
 from pytARD_3D.ard import ARDSimulator3D
 from pytARD_3D.partition import AirPartition3D, PMLPartition3D, DampingProfile
-from pytARD_3D.interface import InterfaceData3D, Direction3D
+from pytARD_3D.interface import InterfaceData3D as Interface
+from pytARD_3D.interface import Direction3D as Direction
+
 
 from common.parameters import SimulationParameters
 from common.impulse import Gaussian, Unit, WaveFile
@@ -36,13 +38,11 @@ sim_param = SimulationParameters(
     visualize=visualize
 )
 
-SCALE = 80 # Scale of room. Gets calculated by speed of sound divided by SCALE
-
 # Define impulse location
 impulse_location = np.array([
-    [int((c / SCALE) / 2)], # X, width
-    [int((c / SCALE) / 2)], # Y, depth
-    [int((c / SCALE) / 2)]  # Z, height
+    [2], # X, width
+    [2], # Y, depth
+    [2]  # Z, height
 ])
 
 # Define impulse location that gets emitted into the room
@@ -50,10 +50,8 @@ impulse_location = np.array([
 impulse = Unit(sim_param, impulse_location, 1, upper_frequency_limit - 1)
 # impulse = WaveFile(sim_param, impulse_location, 'clap.wav', 100) # Uncomment for wave file injection
 
-room_width = int(c / SCALE)
-
 # Damping profile with according Zetta value (how much is absorbed)
-dp = DampingProfile(room_width, c, 1e-3)
+dp = DampingProfile(4, c, 1e-3)
 
 partitions = []
 # Paritions of the room. Can be 1..n. Add or remove partitions here.
@@ -61,20 +59,20 @@ partitions = []
 # Also, you may provide impulse in the partition(s) of your choosing 
 # as the last, optinal parameter.
 partitions.append(AirPartition3D(np.array([
-    [room_width], # X, width
-    [room_width], # Y, depth
-    [room_width]  # Z, height
+    [4], # X, width
+    [4], # Y, depth
+    [2]  # Z, height
 ]), sim_param, impulse=impulse))
 
 partitions.append(AirPartition3D(np.array([
-    [room_width], # X, width
-    [room_width], # Y, depth
-    [room_width]  # Z, height
+    [4], # X, width
+    [4], # Y, depth
+    [2]  # Z, height
 ]), sim_param))
 
 # Interfaces of the room. Interfaces connect the room together
 interfaces = []
-interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
+interfaces.append(Interface(0, 1, Direction.X))
 
 # Initialize & position mics.
 mics = []
@@ -93,7 +91,13 @@ if auralize:
 serializer = Serializer()
 
 # Instantiating and executing simulation (don't change this)
-sim = ARDSimulator3D(sim_param, partitions, 1, interfaces, mics)
+sim = ARDSimulator3D(
+    sim_param, 
+    partitions, 
+    normalization_factor=1, 
+    interface_data=interfaces, 
+    mics=mics
+)
 sim.preprocessing()
 sim.simulation()
 
