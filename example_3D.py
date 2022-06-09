@@ -25,9 +25,6 @@ auralize= True
 visualize = True
 write_to_file = False
 
-# For Debug
-# np.seterr(all='raise')
-
 # Compilation of room parameters into parameter class (don't change this)
 sim_param = SimulationParameters(
     upper_frequency_limit, 

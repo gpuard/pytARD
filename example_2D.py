@@ -41,7 +41,7 @@ impulse_location = np.array([[2], [2]])
 
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want.
 #impulse = Gaussian(sim_param, impulse_location, 10000)
-impulse = Unit(sim_param, impulse_location, 1, 100)
+impulse = Unit(sim_param, impulse_location, 10000)
 #impulse = WaveFile(sim_param, impulse_location, 'clap_48000.wav', 1000)
 
 # Damping profile with according Zetta value (how much is absorbed)

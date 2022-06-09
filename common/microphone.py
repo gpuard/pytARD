@@ -26,9 +26,9 @@ class Microphone():
         '''
         self.partition_number = partition_number
         self.location = location
-        self.sim_param = sim_param
+        self.sim_param: SimulationParameters = sim_param
         self.signal = np.zeros(sim_param.number_of_samples)
-        self.name = name + ".wav"
+        self.name: str = name + ".wav"
 
     def record(self, sample: float, index: int):
         '''

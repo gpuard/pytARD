@@ -35,11 +35,11 @@ class AirPartition1D:
         # Longest room dimension length dividied by H (voxel grid spacing).
         self.space_divisions = int(dimensions[0] / self.h)
 
-        # Instantiate forces array, which corresponds to F in update rule (results of DCT computation). TODO: Elaborate more
+        # Instantiate forces array, which corresponds to F in update rule (results of DCT computation).
         self.forces: np.ndarray = None
 
         # Instantiate updated forces array. Combination of impulse and/or contribution of the interface.
-        # DCT of new_forces will be written into forces. TODO: Is that correct?
+        # DCT of new_forces will be written into forces.
         self.new_forces: np.ndarray = None
 
         # Impulse array which keeps track of impulses in space over time.

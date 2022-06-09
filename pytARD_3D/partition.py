@@ -434,11 +434,11 @@ class AirPartition3D(Partition3D):
         self.space_divisions_y: int = int(dimensions[1] / self.h_y)
         self.space_divisions_x: int = int(dimensions[0] / self.h_x)
 
-        # Instantiate forces array, which corresponds to F in update rule (results of DCT computation). TODO: Elaborate more
+        # Instantiate forces array, which corresponds to F in update rule (results of DCT computation).
         self.forces: np.ndarray = None
 
         # Instantiate updated forces array. Combination of impulse and/or contribution of the interface.
-        # DCT of new_forces will be written into forces. TODO: Is that correct?
+        # DCT of new_forces will be written into forces.
         self.new_forces: np.ndarray = None
 
         # Impulse array which keeps track of impulses in space over time.

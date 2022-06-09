@@ -10,6 +10,7 @@ from common.plotter import Plotter
 import numpy as np
 from datetime import date, datetime
 
+
 # Simulation parameters
 duration = 2 # seconds
 Fs = 8000 # sample rate
