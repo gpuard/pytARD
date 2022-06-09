@@ -106,7 +106,7 @@ It is required for all partitions to be collected in a `List` first. The indices
 domain = [
 	air_partition_1, # Index 0
 	air_partition_2, # Index 1
-	...				 # Index n
+	...		 # Index n
 ]
 ```
 An interface is defined by referencing above mentioned List indices. To connect the first two air partition together, their `List` indices are passed as parameters. Since interfaces need a direction (or axis) to travel through, the third parameter is either `Direction.X`, `Direction.Y` or `Direction.Z`
@@ -119,11 +119,11 @@ To auralize the simulation and create RIRs, virtual microphones are to be create
 Just like [interfaces](##Interfaces), the microphones needs to be mapped to the according partition `List` indices.
 ```
 mic = Mic(
-	0, 			# Parition number (partition list index)
-	[			# Positioning of microphone.
-		1,		# X coordinate of partition
-		1,		# Y coordinate of partition
-		1		# Z coordinate of partition
+	0, 		# Parition number (partition list index)
+	[		# Positioning of microphone:
+		1,	# X coordinate of partition
+		1,	# Y coordinate of partition
+		1	# Z coordinate of partition
 	],
 	sim_param,
 	"RIR"		# Name of resulting wave file
