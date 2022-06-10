@@ -64,9 +64,6 @@ interfaces = []
 interfaces.append(InterfaceData2D(0, 1, Direction2D.X)) # Horizontal Interface
 interfaces.append(InterfaceData2D(1, 2, Direction2D.Y)) # Vertical Interface
 
-
-title = ''
-
 mics = []
 
 sim = ARDSimulator2D(sim_param, partitions, 1, interfaces, mics)
@@ -77,12 +74,6 @@ if visualize:
     L = np.array([[1,1],[0,1]])
     pressure_field = PressureFieldAssembler().assemble2d(sim_param, partitions, L)
     
-    # pressure_field = []
-    # for t in range(sim_param.number_of_samples):
-    #     r0 = np.hstack([partitions[0].pressure_field_results[t], partitions[1].pressure_field_results[t]])
-    #     r1 = np.hstack([np.zeros_like(partitions[2].pressure_field_results[t]), partitions[2].pressure_field_results[t]])
-    #     pressure_field.append(np.vstack([r0,r1]))
-        
     fps = 30
     anim = AnimationPlotter().plot_2D(pressure_field,
                                       sim_param,
