@@ -9,7 +9,7 @@ from common.animation_plotter import AnimationPlotter, PressureFieldAssembler
 
 import numpy as np
 
-duration = 0.5  #  seconds
+duration = 1.5  #  seconds
 Fs = 630  # sample rate
 upper_frequency_limit = 60  # Hz
 c = 4  # m/s
