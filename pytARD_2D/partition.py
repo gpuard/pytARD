@@ -198,7 +198,7 @@ class PMLPartition2D(Partition2D) :
         shape_template = np.zeros(
             shape=[self.space_divisions_y, self.space_divisions_x])
 
-        # Instantiate force f to spectral domain array, which corresponds to 𝑓~. TODO: Elaborate more
+        # Instantiate force f to spectral domain array, which corresponds to 𝑓~. 
         self.new_forces = shape_template.copy()
 
         # Array, which stores air pressure at each given point in time in the voxelized grid
@@ -210,7 +210,7 @@ class PMLPartition2D(Partition2D) :
         # Array for pressure field results (auralisation and visualisation)
         self.p_new = shape_template.copy()
 
-        # See paper TODO: Make better documentation
+        # See paper
         self.phi_x = shape_template.copy()
         self.phi_x_new = shape_template.copy()
         self.phi_y = shape_template.copy()
@@ -374,11 +374,11 @@ class AirPartition2D(Partition2D):
         self.space_divisions_y: int = int(dimensions[1] / self.h_y)
         self.space_divisions_x: int = int(dimensions[0] / self.h_x)
 
-        # Instantiate force f to spectral domain array, which corresponds to 𝑓~. (results of DCT computation). TODO: Elaborate more
+        # Instantiate force f to spectral domain array, which corresponds to 𝑓~. (results of DCT computation). 
         self.forces: np.ndarray = None
 
         # Instantiate updated force f to spectral domain array. Combination of impulse and/or contribution of the interface.
-        # DCT of new_forces will be written into forces. TODO: Is that correct?
+        # DCT of new_forces will be written into forces. 
         self.new_forces: np.ndarray = None
 
         # Impulse array which keeps track of impulses in space over time.

@@ -103,16 +103,9 @@ test_sim = ARDS(sim_param, test_room, 1, interfaces, mics=test_mics)
 test_sim.preprocessing()
 test_sim.simulation()
 
-def find_best_peak(mics):
-    peaks = []
-    for i in range(len(mics)):
-        peaks.append(np.max(mics[i].signal))
-    return np.max(peaks)
-
-
 both_mic_peaks = []
-both_mic_peaks.append(find_best_peak(control_mics))
-both_mic_peaks.append(find_best_peak(test_mics))
+both_mic_peaks.append(Mic.find_peak_multiple_mics(control_mics))
+both_mic_peaks.append(Mic.find_peak_multiple_mics(test_mics))
 best_peak = np.max(both_mic_peaks)
 
 

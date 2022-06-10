@@ -1,6 +1,8 @@
 from pytARD_2D.ard import ARDSimulator2D
 from pytARD_2D.partition import AirPartition2D, PMLPartition2D, DampingProfile
-from pytARD_2D.interface import InterfaceData2D, Direction2D
+from pytARD_2D.interface import InterfaceData2D as Interface
+from pytARD_2D.interface import Direction2D as Direction
+
 
 from common.parameters import SimulationParameters
 from common.impulse import Gaussian, Unit, WaveFile
@@ -41,7 +43,7 @@ impulse_location = np.array([[2], [2]])
 
 # Define impulse that gets emitted into the room. Uncomment which kind of impulse you want.
 #impulse = Gaussian(sim_param, impulse_location, 10000)
-impulse = Unit(sim_param, impulse_location, 1, 100)
+impulse = Unit(sim_param, impulse_location, 10000)
 #impulse = WaveFile(sim_param, impulse_location, 'clap_48000.wav', 1000)
 
 # Damping profile with according Zetta value (how much is absorbed)
@@ -59,21 +61,21 @@ partitions.append(PMLPartition2D(np.array([[4.0], [1.0]]), sim_param, dp))
 
 # Interfaces of the room. Interfaces connect the partitions together
 interfaces = []
-interfaces.append(InterfaceData2D(1, 0, Direction2D.X))
-interfaces.append(InterfaceData2D(2, 0, Direction2D.X))
-interfaces.append(InterfaceData2D(3, 0, Direction2D.Y))
-interfaces.append(InterfaceData2D(4, 0, Direction2D.Y))
+interfaces.append(Interface(1, 0, Direction.X))
+interfaces.append(Interface(2, 0, Direction.X))
+interfaces.append(Interface(3, 0, Direction.Y))
+interfaces.append(Interface(4, 0, Direction.Y))
 
 # Microphones. Add and remove microphones here by copying or deleting mic objects.
 # Only gets used if the auralization option is enabled.
-if auralize:
-    mics = []
+mics = []
+if auralize:    
     mics.append(Mic(
         0,  # Parition number
         # Position
         [
-            int(1),
-            int(1)
+            1,
+            1
         ],
         sim_param,
         # Name of resulting wave file
@@ -84,31 +86,23 @@ if auralize:
 serializer = Serializer()
 
 # Instantiating and executing simulation
-sim = ARDSimulator2D(sim_param, partitions, 1, interfaces, mics)
+sim = ARDSimulator2D(
+    sim_param, 
+    partitions, 
+    normalization_factor=1, 
+    interface_data=interfaces, 
+    mics=mics
+)
 sim.preprocessing()
 sim.simulation()
 
 # Find best peak to normalize mic signal and write mic signal to file
 if auralize:
-    def find_best_peak(mics):
-        peaks = []
-        for i in range(len(mics)):
-            peaks.append(np.max(mics[i].signal))
-        return np.max(peaks)
-
-    all_mic_peaks = []
-    all_mic_peaks.append(find_best_peak(mics))
-    best_peak = np.max(all_mic_peaks)
-
-    def write_mic_files(mics, peak):
-        for i in range(len(mics)):
-            mics[i].write_to_file(peak, upper_frequency_limit)
-
-    write_mic_files(mics, best_peak)
+    Mic.write_mic_files(mics, upper_frequency_limit, normalize=True)
 
 # Structure of plot graph. Optional, only for visualization.
 plot_structure = [
-    # Structure: [Width of domain, height of domain, index of partition to plot on the graph (min: 1, max: width*height)]
+    # Structure: [Height of domain, width of domain, index of partition to plot on the graph (min: 1, max: width*height)]
     [3, 3, 5],
     [3, 3, 4],
     [3, 3, 6],

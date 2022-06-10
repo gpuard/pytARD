@@ -3,12 +3,13 @@ from common.parameters import SimulationParameters
 import numpy as np
 from matplotlib.animation import FuncAnimation, FFMpegWriter
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 from datetime import datetime
 
 
 class AnimationPlotter():
     '''
-    Plotting class with FFMPEG video support. 
+    Plotting class with FFMPEG video support. Mainly for verification purposes and not for productive use.
     Caution: The plotter is static and can be a bit of a chore to display everything correctly.
     You have to edit the code for each setup you want to display.
     '''
@@ -36,7 +37,7 @@ class AnimationPlotter():
             Z, Y, X of source location.
         direction : char
             Direction. Either None, x, y or z.
-        
+
         Returns
         -------
         tuple
@@ -65,9 +66,12 @@ class AnimationPlotter():
                 animation = AnimationPlotter.plot_1D(
                     p_t, sim_param, interval=0, video_output=False, file_name='')
 
-            p_x = [pressure_field[i][:, :, x] for i in range(len(pressure_field))]
-            p_y = [pressure_field[i][:, y, :] for i in range(len(pressure_field))]
-            p_z = [pressure_field[i][z, :, :] for i in range(len(pressure_field))]
+            p_x = [pressure_field[i][:, :, x]
+                   for i in range(len(pressure_field))]
+            p_y = [pressure_field[i][:, y, :]
+                   for i in range(len(pressure_field))]
+            p_z = [pressure_field[i][z, :, :]
+                   for i in range(len(pressure_field))]
 
             fig.suptitle(title, fontsize=14, fontweight='bold')
             text = fig.text(0.1, 0.9, '',  # X, Y; 1-top or right
@@ -123,7 +127,7 @@ class AnimationPlotter():
     @staticmethod
     def plot_2D(pressure_field: np.ndarray, sim_param: SimulationParameters, interval: int = 0, video_output: bool = False, file_name: str = ''):
         '''
-        Plots 3D domain in real-time with video output.
+        Plots 2D domain in real-time with video output.
 
         Parameters
         ----------
@@ -137,7 +141,7 @@ class AnimationPlotter():
             Displays the video on screen.
         file_name : str
             File name of video to write on disk.
-        
+
         Returns
         -------
         FuncAnimation
@@ -165,7 +169,7 @@ class AnimationPlotter():
             pass
 
         def update_plot(time_step):
-            time = sim_param.dt * time_step
+            time = sim_param.delta_t * time_step
             fig.suptitle("Time: %.2f sec" % time)
             im.set_data(pressure_field[time_step])
             return [im]
@@ -173,7 +177,7 @@ class AnimationPlotter():
         # keep the reference
         animation = FuncAnimation(fig,
                                   update_plot,
-                                  frames=sim_param.time_steps,
+                                  frames=sim_param.number_of_samples,
                                   init_func=init_func,
                                   interval=interval,  # Delay between frames in milliseconds
                                   blit=False)
@@ -198,7 +202,7 @@ class AnimationPlotter():
             Displays the video on screen.
         file_name : str
             File name of video to write on disk.
-        
+
         Returns
         -------
         FuncAnimation
@@ -256,3 +260,189 @@ class AnimationPlotter():
         animation.save(fileloc+filename,
                        dpi=300,
                        writer=writervideo)
+
+
+class PressureFieldAssembler():
+    '''
+    Assembly class for creating borderless video plots of wave distribution.
+    Mainly for verification purposes and not for productive use.
+    '''
+
+    @staticmethod
+    def assemble2d(sim_param, paritions, L):
+        '''
+        The function glues pressure fields of each partition for eacht time step 
+        under one pressure field matrix.
+
+        Parameters
+        ----------
+        sim_param : SimulationParameters
+            Parameter object of simulation.
+        partitions : list
+            List of Partition objects
+        L : ndarray
+            (mxn) matrix.
+            if L[i,j] = 1, pressure_field_results from paritions is taken
+            if L[i,j] = 0, use zero padding for (i,j)-partion position 
+        Returns
+        -------
+        ndarray
+            list of length = number of time steps, containing pressure field matrix for each time step.
+        '''
+
+        pressure_fields = PressureFieldAssembler().extract_pressure_fields(paritions)
+        pressure_fields = PressureFieldAssembler().fill_padding(pressure_fields, L)
+
+        F = []
+        for t in range(sim_param.number_of_samples):
+            # for partition in paritions:
+            data_t = []
+            for i, pf in enumerate(pressure_fields):
+                data_t.append(pf[t])
+            F.append(PressureFieldAssembler().glue(L, data_t))
+            del data_t
+        return F
+
+    @staticmethod
+    def glue(L, data):
+        '''
+        Glues pressure fields together.
+
+        Parameters
+        ----------
+        L : ndarray
+            (mxn) matrix.
+            if L[i,j] = 1, pressure_field_results from paritions is taken
+            if L[i,j] = 0, use zero padding for (i,j)-partion position 
+        data : ndarray
+            List conataining pressure fields(padded) for all time steps for each parition.
+
+        Returns
+        -------
+        M : ndarray
+            Glued matrix, represention the whole pressure field of the room, for each time step
+
+        '''
+        (y, x) = L.shape
+        rows = []
+        for j in range(y):
+            (f, t) = PressureFieldAssembler().get_row(l_ind=j, w=x)
+            rows.append(np.hstack(data[f:t]))
+        M = rows[0]
+        for j in range(1, y):
+            M = np.vstack([M, rows[j]])
+        return M
+
+    @staticmethod
+    def extract_pressure_fields(partitions):
+        pressure_fields = list()
+        for p in partitions:
+            pressure_fields.append(p.pressure_field_results)
+        return pressure_fields
+
+    @staticmethod
+    def extract_dimensions(pressure_fields, L):
+        '''
+        Parameters
+        ----------            .
+        pressure_fields : ndarray
+            Pressure field of partition
+        L : ndarray
+            (mxn) matrix.
+            if L[i,j] = 1, pressure_field_results from paritions is taken
+            if L[i,j] = 0, use zero padding for (i,j)-partion position 
+
+        Returns
+        -------
+        tuple
+            Tuple of two ndarrays: first matrix contains X dimesions of each parition; 
+            second matrix contains Y dimesions of each partitions.
+        '''
+        X = np.zeros_like(L.flatten())
+        Y = np.zeros_like(L.flatten())
+        p = 0
+        for i, padding in enumerate(L.flatten()):
+            if not padding:
+                (Y[i], X[i]) = pressure_fields[p][0].shape
+                p = p + 1
+        return (X.reshape(L.shape), Y.reshape(L.shape))
+
+    @staticmethod
+    def fill_padding_dimesion(X, Y):
+        '''
+        Fills dimesions for locations without partition with zeros.
+
+        Parameters
+        ----------
+        X : ndarray
+            Matrix with x-dimensions.
+        Y : ndarray
+            Matrix with y-dimensions.
+
+        Returns
+        -------
+        X : ndarray
+            Matrix with x-dimensions, where 0s are adjusted according to dimesion
+            of neighbour cells.
+        Y : ndarray
+            Matrix with y-dimensions, where 0s are adjusted according to dimesion
+            of neighbour cells.
+
+        '''
+        for c in range(X.shape[1]):
+            X[:, c] = X[:, c].max()
+        for r in range(Y.shape[1]):
+            Y[r, :] = Y[r, :].max()
+        return (X, Y)
+
+    @staticmethod
+    def fill_padding(pressure_fields, L):
+        '''
+        Locations in L which indicate the need of padding
+
+        Parameters
+        ----------
+        pressure_fields : ndarray
+            Pressure field of partition
+        L : ndarray
+            (mxn) matrix.
+            if L[i,j] = 1, pressure_field_results from paritions is taken
+            if L[i,j] = 0, use zero padding for (i,j)-partion position 
+
+        Returns
+        -------
+        ndarray
+            Padded pressure field.
+        '''
+        time_samples = (len(pressure_fields[0]))
+        (X, Y) = PressureFieldAssembler().extract_dimensions(pressure_fields, L)
+        (X, Y) = PressureFieldAssembler().fill_padding_dimesion(X, Y)
+        X = X.flatten()
+        Y = Y.flatten()
+        # Now padding is inserted
+        for i, nopadding in enumerate(L.flatten()):
+            if not nopadding:
+                pressure_fields.insert(
+                    i, [np.zeros((X[i], Y[i]))]*time_samples)
+        return pressure_fields
+
+    @staticmethod
+    def get_row(l_ind, w):
+        '''
+        Returns row.
+
+        Parameters
+        ----------
+        m : ndarray
+            Flattened matrix 
+        l_ind : int
+            Index of row
+        w : int
+            X-dimesion of matrix
+
+        Returns
+        -------
+        ndarray
+            a row of the flatten matrix
+        '''
+        return (l_ind*w, l_ind*w+w)

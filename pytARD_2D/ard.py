@@ -46,7 +46,7 @@ class ARDSimulator2D:
         # List of interfaces (InterfaceData objects)
         self.interface_data = interface_data
 
-        if interface_data[0].looped:
+        if interface_data and interface_data[0].looped:
             self.interfaces = Interface2DLooped(sim_param, partitions)
         else:
             self.interfaces = Interface2DStandard(sim_param, partitions)

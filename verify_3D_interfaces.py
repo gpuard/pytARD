@@ -98,6 +98,7 @@ elif TEST_KIND == 'all':
         [room_width],  # Y, depth
         [room_width]  # Z, height
     ]), sim_param))
+    
     interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
     interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
     interfaces.append(InterfaceData3D(0, 1, Direction3D.X))
