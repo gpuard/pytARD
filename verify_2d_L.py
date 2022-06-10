@@ -74,7 +74,6 @@ sim.preprocessing()
 sim.simulation()
 
 if visualize:
-    
     L = np.array([[1,1],[0,1]])
     pressure_field = PressureFieldAssembler().assemble2d(sim_param, partitions, L)
     
@@ -87,4 +86,6 @@ if visualize:
     fps = 30
     anim = AnimationPlotter().plot_2D(pressure_field,
                                       sim_param,
-                                      interval= 1000 / fps)  # in ms
+                                      interval= 1000 / fps, # in ms
+                                      video_output=True,
+                                      file_name='L-Room')  
