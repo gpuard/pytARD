@@ -1,4 +1,3 @@
-
 # pytARD
 **pytARD** is a free and open source Python room impulse response generator using Adaptive Rectangular Decomposition (ARD) for auralization and visualization of wave distribution and reverberation inside rooms.
 
